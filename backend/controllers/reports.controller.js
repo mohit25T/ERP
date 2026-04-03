@@ -144,7 +144,7 @@ export const getPartyStatement = async (req, res) => {
         ref: t._id,
         debit: type === "customer" ? Number(t.totalAmount || 0) : 0,
         credit: type === "supplier" ? Number(t.totalAmount || 0) : 0,
-        description: type === "customer" ? `Sales Invoice (Order #${t._id.slice(-6)})` : `Inward Stock (Pur #${t._id.slice(-6)})`
+        description: type === "customer" ? `Sales Invoice (Order #${String(t._id).slice(-6)})` : `Inward Stock (Pur #${String(t._id).slice(-6)})`
       })),
       ...payments.map(p => ({
         date: p.date,
@@ -152,7 +152,7 @@ export const getPartyStatement = async (req, res) => {
         ref: p._id,
         debit: type === "supplier" ? Number(p.amount || 0) : 0,
         credit: type === "customer" ? Number(p.amount || 0) : 0,
-        description: p.description || "Settlement / Receipt Payment"
+        description: p.description || `Settlement / Receipt (Ref #${String(p._id).slice(-6)})`
       }))
     ];
 
