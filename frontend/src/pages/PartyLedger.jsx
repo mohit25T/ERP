@@ -169,7 +169,7 @@ const PartyLedger = () => {
       <style>{`
         @media print {
           @page { size: A4; margin: 1cm; }
-          .main-app-content { display: none !important; }
+          .main-app-content, aside, header { display: none !important; }
           .printable-ledger-document { display: block !important; width: 100% !important; background: white !important; }
           body { background: white !important; }
           table { width: 100% !important; border-collapse: collapse !important; }
