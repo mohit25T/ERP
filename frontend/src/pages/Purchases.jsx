@@ -212,7 +212,11 @@ const Purchases = () => {
                          <div className="flex flex-col">
                             <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">SKU: {p.material?.sku}</span>
                             <span className="font-black text-gray-900 group-hover:text-orange-600 transition-colors uppercase tracking-tighter">{p.material?.name}</span>
-                            <span className="text-[10px] text-orange-500 font-bold uppercase">{p.material?.type === 'raw_material' ? '⛓️ Raw Material' : '📦 Finished Good'}</span>
+                            <div className="flex items-center gap-2 mt-1">
+                               <span className="text-[10px] text-orange-500 font-bold uppercase">{p.material?.type === 'raw_material' ? '⛓️ Raw Material' : '📦 Finished Good'}</span>
+                               <span className="w-1 h-1 bg-gray-200 rounded-full"></span>
+                               <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Stock: {p.material?.stock || 0}</span>
+                            </div>
                          </div>
                       </td>
                       <td className="px-8 py-6">
@@ -331,8 +335,16 @@ const Purchases = () => {
                      onChange={(e) => setFormData({...formData, material: e.target.value})}
                    >
                       <option value="">Choose Item...</option>
-                      {products.map(p => <option key={p._id} value={p._id}>{p.name} ({p.sku})</option>)}
+                      {products.map(p => <option key={p._id} value={p._id}>{p.name} (Stock: {p.stock})</option>)}
                    </select>
+                   {selectedProduct && (
+                      <div className="mt-2 ml-4 flex items-center gap-2">
+                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Available in Warehouse:</span>
+                         <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-lg ${selectedProduct.stock <= 5 ? "bg-red-50 text-red-600 border border-red-100" : "bg-gray-100 text-gray-600"}`}>
+                            {selectedProduct.stock} Units
+                         </span>
+                      </div>
+                   )}
                 </div>
 
                 <div className="col-span-2 md:col-span-1">
