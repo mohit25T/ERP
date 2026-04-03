@@ -72,24 +72,35 @@ const PartyLedger = () => {
   const handleExport = () => {
     if (!statement?.timeline) return;
     
-    const headers = "Date,Type,Description,Debit,Credit,Balance";
+    // CSV Header row
+    const headers = ["Date", "Type", "Description", "Debit", "Credit", "Balance"];
+    
+    // Format rows with double quotes to escape commas correctly
     const rows = statement.timeline.map(item => [
-      new Date(item.date).toLocaleDateString(),
-      item.type.toUpperCase(),
-      item.description,
-      item.debit,
-      item.credit,
-      item.balance
+      `"${new Date(item.date).toLocaleDateString()}"`,
+      `"${item.type.toUpperCase()}"`,
+      `"${item.description.replace(/"/g, '""')}"`, // Escape double quotes
+      `"${item.debit || 0}"`,
+      `"${item.credit || 0}"`,
+      `"${item.balance || 0}"`
     ].join(","));
     
-    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
-    const encodedUri = encodeURI(csvContent);
+    const csvString = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Statement_${party?.company || party?.name}_${new Date().toLocaleDateString()}.csv`);
+    link.href = url;
+    
+    // Sanitize filename to remove illegal '/' characters from dates
+    const safeDate = new Date().toLocaleDateString().replace(/\//g, "-");
+    const fileName = `Statement_${party?.company || party?.name || "Party"}_${safeDate}.csv`;
+    
+    link.setAttribute("download", fileName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   if (loading) return (
