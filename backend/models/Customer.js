@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import crypto from "crypto";
 
 const customerSchema = new mongoose.Schema(
   {
@@ -32,12 +33,12 @@ const customerSchema = new mongoose.Schema(
     shareToken: {
       type: String,
       unique: true,
+      sparse: true,
     },
   },
   { timestamps: true }
 );
 
-import crypto from "crypto";
 
 customerSchema.pre("save", function (next) {
   if (!this.shareToken) {

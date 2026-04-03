@@ -138,38 +138,41 @@ export const getPartyStatement = async (req, res) => {
       payments = await Ledger.find({ supplier: id }).lean();
     }
 
-    // Combine and Format with Safe Number Casting
+    // Combine and Format with Safe Number Casting & Missing Data Guard
     const combined = [
       ...transactions.map(t => ({
-        date: t.createdAt,
+        date: t.createdAt || new Date(),
         type: type === "customer" ? "invoice" : "purchase",
         ref: t._id,
         debit: type === "customer" ? Number(t.totalAmount || 0) : 0,
         credit: type === "supplier" ? Number(t.totalAmount || 0) : 0,
-        description: type === "customer" ? `Sales Invoice (Order #${String(t._id).slice(-6)})` : `Inward Stock (Pur #${String(t._id).slice(-6)})`
+        description: type === "customer" ? `Sales Invoice (Order #${String(t._id || 'N/A').slice(-6)})` : `Inward Stock (Pur #${String(t._id || 'N/A').slice(-6)})`
       })),
       ...payments.map(p => ({
-        date: p.date,
+        date: p.date || new Date(),
         type: "payment",
         ref: p._id,
         debit: type === "supplier" ? Number(p.amount || 0) : 0,
         credit: type === "customer" ? Number(p.amount || 0) : 0,
-        description: p.description || `Settlement / Receipt (Ref #${String(p._id).slice(-6)})`
+        description: p.description || `Settlement / Receipt (Ref #${String(p._id || 'N/A').slice(-6)})`
       }))
     ];
 
-    // Sort by Date
-    combined.sort((a, b) => new Date(a.date) - new Date(b.date));
+    // Sort by Date (Guaranteed Stability with Safe Date Objects)
+    combined.sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
 
-    // Calculate Running Balance with Absolute Logic
+    // Calculate Running Balance with Absolute Logic (Hardened against NaN)
     let runningBalance = 0;
     const timeline = combined.map(item => {
+       const debitValue = Number(item.debit || 0);
+       const creditValue = Number(item.credit || 0);
+
        if (type === "customer") {
-          runningBalance += (item.debit - item.credit);
+          runningBalance += (debitValue - creditValue);
        } else {
-          runningBalance += (item.credit - item.debit);
+          runningBalance += (creditValue - debitValue);
        }
-       return { ...item, balance: Number(runningBalance.toFixed(2)) };
+       return { ...item, balance: Number(Number(runningBalance).toFixed(2)) };
     });
 
     res.json({
@@ -215,33 +218,36 @@ export const getPublicStatement = async (req, res) => {
 
     const combined = [
       ...transactions.map(t => ({
-        date: t.createdAt,
+        date: t.createdAt || new Date(),
         type: type === "customer" ? "invoice" : "purchase",
         ref: t._id,
         debit: type === "customer" ? Number(t.totalAmount || 0) : 0,
         credit: type === "supplier" ? Number(t.totalAmount || 0) : 0,
-        description: type === "customer" ? `Sales Invoice (Order #${String(t._id).slice(-6)})` : `Inward Stock (Pur #${String(t._id).slice(-6)})`
+        description: type === "customer" ? `Sales Invoice (Order #${String(t._id || 'N/A').slice(-6)})` : `Inward Stock (Pur #${String(t._id || 'N/A').slice(-6)})`
       })),
       ...payments.map(p => ({
-        date: p.date,
+        date: p.date || new Date(),
         type: "payment",
         ref: p._id,
         debit: type === "supplier" ? Number(p.amount || 0) : 0,
         credit: type === "customer" ? Number(p.amount || 0) : 0,
-        description: p.description || `Settlement / Receipt (Ref #${String(p._id).slice(-6)})`
+        description: p.description || `Settlement / Receipt (Ref #${String(p._id || 'N/A').slice(-6)})`
       }))
     ];
 
-    combined.sort((a, b) => new Date(a.date) - new Date(b.date));
+    combined.sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
 
     let runningBalance = 0;
     const timeline = combined.map(item => {
+       const debitValue = Number(item.debit || 0);
+       const creditValue = Number(item.credit || 0);
+
        if (type === "customer") {
-          runningBalance += (item.debit - item.credit);
+          runningBalance += (debitValue - creditValue);
        } else {
-          runningBalance += (item.credit - item.debit);
+          runningBalance += (creditValue - debitValue);
        }
-       return { ...item, balance: Number(runningBalance.toFixed(2)) };
+       return { ...item, balance: Number(Number(runningBalance).toFixed(2)) };
     });
 
     res.json({

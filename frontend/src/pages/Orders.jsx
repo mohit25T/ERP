@@ -553,22 +553,29 @@ const Orders = () => {
            {paymentHistory.length === 0 ? (
              <div className="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
                 <AlertCircle className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">No receipt history found</p>
+                <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">No transaction history found</p>
              </div>
            ) : (
              <div className="relative border-l-4 border-gray-100 ml-6 space-y-10 py-2">
-                {paymentHistory.map((item, idx) => (
-                   <div key={item._id} className="relative pl-10 group">
-                      <div className="absolute -left-[14px] top-0 w-6 h-6 bg-white border-4 border-blue-600 rounded-full group-hover:scale-125 transition-transform shadow-sm"></div>
-                      <div>
-                         <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">
-                            {new Date(item.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
-                         </p>
-                         <h4 className="text-2xl font-black text-gray-900 tracking-tighter tabular-nums">₹{item.amount.toLocaleString()}</h4>
-                         <p className="text-xs font-bold text-gray-400 mt-1 italic leading-relaxed">"{item.description || 'No notes provided'}"</p>
+                {paymentHistory.map((item, idx) => {
+                   const isMilestone = item.type === 'milestone';
+                   return (
+                      <div key={item._id} className="relative pl-10 group animate-in fade-in slide-in-from-left duration-300">
+                         <div className={`absolute -left-[14px] top-0 w-6 h-6 bg-white border-4 rounded-full group-hover:scale-125 transition-transform shadow-sm ${isMilestone ? "border-indigo-600" : "border-emerald-500"}`}></div>
+                         <div>
+                            <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isMilestone ? "text-indigo-600" : "text-emerald-500"}`}>
+                               {new Date(item.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })} — {isMilestone ? 'Milestone' : 'Receipt'}
+                            </p>
+                            {isMilestone ? (
+                               <h4 className="text-xl font-black text-gray-900 tracking-tighter uppercase italic">{item.description}</h4>
+                            ) : (
+                               <h4 className="text-2xl font-black text-gray-900 tracking-tighter tabular-nums">₹{item.amount.toLocaleString()}</h4>
+                            )}
+                            {!isMilestone && <p className="text-xs font-bold text-gray-400 mt-1 italic leading-relaxed">"{item.description || 'No notes provided'}"</p>}
+                         </div>
                       </div>
-                   </div>
-                ))}
+                   );
+                })}
              </div>
            )}
            <button 

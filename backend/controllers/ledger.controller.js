@@ -1,6 +1,7 @@
 import Ledger from "../models/Ledger.js";
 import Order from "../models/Order.js";
 import Purchase from "../models/Purchase.js";
+import mongoose from "mongoose";
 
 // Record new Ledger Entry (Manual Income/Expense)
 export const createLedgerEntry = async (req, res) => {
@@ -60,13 +61,10 @@ export const createLedgerEntry = async (req, res) => {
 // Get all Ledger Entries (With precise filtering)
 export const getLedgerEntries = async (req, res) => {
   try {
-    const { order, purchase, customer, supplier } = req.query;
-    let query = {};
-    
-    if (order) query.order = order;
-    if (purchase) query.purchase = purchase;
-    if (customer) query.customer = customer;
-    if (supplier) query.supplier = supplier;
+    if (order && mongoose.Types.ObjectId.isValid(order)) query.order = order;
+    if (purchase && mongoose.Types.ObjectId.isValid(purchase)) query.purchase = purchase;
+    if (customer && mongoose.Types.ObjectId.isValid(customer)) query.customer = customer;
+    if (supplier && mongoose.Types.ObjectId.isValid(supplier)) query.supplier = supplier;
 
     const entries = await Ledger.find(query).populate("customer supplier").sort({ date: -1 });
     res.json(entries);
