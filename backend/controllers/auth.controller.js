@@ -55,6 +55,9 @@ export const loginStep1 = async (req, res) => {
     user.otpExpiry = otpExpiry;
     await user.save();
 
+    // DEBUG: Log OTP to server console (since email might be slow or failing)
+    console.log(`[AUTH DEBUG] OTP for Mobile ${mobile}: ${otp}`);
+
     // Send the OTP via Email to the user's registered email address
     await sendOtpEmail(user.email, otp);
 
