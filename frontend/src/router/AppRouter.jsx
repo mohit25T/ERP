@@ -25,6 +25,7 @@ const AppRouter = () => {
         <Route path="/purchases" element={<ProtectedRoute><Purchases /></ProtectedRoute>} />
         <Route path="/accounting" element={<ProtectedRoute><Accounting /></ProtectedRoute>} />
         <Route path="/payroll" element={<ProtectedRoute><Payroll /></ProtectedRoute>} />
+        <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
         <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
         <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
