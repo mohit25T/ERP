@@ -1,7 +1,8 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "https://erp-1-et0w.onrender.com",
+  // Backend URL MUST include the /api prefix
+  baseURL: "https://erp-1i9o.onrender.com/api",
 });
 
 api.interceptors.request.use((config) => {
@@ -9,6 +10,10 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  // Debugger: Logs the full URL in your browser console
+  console.log(`[ERP NETWORK DEBUG] Sending ${config.method?.toUpperCase()} to: ${config.baseURL}${config.url}`);
+  
   return config;
 });
 
