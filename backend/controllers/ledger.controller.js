@@ -5,16 +5,51 @@ import Purchase from "../models/Purchase.js";
 // Record new Ledger Entry (Manual Income/Expense)
 export const createLedgerEntry = async (req, res) => {
   try {
-    const { type, category, amount, description, customer, supplier, date } = req.body;
+    const { type, category, amount, description, customer, supplier, date, order, purchase } = req.body;
+    
+    // Financial Guard: Account-Wide Outstanding Validation
+    if (type === "income" && customer) {
+      const orders = await Order.find({ customer, status: { $ne: "cancelled" } });
+      const totalInvoiced = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+      
+      const previousPayments = await Ledger.find({ customer, type: "income" });
+      const totalPaid = previousPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+      
+      const outstanding = totalInvoiced - totalPaid;
+      if (Number(amount) > outstanding) {
+        return res.status(400).json({ 
+          error: `Cannot record receipt of ₹${amount}. Customer total account outstanding is only ₹${outstanding.toLocaleString()}.` 
+        });
+      }
+    }
+
+    if (type === "expense" && supplier) {
+      const purchases = await Purchase.find({ supplier, status: { $ne: "cancelled" } });
+      const totalInvoiced = purchases.reduce((sum, p) => sum + (p.totalAmount || 0), 0);
+      
+      const previousPayments = await Ledger.find({ supplier, type: "expense" });
+      const totalPaid = previousPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+      
+      const outstanding = totalInvoiced - totalPaid;
+      if (Number(amount) > outstanding) {
+        return res.status(400).json({ 
+          error: `Cannot record payment of ₹${amount}. Supplier total account outstanding is only ₹${outstanding.toLocaleString()}.` 
+        });
+      }
+    }
+
     const entry = new Ledger({
       type,
       category,
-      amount,
+      amount: Number(amount),
       description,
       customer: customer || undefined,
       supplier: supplier || undefined,
+      order: order || undefined,
+      purchase: purchase || undefined,
       date: date || new Date()
     });
+    
     await entry.save();
     res.status(201).json(entry);
   } catch (err) {
