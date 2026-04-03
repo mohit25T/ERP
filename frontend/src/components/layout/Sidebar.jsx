@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Package, Users, ShoppingCart, LayoutDashboard, X, Settings, Building2, Download, Wallet, Banknote } from "lucide-react";
+import { Package, Users, ShoppingCart, LayoutDashboard, X, Settings, Building2, Download, Wallet, Banknote, BarChart3 } from "lucide-react";
 const navItems = [
   { name: "Dashboard", path: "/", icon: LayoutDashboard },
   { name: "Inventory", path: "/products", icon: Package },
