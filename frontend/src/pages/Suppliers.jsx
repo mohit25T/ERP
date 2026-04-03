@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import AppLayout from "../components/layout/AppLayout";
-import { Plus, Search, Building2, Phone, Mail, MapPin, Trash2, Edit2, ShieldCheck, ExternalLink, CheckCircle2, XCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Plus, Search, Building2, Phone, Mail, MapPin, Trash2, Edit2, ShieldCheck, ExternalLink, CheckCircle2, XCircle, AlertCircle, Loader2, FileText } from "lucide-react";
 import Modal from "../components/common/Modal";
 import { api, gstApi } from "../api/erpApi";
 import { validateGSTIN } from "../utils/gstValidator";
@@ -217,20 +218,26 @@ const Suppliers = () => {
                         </div>
                       </td>
                       <td className="px-8 py-6 text-right pr-8">
-                         <div className="flex justify-end gap-2">
-                            <button 
-                              onClick={() => handleOpenModal(s)}
-                              className="p-3 bg-white border border-gray-100 rounded-xl text-gray-400 hover:text-purple-600 hover:border-purple-200 transition-all shadow-sm hover:shadow-xl hover:shadow-purple-500/10"
-                            >
-                               <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button 
-                              onClick={() => handleDelete(s._id)}
-                              className="p-3 bg-white border border-gray-100 rounded-xl text-gray-400 hover:text-red-600 hover:border-red-200 transition-all shadow-sm hover:shadow-xl hover:shadow-red-500/10"
-                            >
-                               <Trash2 className="w-4 h-4" />
-                            </button>
-                         </div>
+                          <div className="flex justify-end gap-2 text-right">
+                             <Link 
+                               to={`/reports/party/${s._id}?type=supplier`}
+                               className="p-3 bg-white border border-gray-100 rounded-xl text-gray-400 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm hover:shadow-xl hover:shadow-blue-500/10"
+                             >
+                                <FileText className="w-4 h-4" />
+                             </Link>
+                             <button 
+                               onClick={() => handleOpenModal(s)}
+                               className="p-3 bg-white border border-gray-100 rounded-xl text-gray-400 hover:text-purple-600 hover:border-purple-200 transition-all shadow-sm hover:shadow-xl hover:shadow-purple-500/10"
+                             >
+                                <Edit2 className="w-4 h-4" />
+                             </button>
+                             <button 
+                               onClick={() => handleDelete(s._id)}
+                               className="p-3 bg-white border border-gray-100 rounded-xl text-gray-400 hover:text-red-600 hover:border-red-200 transition-all shadow-sm hover:shadow-xl hover:shadow-red-500/10"
+                             >
+                                <Trash2 className="w-4 h-4" />
+                             </button>
+                          </div>
                       </td>
                     </tr>
                   ))}

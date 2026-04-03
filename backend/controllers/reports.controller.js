@@ -113,3 +113,65 @@ export const getBalanceSheet = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Unified Party Statement (Statement of Account)
+export const getPartyStatement = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { type } = req.query; // 'customer' or 'supplier'
+
+    let transactions = [];
+    let payments = [];
+
+    if (type === "customer") {
+      transactions = await Order.find({ customer: id, status: { $ne: "cancelled" } }).lean();
+      payments = await Ledger.find({ customer: id }).lean();
+    } else {
+      transactions = await Purchase.find({ supplier: id, status: { $ne: "cancelled" } }).lean();
+      payments = await Ledger.find({ supplier: id }).lean();
+    }
+
+    // Combine and Format
+    const combined = [
+      ...transactions.map(t => ({
+        date: t.createdAt,
+        type: type === "customer" ? "invoice" : "purchase",
+        ref: t._id,
+        debit: type === "customer" ? t.totalAmount : 0,
+        credit: type === "supplier" ? t.totalAmount : 0,
+        description: type === "customer" ? `Sales Order Recorded` : `Purchase Recorded`
+      })),
+      ...payments.map(p => ({
+        date: p.date,
+        type: "payment",
+        ref: p._id,
+        debit: type === "supplier" ? p.amount : 0,
+        credit: type === "customer" ? p.amount : 0,
+        description: p.description || "Payment Recorded"
+      }))
+    ];
+
+    // Sort by Date
+    combined.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    // Calculate Running Balance
+    let runningBalance = 0;
+    const timeline = combined.map(item => {
+       if (type === "customer") {
+          runningBalance += (item.debit - item.credit);
+       } else {
+          runningBalance += (item.credit - item.debit);
+       }
+       return { ...item, balance: runningBalance };
+    });
+
+    res.json({
+      partyId: id,
+      type,
+      timeline,
+      totalOutstanding: runningBalance
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

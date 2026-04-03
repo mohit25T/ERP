@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Package, Users, ShoppingCart, LayoutDashboard, X, Settings, Building2, Download, Wallet, Banknote, BarChart3 } from "lucide-react";
+import { Package, Users, ShoppingCart, LayoutDashboard, X, Settings, Building2, Download, Wallet, Banknote, BarChart3, FileText } from "lucide-react";
 const navItems = [
   { name: "Dashboard", path: "/", icon: LayoutDashboard },
   { name: "Inventory", path: "/products", icon: Package },
@@ -7,6 +7,7 @@ const navItems = [
   { name: "Inward Stock", path: "/purchases", icon: Download },
   { name: "Accounting", path: "/accounting", icon: Wallet },
   { name: "Reports", path: "/reports", icon: BarChart3 },
+  { name: "Party Ledger", path: "/reports/ledger", icon: FileText },
   { name: "Payroll", path: "/payroll", icon: Banknote },
   { name: "Customers", path: "/customers", icon: Users },
   { name: "Sales Orders", path: "/orders", icon: ShoppingCart },

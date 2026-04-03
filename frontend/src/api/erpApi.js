@@ -93,7 +93,8 @@ export const payrollApi = {
 export const reportsApi = {
   getGSTR1: (month, year) => api.get(`/reports/gstr1?month=${month}&year=${year}`),
   getGSTR3B: (month, year) => api.get(`/reports/gstr3b?month=${month}&year=${year}`),
-  getBalanceSheet: () => api.get("/reports/balance-sheet")
+  getBalanceSheet: () => api.get("/reports/balance-sheet"),
+  getPartyStatement: (id, type) => api.get(`/reports/party/${id}?type=${type}`)
 };
 
 export const gstApi = {

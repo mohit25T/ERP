@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import AppLayout from "../components/layout/AppLayout";
 import Modal from "../components/common/Modal";
 import CustomerForm from "../components/forms/CustomerForm";
@@ -158,6 +159,14 @@ const Customers = () => {
                   <div className="flex items-center text-sm text-gray-600">
                     <span className="w-16 font-medium">Phone:</span>
                     <span>{customer.phone || "N/A"}</span>
+                  </div>
+                  <div className="pt-2 border-t border-gray-50 flex justify-end">
+                     <Link 
+                       to={`/reports/party/${customer._id}?type=customer`}
+                       className="text-xs font-black italic text-blue-600 uppercase tracking-widest hover:underline underline-offset-4 decoration-2"
+                     >
+                       View Statement 📄
+                     </Link>
                   </div>
                 </div>
               </div>
