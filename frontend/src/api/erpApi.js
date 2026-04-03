@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "https://erp-1i9o.onrender.com",
 });
 
 api.interceptors.request.use((config) => {

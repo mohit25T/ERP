@@ -8,7 +8,8 @@ export default defineConfig({
     host: "0.0.0.0",
     allowedHosts: [
       "apexitworld.com",
-      "www.apexitworld.com"
+      "www.apexitworld.com",
+      "erp-1-et0w.onrender.com"
     ]
   }
 })
