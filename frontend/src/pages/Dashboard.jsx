@@ -125,8 +125,8 @@ const Dashboard = () => {
                   <option>Last Year</option>
                </select>
             </div>
-            <div className="h-[350px] w-full">
-              <ResponsiveContainer width="100%" height="100%" minHeight={350}>
+            <div className="h-[350px] w-full" style={{ minWidth: 0 }}>
+              <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={stats?.salesTrend}>
                   <defs>
                     <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
@@ -146,12 +146,12 @@ const Dashboard = () => {
               </ResponsiveContainer>
             </div>
           </div>
-
+ 
           {/* Category Distribution */}
           <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm flex flex-col">
             <h3 className="text-lg font-bold text-gray-800 mb-8">Inventory Mix</h3>
-            <div className="flex-1 flex items-center justify-center h-[250px] w-full">
-               <ResponsiveContainer width="100%" height="100%" minHeight={250}>
+            <div className="flex-1 flex items-center justify-center h-[250px] w-full" style={{ minWidth: 0 }}>
+               <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={stats?.categoryDistribution}

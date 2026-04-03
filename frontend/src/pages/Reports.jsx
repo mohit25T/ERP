@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import AppLayout from "../components/layout/AppLayout";
-import { reportsApi } from "../api/erpApi";
+import { 
+  reportsApi, 
+  ledgerApi 
+} from "../api/erpApi";
 import { 
   FileBox, 
   BarChart3, 
@@ -13,14 +16,35 @@ import {
   Layers,
   ShieldCheck,
   Building2,
-  Wallet
+  Wallet,
+  Download
 } from "lucide-react";
+
+// Utility: Build CSV and download
+const exportCSV = (data, filename) => {
+  if (!data || data.length === 0) return alert("No data available to export");
+  
+  const headers = Object.keys(data[0]).join(",");
+  const rows = data.map(obj => 
+    Object.values(obj).map(val => `"${val || ''}"`).join(",")
+  );
+  
+  const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `${filename}_${new Date().toLocaleDateString()}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 const Reports = () => {
   const [gstr1, setGstr1] = useState(null);
   const [gstr3b, setGstr3b] = useState(null);
   const [balanceSheet, setBalanceSheet] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [exportLoading, setExportLoading] = useState(false);
 
   // Filters
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -45,6 +69,53 @@ const Reports = () => {
       console.error("Failed to fetch reports", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportLedger = async () => {
+    try {
+      setExportLoading(true);
+      const res = await ledgerApi.getAll();
+      const flatData = res.data.map(item => ({
+        Date: new Date(item.date).toLocaleDateString(),
+        Type: item.type,
+        Category: item.category,
+        Amount: item.amount,
+        Taxable: item.taxableAmount,
+        GST: item.taxAmount,
+        Description: item.description,
+        Is_B2B: item.isB2B,
+        GSTIN: item.gstin || 'N/A'
+      }));
+      exportCSV(flatData, "Full_ERP_Ledger");
+    } catch (err) {
+      alert("Export failed");
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const handleDaybookExport = async () => {
+    try {
+      setExportLoading(true);
+      const res = await ledgerApi.getAll();
+      // Filter for currently selected month/year
+      const filtered = res.data.filter(item => {
+        const d = new Date(item.date);
+        return (d.getMonth() + 1) === selectedMonth && d.getFullYear() === selectedYear;
+      });
+      const flatData = filtered.map(item => ({
+        Date: new Date(item.date).toLocaleDateString(),
+        Type: item.type,
+        Category: item.category,
+        Amount: item.amount,
+        Description: item.description
+      }));
+      exportCSV(flatData, `Daybook_${months[selectedMonth-1]}`);
+    } catch (err) {
+      alert("Export failed");
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -105,7 +176,7 @@ const Reports = () => {
         <div className="lg:col-span-7 col-span-1 space-y-8">
            {/* GSTR-1 SECTION */}
            <div className="bg-white rounded-[3rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-8 text-blue-50/20 group-hover:text-blue-100 transition-colors pointer-events-none">
+              <div className="absolute top-0 right-0 p-8 text-blue-50/5 group-hover:text-blue-100/10 transition-colors pointer-events-none">
                  <BarChart3 className="w-32 h-32" />
               </div>
               
@@ -242,13 +313,21 @@ const Reports = () => {
 
            {/* Quick Export Cards */}
            <div className="grid grid-cols-2 gap-4">
-              <button className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all group">
-                 <FileText className="w-6 h-6 text-gray-400 mb-2 group-hover:text-blue-600 transition-colors" />
-                 <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">Export Ledger</span>
+              <button 
+                onClick={handleExportLedger}
+                disabled={exportLoading}
+                className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all group disabled:opacity-50"
+              >
+                 <Download className="w-6 h-6 text-gray-400 mb-2 group-hover:text-blue-600 transition-colors" />
+                 <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">{exportLoading ? "Exporting..." : "Export Ledger"}</span>
               </button>
-              <button className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all group">
+              <button 
+                onClick={handleDaybookExport}
+                disabled={exportLoading}
+                className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all group disabled:opacity-50"
+              >
                  <PieChart className="w-6 h-6 text-gray-400 mb-2 group-hover:text-blue-600 transition-colors" />
-                 <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">Daybook Analysis</span>
+                 <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">{exportLoading ? "Analyzing..." : "Daybook Analysis"}</span>
               </button>
            </div>
         </div>
