@@ -90,6 +90,12 @@ export const payrollApi = {
   delete: (id) => api.delete(`/payroll/${id}`)
 };
 
+export const reportsApi = {
+  getGSTR1: (month, year) => api.get(`/reports/gstr1?month=${month}&year=${year}`),
+  getGSTR3B: (month, year) => api.get(`/reports/gstr3b?month=${month}&year=${year}`),
+  getBalanceSheet: () => api.get("/reports/balance-sheet")
+};
+
 export const gstApi = {
   lookup: (gstin) => api.get(`/gst/lookup/${gstin}`)
 };

@@ -6,6 +6,7 @@ const navItems = [
   { name: "Suppliers", path: "/suppliers", icon: Building2 },
   { name: "Inward Stock", path: "/purchases", icon: Download },
   { name: "Accounting", path: "/accounting", icon: Wallet },
+  { name: "Reports", path: "/reports", icon: BarChart3 },
   { name: "Payroll", path: "/payroll", icon: Banknote },
   { name: "Customers", path: "/customers", icon: Users },
   { name: "Sales Orders", path: "/orders", icon: ShoppingCart },

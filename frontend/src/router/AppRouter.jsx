@@ -8,6 +8,7 @@ import Suppliers from "../pages/Suppliers";
 import Purchases from "../pages/Purchases";
 import Accounting from "../pages/Accounting";
 import Payroll from "../pages/Payroll";
+import Reports from "../pages/Reports";
 import Login from "../pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
 

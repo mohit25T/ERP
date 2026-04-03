@@ -50,6 +50,12 @@ const productSchema = new mongoose.Schema(
         },
       },
     ],
+    batchNumber: {
+      type: String,
+    },
+    expiryDate: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );

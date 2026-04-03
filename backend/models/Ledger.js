@@ -16,6 +16,25 @@ const ledgerSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    taxableAmount: {
+      type: Number,
+      default: 0,
+    },
+    taxRate: {
+      type: Number,
+      default: 0,
+    },
+    taxAmount: {
+      type: Number,
+      default: 0,
+    },
+    isB2B: {
+      type: Boolean,
+      default: false,
+    },
+    gstin: {
+      type: String,
+    },
     description: {
       type: String,
     },
