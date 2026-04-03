@@ -80,10 +80,41 @@ const Orders = () => {
     try {
       setFormLoading(true);
       const res = await paymentApi.getHistory("order", orderId);
-      setPaymentHistory(res.data);
+      const order = orders.find(o => o._id === orderId);
+      
+      // Build Unified Journey Timeline
+      const events = [
+        // 1. Birth: Order Placed
+        { 
+          _id: "birth", 
+          date: order.createdAt, 
+          type: 'milestone', 
+          amount: order.totalAmount,
+          description: "Order Placed - Commercial Journey Initialized" 
+        },
+        // 2. Pulse: Payments
+        ...res.data.map(p => ({ ...p, type: 'payment' }))
+      ];
+
+      // 3. Seal: Fulfillment (if complete)
+      if (order.status === 'completed') {
+        events.push({
+          _id: "completion",
+          date: order.updatedAt,
+          type: 'milestone',
+          amount: 0,
+          description: "Full Fulfillment - Logistics Closed"
+        });
+      }
+
+      // Sort Chronologically
+      events.sort((a, b) => new Date(a.date) - new Date(b.date));
+      
+      setPaymentHistory(events);
       setIsHistoryModalOpen(true);
     } catch (err) {
-      alert("Failed to fetch payment history");
+      console.error(err);
+      alert("Failed to fetch transaction timeline");
     } finally {
       setFormLoading(false);
     }

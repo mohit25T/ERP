@@ -102,10 +102,41 @@ const Purchases = () => {
     try {
       setFormLoading(true);
       const res = await paymentApi.getHistory("purchase", purchaseId);
-      setPaymentHistory(res.data);
+      const purchase = purchases.find(p => p._id === purchaseId);
+      
+      // Build Unified Journey Timeline
+      const events = [
+        // 1. Birth: Documentation
+        {
+          _id: "birth",
+          date: purchase.createdAt,
+          type: 'milestone',
+          amount: purchase.totalAmount,
+          description: "Inward Stock Documented - Procurement Initiated"
+        },
+        // 2. Pulse: Payments
+        ...res.data.map(p => ({ ...p, type: 'payment' }))
+      ];
+
+      // 3. Seal: Full Receipt (if received)
+      if (purchase.status === 'received') {
+        events.push({
+          _id: "completion",
+          date: purchase.receivedAt || purchase.updatedAt,
+          type: 'milestone',
+          amount: 0,
+          description: "Full Receipt Recorded - Inventory Updated"
+        });
+      }
+
+      // Sort Chronologically
+      events.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      setPaymentHistory(events);
       setIsHistoryModalOpen(true);
     } catch (err) {
-      alert("Failed to fetch payment history");
+      console.error(err);
+      alert("Failed to fetch transaction timeline");
     } finally {
       setFormLoading(false);
     }
