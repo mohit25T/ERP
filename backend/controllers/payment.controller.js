@@ -11,7 +11,16 @@ export const recordOrderPayment = async (req, res) => {
     const order = await Order.findById(id).populate("customer");
     if (!order) return res.status(404).json({ msg: "Order not found" });
 
-    order.amountPaid += Number(amount);
+    const currentPaid = Number(order.amountPaid || 0);
+    const outstanding = Number(order.totalAmount) - currentPaid;
+
+    if (Number(amount) > outstanding) {
+      return res.status(400).json({ 
+        error: `Cannot pay ₹${amount}. The remaining balance on this order is only ₹${outstanding.toLocaleString()}.` 
+      });
+    }
+
+    order.amountPaid = currentPaid + Number(amount);
     
     // Status Logic
     if (order.amountPaid >= order.totalAmount) {
@@ -49,7 +58,16 @@ export const recordPurchasePayment = async (req, res) => {
     const purchase = await Purchase.findById(id).populate("supplier");
     if (!purchase) return res.status(404).json({ msg: "Purchase not found" });
 
-    purchase.amountPaid += Number(amount);
+    const currentPaid = Number(purchase.amountPaid || 0);
+    const outstanding = Number(purchase.totalAmount) - currentPaid;
+
+    if (Number(amount) > outstanding) {
+      return res.status(400).json({ 
+        error: `Cannot pay ₹${amount}. The remaining balance on this purchase is only ₹${outstanding.toLocaleString()}.` 
+      });
+    }
+
+    purchase.amountPaid = currentPaid + Number(amount);
 
     // Status Logic
     if (purchase.amountPaid >= purchase.totalAmount) {

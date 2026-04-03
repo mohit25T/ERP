@@ -11,6 +11,7 @@ import Payroll from "../pages/Payroll";
 import Reports from "../pages/Reports";
 import PartyLedger from "../pages/PartyLedger";
 import Login from "../pages/Login";
+import PublicLedger from "../pages/PublicLedger";
 import ProtectedRoute from "./ProtectedRoute";
 
 const AppRouter = () => {
@@ -18,6 +19,7 @@ const AppRouter = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/public/ledger/:token" element={<PublicLedger />} />
         
         {/* Protected ERP Routing */}
         <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

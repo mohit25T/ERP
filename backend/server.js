@@ -15,6 +15,7 @@ import ledgerRoutes from "./routes/ledger.route.js";
 import staffRoutes from "./routes/staff.route.js";
 import payrollRoutes from "./routes/payroll.route.js";
 import reportRoutes from "./routes/reports.route.js";
+import publicRoutes from "./routes/public.route.js";
 
 dotenv.config();
 connectDB();
@@ -50,6 +51,7 @@ app.use("/api/ledger", ledgerRoutes);
 app.use("/api/staff", staffRoutes);
 app.use("/api/payroll", payrollRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/public", publicRoutes);
 
 // GST MOCK LOOKUP API (For Demonstration)
 app.get("/api/gst/lookup/:gstin", (req, res) => {

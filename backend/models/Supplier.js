@@ -29,9 +29,22 @@ const supplierSchema = new mongoose.Schema(
     address: {
       type: String,
     },
+    shareToken: {
+      type: String,
+      unique: true,
+    },
   },
   { timestamps: true }
 );
+
+import crypto from "crypto";
+
+supplierSchema.pre("save", function (next) {
+  if (!this.shareToken) {
+    this.shareToken = crypto.randomBytes(16).toString("hex");
+  }
+  next();
+});
 
 const Supplier = mongoose.model("Supplier", supplierSchema);
 

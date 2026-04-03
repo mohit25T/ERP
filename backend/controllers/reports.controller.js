@@ -2,6 +2,8 @@ import Order from "../models/Order.js";
 import Purchase from "../models/Purchase.js";
 import Ledger from "../models/Ledger.js";
 import Product from "../models/Product.js";
+import Customer from "../models/Customer.js";
+import Supplier from "../models/Supplier.js";
 import mongoose from "mongoose";
 
 // GSTR-1 Summary (Sales categorization)
@@ -172,6 +174,83 @@ export const getPartyStatement = async (req, res) => {
 
     res.json({
       partyId: id,
+      type,
+      timeline,
+      totalOutstanding: Number(runningBalance.toFixed(2))
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Publicly accessible Statement (Nexus Connect Portal)
+export const getPublicStatement = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    // Find Party by Token
+    let partyDoc = await Customer.findOne({ shareToken: token }).lean();
+    let type = "customer";
+
+    if (!partyDoc) {
+      partyDoc = await Supplier.findOne({ shareToken: token }).lean();
+      type = "supplier";
+    }
+
+    if (!partyDoc) {
+      return res.status(404).json({ error: "Invalid or expired ledger link." });
+    }
+
+    const id = partyDoc._id;
+    let transactions = [];
+    let payments = [];
+
+    if (type === "customer") {
+      transactions = await Order.find({ customer: id, status: { $ne: "cancelled" } }).lean();
+      payments = await Ledger.find({ customer: id }).lean();
+    } else {
+      transactions = await Purchase.find({ supplier: id, status: { $ne: "cancelled" } }).lean();
+      payments = await Ledger.find({ supplier: id }).lean();
+    }
+
+    const combined = [
+      ...transactions.map(t => ({
+        date: t.createdAt,
+        type: type === "customer" ? "invoice" : "purchase",
+        ref: t._id,
+        debit: type === "customer" ? Number(t.totalAmount || 0) : 0,
+        credit: type === "supplier" ? Number(t.totalAmount || 0) : 0,
+        description: type === "customer" ? `Sales Invoice (Order #${String(t._id).slice(-6)})` : `Inward Stock (Pur #${String(t._id).slice(-6)})`
+      })),
+      ...payments.map(p => ({
+        date: p.date,
+        type: "payment",
+        ref: p._id,
+        debit: type === "supplier" ? Number(p.amount || 0) : 0,
+        credit: type === "customer" ? Number(p.amount || 0) : 0,
+        description: p.description || `Settlement / Receipt (Ref #${String(p._id).slice(-6)})`
+      }))
+    ];
+
+    combined.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    let runningBalance = 0;
+    const timeline = combined.map(item => {
+       if (type === "customer") {
+          runningBalance += (item.debit - item.credit);
+       } else {
+          runningBalance += (item.credit - item.debit);
+       }
+       return { ...item, balance: Number(runningBalance.toFixed(2)) };
+    });
+
+    res.json({
+       party: {
+        name: partyDoc.name,
+        company: partyDoc.company,
+        address: partyDoc.address,
+        gstin: partyDoc.gstin
+      },
       type,
       timeline,
       totalOutstanding: Number(runningBalance.toFixed(2))

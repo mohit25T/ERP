@@ -101,4 +101,8 @@ export const gstApi = {
   lookup: (gstin) => api.get(`/gst/lookup/${gstin}`)
 };
 
+export const publicApi = {
+  getPublicLedger: (token) => api.get(`/public/ledger/${token}`)
+};
+
 export default api;

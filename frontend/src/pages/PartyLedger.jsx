@@ -12,7 +12,9 @@ import {
   ArrowUpRight, 
   ArrowDownRight,
   Printer,
-  Wallet
+  Wallet,
+  Share2,
+  Zap
 } from "lucide-react";
 
 const PartyLedger = () => {
@@ -25,6 +27,7 @@ const PartyLedger = () => {
   const [parties, setParties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -67,6 +70,14 @@ const PartyLedger = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleShare = () => {
+    if (!party?.shareToken) return;
+    const shareUrl = `${window.location.origin}/public/ledger/${party.shareToken}`;
+    navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleExport = () => {
@@ -303,6 +314,12 @@ const PartyLedger = () => {
            </div>
 
            <div className="flex items-center gap-3">
+              <button 
+                onClick={handleShare}
+                className={`px-6 py-3 border rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all shadow-sm ${copied ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-gray-100 text-blue-600 hover:bg-blue-50'}`}
+              >
+                 {copied ? "Link Copied!" : <><Zap className="w-4 h-4 fill-current" /> Share Live Portal</>}
+              </button>
               <button 
                 onClick={() => window.print()}
                 className="px-6 py-3 bg-white border border-gray-100 rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-500 hover:bg-gray-50 transition-all shadow-sm"
