@@ -7,6 +7,7 @@ import Orders from "../pages/Orders";
 import Suppliers from "../pages/Suppliers";
 import Purchases from "../pages/Purchases";
 import Accounting from "../pages/Accounting";
+import Payroll from "../pages/Payroll";
 import Login from "../pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -22,6 +23,7 @@ const AppRouter = () => {
         <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
         <Route path="/purchases" element={<ProtectedRoute><Purchases /></ProtectedRoute>} />
         <Route path="/accounting" element={<ProtectedRoute><Accounting /></ProtectedRoute>} />
+        <Route path="/payroll" element={<ProtectedRoute><Payroll /></ProtectedRoute>} />
         <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
         <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />

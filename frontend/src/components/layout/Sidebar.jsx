@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { Package, Users, ShoppingCart, LayoutDashboard, X, Settings, Building2, Download, Wallet } from "lucide-react";
+import { Package, Users, ShoppingCart, LayoutDashboard, X, Settings, Building2, Download, Wallet, Banknote } from "lucide-react";
 const navItems = [
   { name: "Dashboard", path: "/", icon: LayoutDashboard },
   { name: "Inventory", path: "/products", icon: Package },
   { name: "Suppliers", path: "/suppliers", icon: Building2 },
   { name: "Inward Stock", path: "/purchases", icon: Download },
   { name: "Accounting", path: "/accounting", icon: Wallet },
+  { name: "Payroll", path: "/payroll", icon: Banknote },
   { name: "Customers", path: "/customers", icon: Users },
   { name: "Sales Orders", path: "/orders", icon: ShoppingCart },
   { name: "Settings", path: "/settings", icon: Settings }

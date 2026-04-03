@@ -76,6 +76,20 @@ export const ledgerApi = {
   getSummary: () => api.get("/ledger/summary"),
 };
 
+export const staffApi = {
+  getAll: () => api.get("/staff"),
+  create: (data) => api.post("/staff", data),
+  update: (id, data) => api.put(`/staff/${id}`, data),
+  delete: (id) => api.delete(`/staff/${id}`)
+};
+
+export const payrollApi = {
+  getAll: (month, year) => api.get(`/payroll?month=${month}&year=${year}`),
+  create: (data) => api.post("/payroll", data),
+  paySalary: (id) => api.put(`/payroll/${id}/pay`),
+  delete: (id) => api.delete(`/payroll/${id}`)
+};
+
 export const gstApi = {
   lookup: (gstin) => api.get(`/gst/lookup/${gstin}`)
 };
