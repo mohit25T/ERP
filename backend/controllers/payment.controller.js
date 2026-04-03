@@ -2,6 +2,24 @@ import Order from "../models/Order.js";
 import Purchase from "../models/Purchase.js";
 import Ledger from "../models/Ledger.js";
 
+// Helper: Calculate Global Account Outstanding for a Party
+const getAccountOutstanding = async (partyId, type) => {
+  if (type === "customer") {
+    const orders = await Order.find({ customer: partyId, status: { $ne: "cancelled" } });
+    const totalInvoiced = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const payments = await Ledger.find({ customer: partyId, type: "income" });
+    const totalReceived = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    return totalInvoiced - totalReceived;
+  } else {
+    const purchases = await Purchase.find({ supplier: partyId, status: { $ne: "cancelled" } });
+    const totalPurchased = purchases.reduce((sum, p) => sum + (p.totalAmount || 0), 0);
+    const payments = await Ledger.find({ supplier: partyId, type: "expense" });
+    const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    return totalPurchased - totalPaid;
+  }
+};
+
+
 // Record Payment for Order (Receivable)
 export const recordOrderPayment = async (req, res) => {
   try {
@@ -11,16 +29,26 @@ export const recordOrderPayment = async (req, res) => {
     const order = await Order.findById(id).populate("customer");
     if (!order) return res.status(404).json({ msg: "Order not found" });
 
-    const currentPaid = Number(order.amountPaid || 0);
-    const outstanding = Number(order.totalAmount) - currentPaid;
+    const currentBillPaid = Number(order.amountPaid || 0);
+    const billOutstanding = Number(order.totalAmount) - currentBillPaid;
 
-    if (Number(amount) > outstanding) {
+    // Step 2: Global Account Outstanding
+    const accountOutstanding = await getAccountOutstanding(order.customer?._id, "customer");
+
+    if (Number(amount) > billOutstanding) {
       return res.status(400).json({ 
-        error: `Cannot pay ₹${amount}. The remaining balance on this order is only ₹${outstanding.toLocaleString()}.` 
+        error: `Cannot pay ₹${amount}. The remaining balance on this specific bill is only ₹${billOutstanding.toLocaleString()}.` 
       });
     }
 
-    order.amountPaid = currentPaid + Number(amount);
+    if (Number(amount) > accountOutstanding) {
+      return res.status(400).json({ 
+        error: `Cannot pay ₹${amount}. While this bill has ₹${billOutstanding.toLocaleString()} left, the total account outstanding (after existing receipts) is only ₹${accountOutstanding.toLocaleString()}.` 
+      });
+    }
+
+    order.amountPaid = currentBillPaid + Number(amount);
+
     
     // Status Logic
     if (order.amountPaid >= order.totalAmount) {
@@ -58,16 +86,26 @@ export const recordPurchasePayment = async (req, res) => {
     const purchase = await Purchase.findById(id).populate("supplier");
     if (!purchase) return res.status(404).json({ msg: "Purchase not found" });
 
-    const currentPaid = Number(purchase.amountPaid || 0);
-    const outstanding = Number(purchase.totalAmount) - currentPaid;
+    const currentBillPaid = Number(purchase.amountPaid || 0);
+    const billOutstanding = Number(purchase.totalAmount) - currentBillPaid;
 
-    if (Number(amount) > outstanding) {
+    // Step 2: Global Account Outstanding
+    const accountOutstanding = await getAccountOutstanding(purchase.supplier?._id, "supplier");
+
+    if (Number(amount) > billOutstanding) {
       return res.status(400).json({ 
-        error: `Cannot pay ₹${amount}. The remaining balance on this purchase is only ₹${outstanding.toLocaleString()}.` 
+        error: `Cannot pay ₹${amount}. The remaining balance on this specific purchase is only ₹${billOutstanding.toLocaleString()}.` 
       });
     }
 
-    purchase.amountPaid = currentPaid + Number(amount);
+    if (Number(amount) > accountOutstanding) {
+      return res.status(400).json({ 
+        error: `Cannot pay ₹${amount}. While this purchase has ₹${billOutstanding.toLocaleString()} left, the total account payable (after existing payments) is only ₹${accountOutstanding.toLocaleString()}.` 
+      });
+    }
+
+    purchase.amountPaid = currentBillPaid + Number(amount);
+
 
     // Status Logic
     if (purchase.amountPaid >= purchase.totalAmount) {
