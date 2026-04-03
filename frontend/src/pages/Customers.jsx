@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AppLayout from "../components/layout/AppLayout";
+import Modal from "../components/common/Modal";
+import CustomerForm from "../components/forms/CustomerForm";
 import { customerApi } from "../api/erpApi";
 import { Plus, Search, Users as UsersIcon, Edit2, Trash2 } from "lucide-react";
 
@@ -7,6 +9,11 @@ const Customers = () => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [formLoading, setFormLoading] = useState(false);
 
   const fetchCustomers = async () => {
     try {
@@ -24,6 +31,40 @@ const Customers = () => {
     fetchCustomers();
   }, []);
 
+  const handleOpenAdd = () => {
+    setEditingCustomer(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (customer) => {
+    setEditingCustomer(customer);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (data) => {
+    try {
+      setFormLoading(true);
+      if (editingCustomer) {
+        await customerApi.update(editingCustomer._id, data);
+      } else {
+        await customerApi.create(data);
+      }
+      setIsModalOpen(false);
+      fetchCustomers();
+    } catch (err) {
+      alert("Error saving customer: " + (err.response?.data?.msg || err.message));
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this customer?")) {
+      await customerApi.delete(id);
+      fetchCustomers();
+    }
+  };
+
   const filteredCustomers = customers.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -36,11 +77,27 @@ const Customers = () => {
           <h2 className="text-2xl font-bold text-gray-900">Customers (CRM)</h2>
           <p className="text-sm text-gray-500 mt-1">Manage your customer relationships and contacts.</p>
         </div>
-        <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm font-medium">
+        <button 
+          onClick={handleOpenAdd}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm font-medium"
+        >
           <Plus className="w-4 h-4 mr-2" />
           Add Customer
         </button>
       </div>
+
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        title={editingCustomer ? "Edit Customer" : "New Customer"}
+      >
+        <CustomerForm 
+          initialData={editingCustomer} 
+          onSubmit={handleSubmit} 
+          onCancel={() => setIsModalOpen(false)} 
+          loading={formLoading}
+        />
+      </Modal>
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-gray-100">
@@ -78,8 +135,17 @@ const Customers = () => {
                     </div>
                   </div>
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                     <button className="p-1.5 text-gray-400 hover:text-blue-600 rounded">
+                     <button 
+                       onClick={() => handleOpenEdit(customer)}
+                       className="p-1.5 text-gray-400 hover:text-blue-600 rounded"
+                     >
                         <Edit2 className="w-4 h-4" />
+                     </button>
+                     <button 
+                       onClick={() => handleDelete(customer._id)}
+                       className="p-1.5 text-gray-400 hover:text-red-600 rounded"
+                     >
+                        <Trash2 className="w-4 h-4" />
                      </button>
                   </div>
                 </div>

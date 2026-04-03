@@ -13,6 +13,10 @@ const userSchema = new mongoose.Schema(
       enum: ["super_admin", "admin", "manager", "worker"],
       default: "worker",
     },
+    gstin: { type: String, default: "" },
+    companyName: { type: String, default: "" },
+    address: { type: String, default: "" },
+    state: { type: String, default: "" },
   },
   { timestamps: true }
 );

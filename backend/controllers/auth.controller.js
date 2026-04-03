@@ -15,12 +15,15 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const userCount = await User.countDocuments();
+    const roleToSet = userCount === 0 ? "super_admin" : (role || "worker");
+
     const user = await User.create({
       name,
       email,
       mobile,
       password: hashedPassword,
-      role,
+      role: roleToSet,
     });
 
     res.json({ msg: "User registered successfully", user: { id: user._id, name: user.name, mobile: user.mobile } });
@@ -90,7 +93,42 @@ export const loginStep2 = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.json({ token, user: { id: user._id, name: user.name, role: user.role, email: user.email, mobile: user.mobile } });
+    res.json({ token, user: { id: user._id, name: user.name, role: user.role, email: user.email, mobile: user.mobile, gstin: user.gstin, state: user.state, companyName: user.companyName, address: user.address } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Change Password
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user.id);
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: "Current password does not match" });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.json({ msg: "Password updated successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Update Profile
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, gstin, companyName, address, state } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { name, gstin, companyName, address, state },
+      { new: true }
+    );
+    res.json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

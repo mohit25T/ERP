@@ -10,12 +10,10 @@ import { authMiddleware, adminMiddleware } from "../middleware/auth.middleware.j
 const router = express.Router();
 
 // Routes
-router.route("/")
-  .get(authMiddleware, getProducts)
-  .post(authMiddleware, adminMiddleware, createProduct);
+router.get("/", authMiddleware, getProducts);
+router.post("/", authMiddleware, adminMiddleware, createProduct);
 
-router.route("/:id")
-  .put(authMiddleware, adminMiddleware, updateProduct)
-  .delete(authMiddleware, adminMiddleware, deleteProduct);
+router.put("/:id", authMiddleware, adminMiddleware, updateProduct);
+router.delete("/:id", authMiddleware, adminMiddleware, deleteProduct);
 
 export default router;

@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
 
-const orderSchema = new mongoose.Schema(
+const purchaseSchema = new mongoose.Schema(
   {
-    customer: {
+    supplier: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Customer",
+      ref: "Supplier",
       required: true,
     },
-    product: {
+    material: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
       required: true,
@@ -16,15 +16,15 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    totalAmount: {
-      type: Number,
-      required: true,
-    },
     taxableAmount: {
       type: Number,
       default: 0,
     },
     gstAmount: {
+      type: Number,
+      default: 0,
+    },
+    totalAmount: {
       type: Number,
       default: 0,
     },
@@ -40,15 +40,9 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    hsnCode: {
-      type: String,
-    },
-    customerGstin: {
-      type: String,
-    },
     status: {
       type: String,
-      enum: ["pending", "in_progress", "shipped", "completed", "cancelled", "refunded"],
+      enum: ["pending", "received", "cancelled"],
       default: "pending",
     },
     amountPaid: {
@@ -60,13 +54,13 @@ const orderSchema = new mongoose.Schema(
       enum: ["unpaid", "partial", "paid"],
       default: "unpaid",
     },
-    dueDate: {
+    receivedAt: {
       type: Date,
     },
   },
   { timestamps: true }
 );
 
-const Order = mongoose.model("Order", orderSchema);
+const Purchase = mongoose.model("Purchase", purchaseSchema);
 
-export default Order;
+export default Purchase;

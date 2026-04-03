@@ -19,9 +19,10 @@ export const authMiddleware = (req, res, next) => {
 };
 
 export const adminMiddleware = (req, res, next) => {
-  if (req.user && req.user.role === "admin") {
+  const allowedRoles = ["admin", "super_admin"];
+  if (req.user && allowedRoles.includes(req.user.role)) {
     next();
   } else {
-    res.status(403).json({ msg: "Not authorized as admin" });
+    res.status(403).json({ msg: "Not authorized. This action requires administrative privileges." });
   }
 };

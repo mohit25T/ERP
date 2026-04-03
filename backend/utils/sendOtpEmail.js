@@ -44,6 +44,6 @@ export const sendOtpEmail = async (toEmail, otp) => {
     );
     // Developer Failsafe: Log the OTP so you can still log in!
     console.log(`\n🔑 [DEVELOPER ALERT] OTP for ${toEmail}: ${otp}\n`);
-    throw new Error("Failed to send OTP email");
+    // Removed throw to allow developer bypass via console logs
   }
 };

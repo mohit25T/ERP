@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: "http://localhost:5000/api",
 });
 
@@ -26,6 +26,19 @@ export const customerApi = {
   delete: (id) => api.delete(`/customers/${id}`)
 };
 
+export const supplierApi = {
+  getAll: () => api.get("/suppliers"),
+  create: (data) => api.post("/suppliers", data),
+  update: (id, data) => api.put(`/suppliers/${id}`, data),
+  delete: (id) => api.delete(`/suppliers/${id}`)
+};
+
+export const purchaseApi = {
+  getAll: () => api.get("/purchases"),
+  create: (data) => api.post("/purchases", data),
+  updateStatus: (id, status) => api.put(`/purchases/${id}/status`, { status })
+};
+
 export const orderApi = {
   getAll: () => api.get("/orders"),
   create: (data) => api.post("/orders", data),
@@ -35,7 +48,31 @@ export const orderApi = {
 export const authApi = {
   loginStep1: (data) => api.post("/auth/login-step1", data),
   loginStep2: (data) => api.post("/auth/login-step2", data),
-  register: (data) => api.post("/auth/register", data)
+  register: (data) => api.post("/auth/register", data),
+  updateProfile: (data) => api.put("/auth/profile", data),
+  changePassword: (data) => api.post("/auth/change-password", data),
+};
+
+export const dashboardApi = {
+  getStats: () => api.get("/dashboard/stats"),
+  getFinancialSummary: () => api.get("/payments/summary"),
+  getPnLSummary: () => api.get("/ledger/summary")
+};
+
+export const paymentApi = {
+  getSummary: () => api.get("/payments/summary"),
+  addOrderPayment: (id, data) => api.post(`/payments/order/${id}`, data),
+  addPurchasePayment: (id, data) => api.post(`/payments/purchase/${id}`, data),
+  getHistory: (type, id) => api.get(`/ledger?${type}=${id}`),
+};
+
+export const ledgerApi = {
+  getAll: () => api.get("/ledger"),
+  getSummary: () => api.get("/ledger/summary"),
+};
+
+export const gstApi = {
+  lookup: (gstin) => api.get(`/gst/lookup/${gstin}`)
 };
 
 export default api;

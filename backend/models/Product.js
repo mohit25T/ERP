@@ -24,6 +24,32 @@ const productSchema = new mongoose.Schema(
     category: {
       type: String,
     },
+    type: {
+      type: String,
+      enum: ["raw_material", "finished_good"],
+      default: "finished_good",
+    },
+    hsnCode: {
+      type: String,
+      default: "",
+    },
+    gstRate: {
+      type: Number, // Example: 18 (for 18%)
+      default: 18,
+    },
+    bom: [
+      {
+        material: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+        },
+        quantity: {
+          type: Number,
+          required: true,
+          default: 1,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

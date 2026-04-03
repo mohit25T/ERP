@@ -1,8 +1,11 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import Sidebar from "./Sidebar";
 
 const AppLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
@@ -19,10 +22,15 @@ const AppLayout = ({ children }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <h1 className="ml-4 text-xl font-bold text-gray-800 hidden md:block">ERP System</h1>
+            <h1 className="ml-4 text-xl font-bold text-gray-800 hidden md:block uppercase tracking-tighter">Nexus ERP</h1>
           </div>
           <div className="flex items-center space-x-4">
-             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-sm">A</div>
+             <Link 
+               to="/settings"
+               className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-sm shadow-lg shadow-blue-500/20 hover:scale-110 transition-transform active:scale-95"
+             >
+               {user?.name?.charAt(0).toUpperCase() || 'A'}
+             </Link>
           </div>
         </header>
 
