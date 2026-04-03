@@ -11,7 +11,8 @@ import {
   Building2, 
   ArrowUpRight, 
   ArrowDownRight,
-  Printer
+  Printer,
+  Wallet
 } from "lucide-react";
 
 const PartyLedger = () => {
