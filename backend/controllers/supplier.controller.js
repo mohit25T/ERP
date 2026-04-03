@@ -20,6 +20,17 @@ export const getSuppliers = async (req, res) => {
   }
 };
 
+// Get Supplier by ID
+export const getSupplierById = async (req, res) => {
+  try {
+    const supplier = await Supplier.findById(req.params.id);
+    if (!supplier) return res.status(404).json({ msg: "Supplier not found" });
+    res.json(supplier);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // Update Supplier
 export const updateSupplier = async (req, res) => {
   try {

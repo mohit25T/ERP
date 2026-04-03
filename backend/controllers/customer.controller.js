@@ -20,6 +20,17 @@ export const getCustomers = async (req, res) => {
   }
 };
 
+// Get Customer by ID
+export const getCustomerById = async (req, res) => {
+  try {
+    const customer = await Customer.findById(req.params.id);
+    if (!customer) return res.status(404).json({ msg: "Customer not found" });
+    res.json(customer);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // Update Customer
 export const updateCustomer = async (req, res) => {
   try {

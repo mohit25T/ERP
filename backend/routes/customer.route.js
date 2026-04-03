@@ -2,6 +2,7 @@ import express from "express";
 import {
   createCustomer,
   getCustomers,
+  getCustomerById,
   updateCustomer,
   deleteCustomer,
 } from "../controllers/customer.controller.js";
@@ -16,6 +17,7 @@ router.route("/")
   .post(createCustomer);
 
 router.route("/:id")
+  .get(getCustomerById)
   .put(updateCustomer)
   .delete(deleteCustomer);
 

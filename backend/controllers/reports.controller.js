@@ -2,6 +2,7 @@ import Order from "../models/Order.js";
 import Purchase from "../models/Purchase.js";
 import Ledger from "../models/Ledger.js";
 import Product from "../models/Product.js";
+import mongoose from "mongoose";
 
 // GSTR-1 Summary (Sales categorization)
 export const getGSTR1 = async (req, res) => {
@@ -119,6 +120,10 @@ export const getPartyStatement = async (req, res) => {
   try {
     const { id } = req.params;
     const { type } = req.query; // 'customer' or 'supplier'
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "Invalid Party ID format" });
+    }
 
     let transactions = [];
     let payments = [];
