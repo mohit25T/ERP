@@ -92,7 +92,8 @@ const Orders = () => {
   const handlePercentChange = (percent) => {
     setPaymentPercent(percent);
     if (selectedOrder && percent) {
-      const amount = (selectedOrder.totalAmount * (Number(percent) / 100)).toFixed(2);
+      const outstanding = selectedOrder.totalAmount - (selectedOrder.amountPaid || 0);
+      const amount = (outstanding * (Number(percent) / 100)).toFixed(2);
       setPaymentAmount(amount);
     }
   };

@@ -114,7 +114,8 @@ const Purchases = () => {
   const handlePercentChange = (percent) => {
     setPaymentPercent(percent);
     if (selectedPurchase && percent) {
-      const amount = (selectedPurchase.totalAmount * (Number(percent) / 100)).toFixed(2);
+      const balance = selectedPurchase.totalAmount - (selectedPurchase.amountPaid || 0);
+      const amount = (balance * (Number(percent) / 100)).toFixed(2);
       setPaymentAmount(amount);
     }
   };
