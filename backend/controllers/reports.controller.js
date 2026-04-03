@@ -131,30 +131,30 @@ export const getPartyStatement = async (req, res) => {
       payments = await Ledger.find({ supplier: id }).lean();
     }
 
-    // Combine and Format
+    // Combine and Format with Safe Number Casting
     const combined = [
       ...transactions.map(t => ({
         date: t.createdAt,
         type: type === "customer" ? "invoice" : "purchase",
         ref: t._id,
-        debit: type === "customer" ? t.totalAmount : 0,
-        credit: type === "supplier" ? t.totalAmount : 0,
-        description: type === "customer" ? `Sales Order Recorded` : `Purchase Recorded`
+        debit: type === "customer" ? Number(t.totalAmount || 0) : 0,
+        credit: type === "supplier" ? Number(t.totalAmount || 0) : 0,
+        description: type === "customer" ? `Sales Invoice (Order #${t._id.slice(-6)})` : `Inward Stock (Pur #${t._id.slice(-6)})`
       })),
       ...payments.map(p => ({
         date: p.date,
         type: "payment",
         ref: p._id,
-        debit: type === "supplier" ? p.amount : 0,
-        credit: type === "customer" ? p.amount : 0,
-        description: p.description || "Payment Recorded"
+        debit: type === "supplier" ? Number(p.amount || 0) : 0,
+        credit: type === "customer" ? Number(p.amount || 0) : 0,
+        description: p.description || "Settlement / Receipt Payment"
       }))
     ];
 
     // Sort by Date
     combined.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // Calculate Running Balance
+    // Calculate Running Balance with Absolute Logic
     let runningBalance = 0;
     const timeline = combined.map(item => {
        if (type === "customer") {
@@ -162,14 +162,14 @@ export const getPartyStatement = async (req, res) => {
        } else {
           runningBalance += (item.credit - item.debit);
        }
-       return { ...item, balance: runningBalance };
+       return { ...item, balance: Number(runningBalance.toFixed(2)) };
     });
 
     res.json({
       partyId: id,
       type,
       timeline,
-      totalOutstanding: runningBalance
+      totalOutstanding: Number(runningBalance.toFixed(2))
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
