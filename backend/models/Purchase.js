@@ -16,6 +16,10 @@ const purchaseSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    unit: {
+      type: String,
+      default: "kg",
+    },
     taxableAmount: {
       type: Number,
       default: 0,

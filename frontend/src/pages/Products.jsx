@@ -162,7 +162,7 @@ const Products = () => {
                     <td className="px-8 py-6 text-sm text-gray-500 font-medium uppercase italic">{p.category}</td>
                     <td className="px-8 py-6 text-center">
                       <span className={`px-4 py-1 rounded-full text-xs font-black ${p.stock < 10 ? 'bg-red-50 text-red-600 shadow-sm' : 'bg-green-50 text-green-700 underline decoration-green-200 decoration-4 underline-offset-4'}`}>
-                        {p.stock} Units
+                        {p.stock} <span className="text-[10px] uppercase opacity-70 ml-1">{p.unit || 'units'}</span>
                       </span>
                     </td>
                     <td className="px-8 py-6 text-center font-black text-blue-600 text-xs">

@@ -12,6 +12,7 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
     gstRate: initialData?.gstRate || 18,
     price: initialData?.price || 0,
     stock: initialData?.stock || 0,
+    unit: initialData?.unit || "kg",
     bom: initialData?.bom || [] 
   });
 
@@ -156,14 +157,29 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">In-Stock Qty</label>
-          <input
-            name="stock"
-            type="number"
-            required
-            className="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition"
-            value={formData.stock}
-            onChange={handleChange}
-          />
+          <div className="flex items-center gap-2">
+            <input
+              name="stock"
+              type="number"
+              required
+              className="flex-1 px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition"
+              value={formData.stock}
+              onChange={handleChange}
+            />
+            <select
+              name="unit"
+              className="w-24 px-3 py-2 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-xs font-bold"
+              value={formData.unit}
+              onChange={handleChange}
+            >
+              <option value="kg">kg</option>
+              <option value="gram">gram</option>
+              <option value="meters">meters</option>
+              <option value="unit">unit</option>
+              <option value="dagina">dagina</option>
+              <option value="amount">amount</option>
+            </select>
+          </div>
         </div>
       </div>
 

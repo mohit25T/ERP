@@ -6,7 +6,7 @@ import User from "../models/User.js";
 // Create Purchase (Inward Stock)
 export const createPurchase = async (req, res) => {
   try {
-    const { supplier, material, quantity, taxableAmount } = req.body;
+    const { supplier, material, quantity, taxableAmount, unit = "kg" } = req.body;
 
     const existingProduct = await Product.findById(material);
     if (!existingProduct) {
@@ -36,6 +36,7 @@ export const createPurchase = async (req, res) => {
       supplier,
       material,
       quantity,
+      unit, // Store the unit used during purchase
       taxableAmount,
       gstAmount,
       totalAmount,
@@ -76,7 +77,10 @@ export const updatePurchaseStatus = async (req, res) => {
     if (status === "received" && purchase.status !== "received") {
       const product = await Product.findById(purchase.material);
       if (product) {
-        product.stock += purchase.quantity;
+        // Multi-Unit Conversion Logic
+        // 1 Dagina = 50 kg
+        const addedStock = purchase.unit === 'dagina' ? (purchase.quantity * 50) : purchase.quantity;
+        product.stock += addedStock;
         await product.save();
       }
       purchase.receivedAt = new Date();

@@ -21,6 +21,10 @@ const productSchema = new mongoose.Schema(
       required: true,
       default: 0,
     },
+    unit: {
+       type: String,
+       default: "kg", // Options: kg, dagina, meters, unit, amount
+    },
     category: {
       type: String,
     },
