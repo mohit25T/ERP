@@ -41,12 +41,6 @@ export const recordOrderPayment = async (req, res) => {
       });
     }
 
-    if (Number(amount) > accountOutstanding) {
-      return res.status(400).json({ 
-        error: `Cannot pay ₹${amount}. While this bill has ₹${billOutstanding.toLocaleString()} left, the total account outstanding (after existing receipts) is only ₹${accountOutstanding.toLocaleString()}.` 
-      });
-    }
-
     order.amountPaid = currentBillPaid + Number(amount);
 
     
@@ -95,12 +89,6 @@ export const recordPurchasePayment = async (req, res) => {
     if (Number(amount) > billOutstanding) {
       return res.status(400).json({ 
         error: `Cannot pay ₹${amount}. The remaining balance on this specific purchase is only ₹${billOutstanding.toLocaleString()}.` 
-      });
-    }
-
-    if (Number(amount) > accountOutstanding) {
-      return res.status(400).json({ 
-        error: `Cannot pay ₹${amount}. While this purchase has ₹${billOutstanding.toLocaleString()} left, the total account payable (after existing payments) is only ₹${accountOutstanding.toLocaleString()}.` 
       });
     }
 
