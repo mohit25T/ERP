@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const api = axios.create({
   // Backend URL MUST include the /api prefix
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: "https://erp-1i9o.onrender.com/api",
 });
 
 api.interceptors.request.use((config) => {
@@ -10,10 +10,10 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  
+
   // Debugger: Logs the full URL in your browser console
   console.log(`[ERP NETWORK DEBUG] Sending ${config.method?.toUpperCase()} to: ${config.baseURL}${config.url}`);
-  
+
   return config;
 });
 
