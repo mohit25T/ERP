@@ -61,6 +61,9 @@ export const createLedgerEntry = async (req, res) => {
 // Get all Ledger Entries (With precise filtering)
 export const getLedgerEntries = async (req, res) => {
   try {
+    const { order, purchase, customer, supplier } = req.query;
+    let query = {};
+    
     if (order && mongoose.Types.ObjectId.isValid(order)) query.order = order;
     if (purchase && mongoose.Types.ObjectId.isValid(purchase)) query.purchase = purchase;
     if (customer && mongoose.Types.ObjectId.isValid(customer)) query.customer = customer;

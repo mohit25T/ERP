@@ -95,6 +95,7 @@ export const updateOrderStatus = async (req, res) => {
     // and ONLY if the order was not already cancelled/refunded
     const isReturningToStock = ["cancelled", "refunded"].includes(status);
     const wasAlreadyReturned = ["cancelled", "refunded"].includes(existingOrder.status);
+    const isMovingToActive = !["cancelled", "refunded"].includes(status);
 
     if (isReturningToStock && !wasAlreadyReturned) {
       const product = await Product.findById(existingOrder.product);
