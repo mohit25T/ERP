@@ -102,7 +102,7 @@ export const loginStep2 = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.json({ token, user: { id: user._id, name: user.name, role: user.role, email: user.email, mobile: user.mobile, gstin: user.gstin, state: user.state, companyName: user.companyName, address: user.address } });
+    res.json({ token, user: { id: user._id, name: user.name, role: user.role, email: user.email, mobile: user.mobile, gstin: user.gstin, state: user.state, companyName: user.companyName, address: user.address, invoiceSettings: user.invoiceSettings } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

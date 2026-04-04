@@ -443,10 +443,13 @@ const Orders = () => {
                               </button>
                             )}
                             {!['completed', 'cancelled', 'refunded'].includes(o.status) && (
-                              <button onClick={() => handleStatusUpdate(o._id, 'cancelled')} className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition" title="Cancel">
+                              <button onClick={() => handleStatusUpdate(o._id, 'cancelled')} className="p-2 text-yellow-500 hover:bg-yellow-50 rounded-xl transition" title="Cancel">
                                  <X className="w-4 h-4" />
                               </button>
                             )}
+                            <button onClick={() => handleDeleteOrder(o._id)} className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition" title="Delete Order">
+                               <Trash2 className="w-4 h-4" />
+                            </button>
                             <button onClick={() => handlePrintInvoice(o)} className="px-3 py-1.5 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg text-[10px] font-bold uppercase transition">
                                Invoice
                             </button>
