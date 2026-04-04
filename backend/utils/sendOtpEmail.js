@@ -38,12 +38,20 @@ export const sendOtpEmail = async (toEmail, otp) => {
       }
     );
   } catch (error) {
+    const errorData = error?.response?.data;
     console.error(
-      "Brevo email error:",
-      error?.response?.data || error.message
+      "❌ [BREVO ERROR]:",
+      error?.response?.status || "Unknown Status",
+      JSON.stringify(errorData || error.message)
     );
+
+    if (error?.response?.status === 401) {
+      console.warn("⚠️ [AUTH ALERT]: Your Brevo API Key may be invalid or expired.");
+    } else if (error?.response?.status === 400 || error?.response?.status === 403) {
+      console.warn("⚠️ [SENDER ALERT]: Ensure your 'EMAIL_USER' is a VALID VERIFIED SENDER in your Brevo dashboard.");
+    }
+
     // Developer Failsafe: Log the OTP so you can still log in!
-    console.log(`\n🔑 [DEVELOPER ALERT] OTP for ${toEmail}: ${otp}\n`);
-    // Removed throw to allow developer bypass via console logs
+    console.log(`\n🔑 [DEVELOPER FALLBACK] OTP for ${toEmail}: ${otp}\n`);
   }
 };
