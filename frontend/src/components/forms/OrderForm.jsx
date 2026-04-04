@@ -129,10 +129,10 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
         </button>
         <button
           type="submit"
-          disabled={loading || !selectedProduct}
+          disabled={loading || !selectedProduct || (selectedProduct.stock < formData.quantity)}
           className="flex-2 py-2.5 px-8 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition disabled:opacity-50 disabled:bg-gray-400 disabled:shadow-none"
         >
-          {loading ? "Processing..." : "Confirm Selection & Order"}
+          {loading ? "Processing..." : (selectedProduct?.stock < formData.quantity) ? "Insufficient Stock" : "Confirm Selection & Order"}
         </button>
       </div>
     </form>

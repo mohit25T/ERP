@@ -13,6 +13,10 @@ export const createOrder = async (req, res) => {
       return res.status(404).json({ msg: "Product not found" });
     }
 
+    if (existingProduct.stock < quantity) {
+      return res.status(400).json({ msg: `Insufficient finished good stock. Available: ${existingProduct.stock}, Needed: ${quantity}` });
+    }
+
     // Order fulfillment logic: Always deduct from finished good stock (allow negative)
     existingProduct.stock -= quantity;
     await existingProduct.save();
@@ -106,6 +110,9 @@ export const updateOrderStatus = async (req, res) => {
       const product = await Product.findById(existingOrder.product);
       if (product) {
         const qty = existingOrder.quantity;
+        if (product.stock < qty) {
+           return res.status(400).json({ msg: `Insufficient finished good stock to reactivate. Available: ${product.stock}, Needed: ${qty}` });
+        }
         // Always deduct from finished good stock when reactivating (allow negative)
         product.stock -= qty;
         await product.save();
