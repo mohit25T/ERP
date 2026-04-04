@@ -3,7 +3,9 @@ import "dotenv/config";
 
 export const sendOtpEmail = async (toEmail, otp) => {
   if (!toEmail) {
-    throw new Error("Email is required to send OTP");
+    console.error("❌ [EMAIL ERROR]: No email address provided for OTP. Check user profile.");
+    console.log(`\n🔑 [DEVELOPER FALLBACK] OTP Code: ${otp}\n`);
+    return;
   }
 
   try {

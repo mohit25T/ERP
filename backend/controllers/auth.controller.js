@@ -36,14 +36,17 @@ export const register = async (req, res) => {
 export const loginStep1 = async (req, res) => {
   try {
     const { mobile, password } = req.body;
+    console.log(`[AUTH STEP 1]: Login attempt for mobile ${mobile}`);
 
     const user = await User.findOne({ mobile });
     if (!user) {
+      console.warn(`[AUTH FAILED]: Mobile number ${mobile} not found.`);
       return res.status(400).json({ msg: "Invalid mobile or password" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.warn(`[AUTH FAILED]: Password mismatch for mobile ${mobile}.`);
       return res.status(400).json({ msg: "Invalid mobile or password" });
     }
 
@@ -55,13 +58,16 @@ export const loginStep1 = async (req, res) => {
     user.otpExpiry = otpExpiry;
     await user.save();
 
-    // DEBUG: Log OTP to server console (since email might be slow or failing)
-    console.log(`[AUTH DEBUG] OTP for Mobile ${mobile}: ${otp}`);
+    console.log(`[AUTH STEP 1.5]: Generating OTP for ${user.name} (${mobile})`);
+    
+    if (!user.email) {
+      console.warn(`[AUTH WARNING]: No email address found for ${user.name}. Email delivery will be skipped.`);
+    }
 
     // Send the OTP via Email to the user's registered email address
     await sendOtpEmail(user.email, otp);
 
-    res.json({ success: true, msg: `OTP sent to ${user.email}`, emailMasked: user.email.replace(/(.{2})(.*)(?=@)/, "$1***") });
+    res.json({ success: true, msg: user.email ? `OTP sent to ${user.email}` : "OTP generated. Check server console (No email set).", emailMasked: user.email ? user.email.replace(/(.{2})(.*)(?=@)/, "$1***") : "No Email" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
