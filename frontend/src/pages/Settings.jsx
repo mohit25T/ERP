@@ -48,7 +48,7 @@ const Settings = () => {
     try {
       setLoading(true);
       const res = await authApi.updateProfile({ ...profileData, invoiceSettings });
-      setUser({ ...user, ...res.data });
+      setUser({ ...user, ...res.data, invoiceSettings });
       alert("Profile & Invoice settings updated successfully!");
     } catch (err) {
       alert(err.response?.data?.msg || "Update failed");
