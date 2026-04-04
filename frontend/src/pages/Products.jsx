@@ -12,6 +12,9 @@ const Products = () => {
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBOMModalOpen, setIsBOMModalOpen] = useState(false);
+  const [viewingBOMProduct, setViewingBOMProduct] = useState(null);
+  const [prodQuantity, setProdQuantity] = useState(1);
   const [editingProduct, setEditingProduct] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
 
@@ -39,6 +42,12 @@ const Products = () => {
   const handleOpenEdit = (product) => {
     setEditingProduct(product);
     setIsModalOpen(true);
+  };
+
+  const handleOpenBOM = (product) => {
+    setViewingBOMProduct(product);
+    setProdQuantity(1); // Reset to default
+    setIsBOMModalOpen(true);
   };
 
   const handleSubmit = async (data) => {
@@ -99,6 +108,61 @@ const Products = () => {
         />
       </Modal>
 
+      <Modal
+        isOpen={isBOMModalOpen}
+        onClose={() => setIsBOMModalOpen(false)}
+        title={`BOM Availability Check: ${viewingBOMProduct?.name}`}
+      >
+        <div className="space-y-6">
+           <div className="flex items-center justify-between bg-blue-50 p-4 rounded-xl border border-blue-100">
+              <div>
+                 <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Planning Target</p>
+                 <p className="text-sm font-bold text-blue-900">Enter quantity to produce</p>
+              </div>
+              <input 
+                 type="number"
+                 min="1"
+                 className="w-24 px-3 py-2 bg-white border border-blue-200 rounded-lg text-sm font-black text-blue-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition"
+                 value={prodQuantity}
+                 onChange={(e) => setProdQuantity(Math.max(1, parseInt(e.target.value) || 0))}
+              />
+           </div>
+
+           <div className="space-y-3">
+              {viewingBOMProduct?.bom?.map((item, idx) => {
+                 const required = (item.quantity * prodQuantity).toFixed(2);
+                 const available = item.material?.stock || 0;
+                 const isShortfall = available < required;
+                 return (
+                    <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                       <div className="flex flex-col">
+                          <span className="text-sm font-black text-gray-900">{item.material?.name}</span>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight italic">
+                             {item.quantity} {item.material?.unit} / finished unit
+                          </span>
+                       </div>
+                       <div className="text-right">
+                          <p className="text-base font-black text-gray-900 tracking-tight">Need {required} {item.material?.unit}</p>
+                          <p className={`text-[10px] font-bold uppercase ${isShortfall ? 'text-red-500' : 'text-green-600'}`}>
+                             {isShortfall ? `Deficit: ${(required - available).toFixed(2)}` : `Stock: ${available.toLocaleString()}`}
+                          </p>
+                       </div>
+                    </div>
+                 )
+              })}
+           </div>
+
+           <div className="flex justify-end pt-2">
+              <button 
+                 onClick={() => setIsBOMModalOpen(false)}
+                 className="px-6 py-2 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition"
+              >
+                 Close Planner
+              </button>
+           </div>
+        </div>
+      </Modal>
+
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-gray-100 flex items-center justify-between">
           <div className="relative w-full max-w-sm">
@@ -152,10 +216,14 @@ const Products = () => {
                        <div className="flex items-center gap-2">
                           {p.name}
                           {p.bom && p.bom.length > 0 && (
-                             <div className="group/bom relative">
+                             <button
+                                onClick={() => handleOpenBOM(p)}
+                                className="group/bom relative p-1 hover:bg-blue-50 rounded transition-colors"
+                                title="Check BOM Availability"
+                             >
                                 <Layers className="w-3.5 h-3.5 text-blue-500 animate-pulse" />
-                                <span className="absolute -top-7 left-1/2 -translate-x-1/2 bg-blue-600 text-[8px] text-white font-black px-1.5 py-0.5 rounded opacity-0 group-hover/bom:opacity-100 transition-opacity uppercase tracking-widest whitespace-nowrap">Composition Linked</span>
-                             </div>
+                                <span className="absolute -top-7 left-1/2 -translate-x-1/2 bg-blue-600 text-[8px] text-white font-black px-1.5 py-0.5 rounded opacity-0 group-hover/bom:opacity-100 transition-opacity uppercase tracking-widest whitespace-nowrap z-50">Check Availability</span>
+                             </button>
                           )}
                        </div>
                     </td>
