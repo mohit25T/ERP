@@ -131,10 +131,10 @@ export const changePassword = async (req, res) => {
 // Update Profile
 export const updateProfile = async (req, res) => {
   try {
-    const { name, gstin, companyName, address, state } = req.body;
+    const { name, gstin, companyName, address, state, invoiceSettings } = req.body;
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { name, gstin, companyName, address, state },
+      { name, gstin, companyName, address, state, invoiceSettings },
       { new: true }
     );
     res.json(user);

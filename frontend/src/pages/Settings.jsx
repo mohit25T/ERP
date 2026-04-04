@@ -17,6 +17,18 @@ const Settings = () => {
     state: user?.state || "",
   });
 
+  const [invoiceSettings, setInvoiceSettings] = useState(user?.invoiceSettings || {
+    headers: {
+      product: "Product Details / HSN",
+      quantity: "Qty",
+      price: "Unit Price",
+      taxable: "Taxable Val.",
+      amount: "Net Amount",
+    },
+    showLogo: true,
+    footerText: "Certified that the particulars given above are true and correct. Taxes shown above are extra as applicable.",
+  });
+
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -35,9 +47,9 @@ const Settings = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const res = await authApi.updateProfile(profileData);
+      const res = await authApi.updateProfile({ ...profileData, invoiceSettings });
       setUser({ ...user, ...res.data });
-      alert("Profile & Company details updated successfully!");
+      alert("Profile & Invoice settings updated successfully!");
     } catch (err) {
       alert(err.response?.data?.msg || "Update failed");
     } finally {
@@ -79,6 +91,7 @@ const Settings = () => {
           <div className="lg:col-span-1 space-y-2">
             {[
               { id: "profile", label: "Company Profile", icon: Building2 },
+              { id: "invoice", label: "Invoice Customization", icon: Globe },
               { id: "security", label: "Security", icon: Lock },
               { id: "notifications", label: "Notifications", icon: Bell },
             ].map((tab) => (
@@ -145,6 +158,85 @@ const Settings = () => {
                 <div className="pt-4 border-t border-gray-50 flex justify-end">
                   <button disabled={loading} className="flex items-center gap-2 px-8 py-3.5 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-600/20 hover:scale-105 active:scale-95 transition-all uppercase text-xs tracking-widest">
                     <Save className="w-4 h-4" /> {loading ? "Saving..." : "Update Identity"}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {activeTab === "invoice" && (
+              <form onSubmit={updateProfile} className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-8 animate-in fade-in duration-300">
+                <div className="flex items-center gap-4 mb-2">
+                   <div className="p-3 bg-emerald-50 rounded-xl">
+                      <Globe className="w-6 h-6 text-emerald-600" />
+                   </div>
+                   <div>
+                      <h3 className="text-xl font-black text-gray-800 tracking-tighter uppercase italic">Invoice Architecture</h3>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Customize your grid headers & layout like Miracle ERP</p>
+                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   <div className="space-y-6">
+                      <h4 className="text-xs font-black text-gray-900 uppercase tracking-widest border-l-4 border-emerald-500 pl-3">Grid Header Labels</h4>
+                      
+                      <div className="space-y-4">
+                        {[
+                          { key: 'product', label: 'Product/Item Column' },
+                          { key: 'quantity', label: 'Quantity Column' },
+                          { key: 'price', label: 'Rate/Unit Price Column' },
+                          { key: 'taxable', label: 'Taxable Value Column' },
+                          { key: 'amount', label: 'Net Amount Column' },
+                        ].map((item) => (
+                          <div key={item.key} className="space-y-1.5">
+                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{item.label}</label>
+                            <input 
+                              className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-emerald-500/10 outline-none" 
+                              value={invoiceSettings.headers[item.key]} 
+                              onChange={(e) => setInvoiceSettings({
+                                ...invoiceSettings,
+                                headers: { ...invoiceSettings.headers, [item.key]: e.target.value }
+                              })} 
+                            />
+                          </div>
+                        ))}
+                      </div>
+                   </div>
+
+                   <div className="space-y-6">
+                      <h4 className="text-xs font-black text-gray-900 uppercase tracking-widest border-l-4 border-blue-500 pl-3">Layout & Branding</h4>
+                      
+                      <div className="p-6 bg-gray-50 rounded-[2rem] space-y-4 border border-gray-100">
+                         <div className="flex items-center justify-between">
+                            <span className="text-xs font-black text-gray-700 uppercase tracking-tight">Display Company Logo</span>
+                            <button 
+                              type="button"
+                              onClick={() => setInvoiceSettings({ ...invoiceSettings, showLogo: !invoiceSettings.showLogo })}
+                              className={`w-12 h-6 rounded-full transition-all duration-300 relative ${invoiceSettings.showLogo ? 'bg-blue-600' : 'bg-gray-300'}`}
+                            >
+                               <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 ${invoiceSettings.showLogo ? 'left-7' : 'left-1'}`}></div>
+                            </button>
+                         </div>
+                         
+                         <p className="text-[9px] text-gray-400 font-medium leading-relaxed italic">
+                            * Logos are automatically fetched from your company profile settings. Disable if you use pre-printed letterheads.
+                         </p>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Invoice Footer Disclaimer</label>
+                        <textarea 
+                          rows="4" 
+                          className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-[11px] font-medium leading-relaxed focus:ring-2 focus:ring-blue-500/10 outline-none resize-none" 
+                          value={invoiceSettings.footerText} 
+                          onChange={(e) => setInvoiceSettings({ ...invoiceSettings, footerText: e.target.value })}
+                        ></textarea>
+                      </div>
+                   </div>
+                </div>
+
+                <div className="pt-6 border-t border-gray-50 flex justify-end">
+                  <button disabled={loading} className="flex items-center gap-2 px-10 py-3.5 bg-emerald-600 text-white font-black rounded-2xl shadow-xl shadow-emerald-600/20 hover:scale-105 active:scale-95 transition-all uppercase text-xs tracking-widest">
+                    <Save className="w-4 h-4" /> {loading ? "Syncing Logic..." : "Save Configuration"}
                   </button>
                 </div>
               </form>

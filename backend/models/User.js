@@ -17,6 +17,17 @@ const userSchema = new mongoose.Schema(
     companyName: { type: String, default: "" },
     address: { type: String, default: "" },
     state: { type: String, default: "" },
+    invoiceSettings: {
+      headers: {
+        product: { type: String, default: "Product Details / HSN" },
+        quantity: { type: String, default: "Qty" },
+        price: { type: String, default: "Unit Price" },
+        taxable: { type: String, default: "Taxable Val." },
+        amount: { type: String, default: "Net Amount" },
+      },
+      showLogo: { type: Boolean, default: true },
+      footerText: { type: String, default: "Certified that the particulars given above are true and correct. Taxes shown above are extra as applicable." },
+    },
   },
   { timestamps: true }
 );

@@ -94,3 +94,31 @@ export const updatePurchaseStatus = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Delete Purchase
+export const deletePurchase = async (req, res) => {
+  try {
+    const purchaseId = req.params.id;
+    const purchase = await Purchase.findById(purchaseId);
+
+    if (!purchase) {
+      return res.status(404).json({ msg: "Purchase not found" });
+    }
+
+    // If purchase was received, remove it from stock
+    if (purchase.status === "received") {
+      const product = await Product.findById(purchase.material);
+      if (product) {
+        const removedStock = purchase.unit === 'dagina' ? (purchase.quantity * 50) : purchase.quantity;
+        product.stock -= removedStock;
+        await product.save();
+        console.log(`[ERP LOG] Purchase deleted: ${purchaseId}. Stock reverted for ${product.name} (-${removedStock})`);
+      }
+    }
+
+    await Purchase.findByIdAndDelete(purchaseId);
+    res.json({ msg: "Purchase deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

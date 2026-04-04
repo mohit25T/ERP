@@ -4,7 +4,7 @@ import Modal from "../components/common/Modal";
 import OrderForm from "../components/forms/OrderForm";
 import { orderApi, paymentApi } from "../api/erpApi";
 import { useAuth } from "../context/AuthContext";
-import { Plus, Clock, Search, CheckCircle, PackageSearch, ShoppingCart, TrendingUp, X, Wallet, CreditCard, AlertCircle, History } from "lucide-react";
+import { Plus, Clock, Search, CheckCircle, PackageSearch, ShoppingCart, TrendingUp, X, Wallet, CreditCard, AlertCircle, History, Trash2 } from "lucide-react";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -140,6 +140,17 @@ const Orders = () => {
     }
   };
 
+  const handleDeleteOrder = async (id) => {
+    if (window.confirm("CRITICAL: Delete this order permanently? This will restore product stock if the order was active.")) {
+      try {
+        await orderApi.delete(id);
+        fetchOrders();
+      } catch (err) {
+        alert("Deletion Blocked: " + (err.response?.data?.msg || err.message));
+      }
+    }
+  };
+
   const handlePrintInvoice = (order) => {
     const printWindow = window.open("", "_blank");
     const date = new Date(order.createdAt).toLocaleDateString();
@@ -196,11 +207,11 @@ const Orders = () => {
             <table class="w-full mb-6">
               <thead>
                 <tr class="border-b-2 border-gray-900 text-left text-[9px] font-black uppercase text-gray-900 tracking-widest">
-                  <th class="pb-3">Product Details / HSN</th>
-                  <th class="pb-3 text-center">Unit Price</th>
-                  <th class="pb-3 text-center">Qty</th>
-                  <th class="pb-3 text-center">Taxable Val.</th>
-                  <th class="pb-3 text-right">Net Amount</th>
+                  <th class="pb-3">${user?.invoiceSettings?.headers?.product || 'Product Details / HSN'}</th>
+                  <th class="pb-3 text-center">${user?.invoiceSettings?.headers?.price || 'Unit Price'}</th>
+                  <th class="pb-3 text-center">${user?.invoiceSettings?.headers?.quantity || 'Qty'}</th>
+                  <th class="pb-3 text-center">${user?.invoiceSettings?.headers?.taxable || 'Taxable Val.'}</th>
+                  <th class="pb-3 text-right">${user?.invoiceSettings?.headers?.amount || 'Net Amount'}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100 italic font-medium">
@@ -249,7 +260,7 @@ const Orders = () => {
 
             <div class="mt-12 pt-6 border-t border-gray-100 flex justify-between items-end">
                <div class="text-left space-y-2 max-w-sm">
-                  <p class="text-[8px] font-black text-gray-300 uppercase leading-tight tracking-tighter">Certified that the particulars given above are true and correct. Taxes shown above are extra as applicable.</p>
+                  <p class="text-[8px] font-black text-gray-300 uppercase leading-tight tracking-tighter">${user?.invoiceSettings?.footerText || 'Certified that the particulars given above are true and correct. Taxes shown above are extra as applicable.'}</p>
                   <p class="text-[10px] font-bold text-gray-800 uppercase italic">Authorized Tax Invoice (Computer Generated)</p>
                </div>
                <div class="text-right">

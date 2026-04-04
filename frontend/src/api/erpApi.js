@@ -41,13 +41,15 @@ export const supplierApi = {
 export const purchaseApi = {
   getAll: () => api.get("/purchases"),
   create: (data) => api.post("/purchases", data),
-  updateStatus: (id, status) => api.put(`/purchases/${id}/status`, { status })
+  updateStatus: (id, status) => api.put(`/purchases/${id}/status`, { status }),
+  delete: (id) => api.delete(`/purchases/${id}`)
 };
 
 export const orderApi = {
   getAll: () => api.get("/orders"),
   create: (data) => api.post("/orders", data),
-  updateStatus: (id, status) => api.put(`/orders/${id}/status`, { status })
+  updateStatus: (id, status) => api.put(`/orders/${id}/status`, { status }),
+  delete: (id) => api.delete(`/orders/${id}`)
 };
 
 export const authApi = {

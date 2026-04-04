@@ -129,3 +129,31 @@ export const updateOrderStatus = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Delete Order
+export const deleteOrder = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ msg: "Order not found" });
+    }
+
+    // Restore Stock if the order is NOT already cancelled or refunded
+    const isActiveStatus = !["cancelled", "refunded"].includes(order.status);
+    if (isActiveStatus) {
+      const product = await Product.findById(order.product);
+      if (product) {
+        product.stock += order.quantity;
+        await product.save();
+        console.log(`[ERP LOG] Order deleted: ${orderId}. Stock restored for ${product.name} (+${order.quantity})`);
+      }
+    }
+
+    await Order.findByIdAndDelete(orderId);
+    res.json({ msg: "Order deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

@@ -3,7 +3,7 @@ import AppLayout from "../components/layout/AppLayout";
 import { ShoppingCart, Search, Package2, Calendar, IndianRupee, Truck, CheckCircle2, Clock, AlertCircle, X, ExternalLink, Filter, Plus } from "lucide-react";
 import Modal from "../components/common/Modal";
 import { api, paymentApi } from "../api/erpApi";
-import { Wallet, CreditCard, History } from "lucide-react";
+import { Wallet, CreditCard, History, Trash2 } from "lucide-react";
 
 const Purchases = () => {
   const [purchases, setPurchases] = useState([]);
@@ -71,6 +71,17 @@ const Purchases = () => {
       fetchData();
     } catch (err) {
       console.error("Error updating status:", err);
+    }
+  };
+
+  const handleDeletePurchase = async (id) => {
+    if (window.confirm("CRITICAL: Delete this purchase record? This will revert inventory stock if it was received.")) {
+      try {
+        await api.delete(`/purchases/${id}`);
+        fetchData();
+      } catch (err) {
+        alert("Deletion Blocked: " + (err.response?.data?.msg || err.message));
+      }
     }
   };
 
@@ -325,6 +336,13 @@ const Purchases = () => {
                           >
                             <History className="w-3.5 h-3.5" />
                             Timeline
+                          </button>
+                          <button
+                            onClick={() => handleDeletePurchase(p._id)}
+                            className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-400 hover:text-red-600 transition-all shadow-sm hover:shadow-red-500/10"
+                            title="Delete Purchase"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </button>
                           {p.status === "received" && (
                             <div className="px-4 py-2 bg-green-50 text-green-600 rounded-xl text-[10px] font-black uppercase border border-green-100 font-bold whitespace-nowrap">
