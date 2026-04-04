@@ -17,16 +17,18 @@ const Settings = () => {
     state: user?.state || "",
   });
 
-  const [invoiceSettings, setInvoiceSettings] = useState(user?.invoiceSettings || {
+  const getDefaultContent = (val, def) => (val === def || !val) ? "" : val;
+
+  const [invoiceSettings, setInvoiceSettings] = useState({
     headers: {
-      product: "Product Details / HSN",
-      quantity: "Qty",
-      price: "Unit Price",
-      taxable: "Taxable Val.",
-      amount: "Net Amount",
+      product: getDefaultContent(user?.invoiceSettings?.headers?.product, "Product Details / HSN"),
+      quantity: getDefaultContent(user?.invoiceSettings?.headers?.quantity, "Qty"),
+      price: getDefaultContent(user?.invoiceSettings?.headers?.price, "Unit Price"),
+      taxable: getDefaultContent(user?.invoiceSettings?.headers?.taxable, "Taxable Val."),
+      amount: getDefaultContent(user?.invoiceSettings?.headers?.amount, "Net Amount"),
     },
-    showLogo: true,
-    footerText: "Certified that the particulars given above are true and correct. Taxes shown above are extra as applicable.",
+    showLogo: user?.invoiceSettings?.showLogo ?? true,
+    footerText: getDefaultContent(user?.invoiceSettings?.footerText, "Certified that the particulars given above are true and correct. Taxes shown above are extra as applicable."),
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -181,16 +183,17 @@ const Settings = () => {
                       
                       <div className="space-y-4">
                         {[
-                          { key: 'product', label: 'Product/Item Column' },
-                          { key: 'quantity', label: 'Quantity Column' },
-                          { key: 'price', label: 'Rate/Unit Price Column' },
-                          { key: 'taxable', label: 'Taxable Value Column' },
-                          { key: 'amount', label: 'Net Amount Column' },
+                          { key: 'product', label: 'Product/Item Column', defaultVal: 'Product Details / HSN' },
+                          { key: 'quantity', label: 'Quantity Column', defaultVal: 'Qty' },
+                          { key: 'price', label: 'Rate/Unit Price Column', defaultVal: 'Unit Price' },
+                          { key: 'taxable', label: 'Taxable Value Column', defaultVal: 'Taxable Val.' },
+                          { key: 'amount', label: 'Net Amount Column', defaultVal: 'Net Amount' },
                         ].map((item) => (
                           <div key={item.key} className="space-y-1.5">
                             <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{item.label}</label>
                             <input 
-                              className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-emerald-500/10 outline-none" 
+                              className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-emerald-500/10 outline-none placeholder:text-gray-300 placeholder:italic" 
+                              placeholder={item.defaultVal}
                               value={invoiceSettings.headers[item.key]} 
                               onChange={(e) => setInvoiceSettings({
                                 ...invoiceSettings,
