@@ -117,7 +117,7 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
           </div>
         </div>
 
-        {selectedProduct?.bom?.length > 0 && (
+        {selectedProduct?.bom?.length > 0 && selectedProduct?.stock <= 0 && (
           <div className="bg-gray-50 p-5 rounded-[2rem] border border-gray-100 space-y-4 animate-in fade-in duration-500">
              <div className="flex items-center justify-between px-1">
                 <div>
@@ -169,13 +169,15 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
           disabled={
             loading || 
             !selectedProduct || 
-            (selectedProduct.bom?.some(item => (item.quantity * formData.quantity) > (item.material?.stock || 0))) ||
-            (selectedProduct.stock < formData.quantity)
+            (selectedProduct.stock <= 0 && 
+              (selectedProduct.bom?.some(item => (item.quantity * formData.quantity) > (item.material?.stock || 0)) || 
+               (!selectedProduct.bom || selectedProduct.bom.length === 0))
+            )
           }
           className="flex-2 py-2.5 px-8 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition disabled:opacity-50 disabled:bg-gray-400 disabled:shadow-none"
         >
           {loading ? "Processing..." : 
-           (selectedProduct?.stock < formData.quantity || selectedProduct?.bom?.some(item => (item.quantity * formData.quantity) > (item.material?.stock || 0))) ? "Insufficient Stock" : "Confirm Selection & Order"}
+           (selectedProduct?.stock <= 0 && (selectedProduct?.bom?.some(item => (item.quantity * formData.quantity) > (item.material?.stock || 0)) || (!selectedProduct.bom || selectedProduct.bom.length === 0))) ? "Insufficient Stock" : "Confirm Selection & Order"}
         </button>
       </div>
     </form>
