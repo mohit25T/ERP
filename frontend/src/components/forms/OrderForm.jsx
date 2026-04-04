@@ -117,43 +117,6 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
           </div>
         </div>
 
-        {selectedProduct?.bom?.length > 0 && selectedProduct?.stock <= 0 && (
-          <div className="bg-gray-50 p-5 rounded-[2rem] border border-gray-100 space-y-4 animate-in fade-in duration-500">
-             <div className="flex items-center justify-between px-1">
-                <div>
-                   <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Required Composition</h5>
-                   <p className="text-[9px] text-gray-500 font-bold italic mt-0.5">Automated stock deduction on confirmation</p>
-                </div>
-                <div className="text-right">
-                   <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full uppercase tracking-tighter">BOM Linked</span>
-                </div>
-             </div>
-
-             <div className="space-y-2">
-                {selectedProduct.bom.map((item, idx) => {
-                  const required = (item.quantity * formData.quantity).toFixed(2);
-                  const available = item.material?.stock || 0;
-                  const shortfall = required - available;
-                  return (
-                    <div key={idx} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-50 group hover:border-blue-100 transition-all">
-                       <div className="flex flex-col">
-                          <span className="text-sm font-black text-gray-900 group-hover:text-blue-600 transition-colors">{item.material?.name || 'Unknown Item'}</span>
-                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
-                             {item.material?.sku} | {item.material?.type === 'raw_material' ? 'Raw' : 'Semi-finished'}
-                          </span>
-                       </div>
-                       <div className="text-right">
-                          <p className="text-base font-black text-gray-900 tracking-tight">Need {required} {item.material?.unit || 'Units'}</p>
-                          <p className={`text-[10px] font-bold uppercase tracking-tight ${shortfall > 0 ? 'text-red-500' : 'text-green-600'}`}>
-                             {shortfall > 0 ? `Deficit: ${shortfall.toFixed(2)}` : `Available: ${available.toLocaleString()}`}
-                          </p>
-                       </div>
-                    </div>
-                  );
-                })}
-             </div>
-          </div>
-        )}
       </div>
 
       <div className="flex gap-3 pt-4 border-t border-gray-100">
@@ -166,18 +129,10 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
         </button>
         <button
           type="submit"
-          disabled={
-            loading || 
-            !selectedProduct || 
-            (selectedProduct.stock <= 0 && 
-              (selectedProduct.bom?.some(item => (item.quantity * formData.quantity) > (item.material?.stock || 0)) || 
-               (!selectedProduct.bom || selectedProduct.bom.length === 0))
-            )
-          }
+          disabled={loading || !selectedProduct}
           className="flex-2 py-2.5 px-8 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition disabled:opacity-50 disabled:bg-gray-400 disabled:shadow-none"
         >
-          {loading ? "Processing..." : 
-           (selectedProduct?.stock <= 0 && (selectedProduct?.bom?.some(item => (item.quantity * formData.quantity) > (item.material?.stock || 0)) || (!selectedProduct.bom || selectedProduct.bom.length === 0))) ? "Insufficient Stock" : "Confirm Selection & Order"}
+          {loading ? "Processing..." : "Confirm Selection & Order"}
         </button>
       </div>
     </form>
