@@ -351,6 +351,7 @@ const Orders = () => {
             <input
               type="text"
               placeholder="Search order ID or customer..."
+
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border-transparent rounded-2xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
             />
           </div>
@@ -407,7 +408,7 @@ const Orders = () => {
                       </td>
                       <td className="px-8 py-6 text-center">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter ${o.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' :
-                            o.paymentStatus === 'partial' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'
+                          o.paymentStatus === 'partial' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'
                           }`}>
                           {o.paymentStatus}
                         </span>

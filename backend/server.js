@@ -24,7 +24,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors({
-  origin: "https://erp-1-et0w.onrender.com",
+  origin: ["https://erp-1-et0w.onrender.com", "http://localhost:5173"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
@@ -57,7 +57,7 @@ app.use("/api/public", publicRoutes);
 app.get("/api/gst/lookup/:gstin", (req, res) => {
   const { gstin } = req.params;
   const stateCode = gstin.substring(0, 2);
-  
+
   // Real State Mapping for Demo
   const states = {
     "27": "MAHARASHTRA",
@@ -72,7 +72,7 @@ app.get("/api/gst/lookup/:gstin", (req, res) => {
   setTimeout(() => {
     res.json({
       companyName: `MOCK BUSINESS (${gstin}) PVT LTD`,
-      address: `Industrial Complex No. ${Math.floor(Math.random() * 100)}, GIDC Area, Block ${gstin.substring(2,5)}`,
+      address: `Industrial Complex No. ${Math.floor(Math.random() * 100)}, GIDC Area, Block ${gstin.substring(2, 5)}`,
       state: states[stateCode] || "OTHER STATE",
       status: "Active"
     });
