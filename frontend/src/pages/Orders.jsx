@@ -365,7 +365,7 @@ const Orders = () => {
               <p className="font-medium">No system orders found.</p>
             </div>
           ) : (
-            <table className="w-full text-left font-sans whitespace-nowrap">
+            <table className="w-full text-left font-sans">
               <thead>
                 <tr className="bg-gray-50/50 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-50">
                   <th className="px-8 py-4">Ref ID</th>
