@@ -11,7 +11,7 @@ const AppLayout = ({ children }) => {
     <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
       
-      <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+      <div className="relative flex flex-col flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
         <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-4 bg-white border-b border-gray-200 sm:px-6 lg:px-8">
           <div className="flex items-center">
             <button
@@ -34,8 +34,8 @@ const AppLayout = ({ children }) => {
           </div>
         </header>
 
-        <main className="flex-1">
-          <div className="px-4 py-8 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <main className="flex-1 min-w-0">
+          <div className="px-4 py-8 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
             {children}
           </div>
         </main>
