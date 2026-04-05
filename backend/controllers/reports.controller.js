@@ -138,6 +138,15 @@ export const getPartyStatement = async (req, res) => {
       payments = await Ledger.find({ supplier: id }).lean();
     }
 
+    // Fetch Party details for descriptions (Guard against missing partyDoc)
+    let partyDoc = (type === "customer") 
+      ? await Customer.findById(id).lean() 
+      : await Supplier.findById(id).lean();
+
+    if (!partyDoc) {
+      return res.status(404).json({ error: "Statement creation failed: Party not found" });
+    }
+
     // Combine and Format with Safe Number Casting & Missing Data Guard
     const combined = [
       ...transactions.map(t => ({
