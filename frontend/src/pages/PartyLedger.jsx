@@ -8,13 +8,15 @@ import {
    Download,
    Calendar,
    User,
+   Users,
    Building2,
    ArrowUpRight,
    ArrowDownRight,
    Printer,
    Wallet,
    Share2,
-   Zap
+   Zap,
+   Search
 } from "lucide-react";
 
 const PartyLedger = () => {
@@ -28,8 +30,11 @@ const PartyLedger = () => {
    const [loading, setLoading] = useState(true);
    const [searchTerm, setSearchTerm] = useState("");
    const [copied, setCopied] = useState(false);
+   const [viewMode, setViewMode] = useState("full"); // 'full' or 'payments'
 
    useEffect(() => {
+   // ... existing useEffect logic
+
       if (id) {
          fetchStatement();
       } else {
@@ -122,51 +127,60 @@ const PartyLedger = () => {
       </AppLayout>
    );
 
-   // SELECTION HUB (When no party is selected)
+   // SELECTION HUB (When no ID is provided)
    if (!id) {
-      const filtered = parties.filter(p =>
-         (p.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-         (p.company || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-         (p.gstin || "").toLowerCase().includes(searchTerm.toLowerCase())
+      const filteredParties = parties.filter(p => 
+         (p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+          p.company?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+          p.gstin?.toLowerCase().includes(searchTerm.toLowerCase()))
       );
 
       return (
          <AppLayout>
-            <div className="space-y-8 print:hidden">
-               <div>
-                  <h2 className="text-4xl font-black text-gray-900 tracking-tight italic">Party Ledger Hub</h2>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2">Professional Account Statements & Outstanding Tracking</p>
+            <div className="space-y-8 animate-in fade-in duration-700">
+               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                  <div>
+                     <h2 className="text-4xl font-black text-gray-900 tracking-tight italic flex items-center gap-3">
+                        <span className="p-2.5 bg-blue-600 text-white rounded-2xl shadow-xl shadow-blue-500/20">
+                           <FileText className="w-8 h-8" />
+                        </span>
+                        Account Statement Hub
+                     </h2>
+                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2 ml-14">Universal Selection for Financial Reconciliation</p>
+                  </div>
+                  <div className="relative w-full md:w-96 group">
+                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 group-focus-within:text-blue-500 transition-colors" />
+                     <input 
+                        type="text" 
+                        placeholder="Search Name, Company or GSTIN..."
+                        className="w-full pl-12 pr-6 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                     />
+                  </div>
                </div>
 
-               <div className="relative max-w-xl group">
-                  <input
-                     type="text"
-                     placeholder="Search Customer or Supplier by name or GSTIN..."
-                     className="w-full px-8 py-5 bg-white border border-gray-100 rounded-3xl shadow-sm text-sm font-bold text-gray-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all placeholder:text-gray-300"
-                     value={searchTerm}
-                     onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-               </div>
-
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filtered.map(p => (
-                     <Link
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {filteredParties.map(p => (
+                     <Link 
                         key={p._id}
-                        to={`/reports/party/${p._id}?type=${p.type}`}
-                        className="p-6 bg-white rounded-[2.5rem] border border-gray-100 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all group relative overflow-hidden"
+                        to={`/statements/${p._id}?type=${p.type}`}
+                        className="p-6 bg-white border border-gray-100 rounded-[2.5rem] hover:border-blue-300 hover:shadow-2xl hover:shadow-blue-500/5 transition-all group relative overflow-hidden"
                      >
                         <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                           {p.type === 'customer' ? <User className="w-16 h-16" /> : <Building2 className="w-16 h-16" />}
+                           {p.type === 'customer' ? <Users className="w-12 h-12" /> : <Building2 className="w-12 h-12" />}
                         </div>
-                        <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${p.type === 'customer' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}>
-                           {p.type.toUpperCase()}
-                        </span>
-                        <h3 className="text-lg font-black text-gray-900 mt-2 mb-1 group-hover:text-blue-600 transition-colors uppercase tracking-tight truncate">{p.company || p.name}</h3>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{p.gstin || "B2C / UNREGISTERED"}</p>
-
-                        <div className="mt-6 flex items-center justify-between">
-                           <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">Open Full Ledger</span>
-                           <ArrowUpRight className="w-5 h-5 text-gray-200 group-hover:text-blue-500 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
+                        <div className="flex flex-col relative z-10 h-full">
+                           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${p.type === 'customer' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600'}`}>
+                              {p.type === 'customer' ? <Users className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
+                           </div>
+                           <h4 className="text-lg font-black text-gray-900 group-hover:text-blue-600 transition-colors uppercase tracking-tighter mb-1 truncate">
+                              {p.company || p.name}
+                           </h4>
+                           <div className="flex flex-col mt-auto">
+                              <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">{p.name || p.company}</span>
+                              <span className="text-[9px] font-bold text-blue-500 mt-1">{p.gstin || "B2C VENDOR"}</span>
+                           </div>
                         </div>
                      </Link>
                   ))}
@@ -245,26 +259,32 @@ const PartyLedger = () => {
             </div>
 
             {/* Detailed Ledger Table */}
-            <table className="mb-10">
+            <table className="mb-10 w-full border-collapse">
                <thead>
-                  <tr>
-                     <th>Date</th>
-                     <th>Description / Voucher ID</th>
-                     <th className="text-right">Payment Amount (₹)</th>
-                     <th className="text-right">Balance (₹)</th>
+                  <tr className="bg-gray-100 uppercase text-[9px] font-bold">
+                     <th className="border border-black p-2 text-left">Date</th>
+                     <th className="border border-black p-2 text-left">Transaction Details</th>
+                     <th className="border border-black p-2 text-right">Debit (₹)</th>
+                     <th className="border border-black p-2 text-right">Credit (₹)</th>
+                     <th className="border border-black p-2 text-right">Balance (₹)</th>
                   </tr>
                </thead>
                <tbody>
-                  {statement?.timeline?.filter(item => item.type === 'payment').map((item, idx) => (
-                     <tr key={idx}>
-                        <td className="text-center">{new Date(item.date).toLocaleDateString()}</td>
-                        <td className="text-xs">
-                           <span className="font-bold">{item.description}</span>
-                           <div className="text-[8px] text-gray-500">REF: {item.ref.slice(-10)}</div>
+                  {statement?.timeline?.filter(item => viewMode === 'full' || item.type === 'payment').map((item, idx) => (
+                     <tr key={idx} className="text-[10px]">
+                        <td className="border border-black p-2">{new Date(item.date).toLocaleDateString()}</td>
+                        <td className="border border-black p-2">
+                           <div className="font-bold uppercase">{item.description}</div>
+                           <div className="text-[8px] text-gray-500">REF: {item.ref.slice(-8).toUpperCase()}</div>
                         </td>
-                        <td className="text-right">₹{(item.debit || item.credit || 0).toLocaleString()}</td>
-                        <td className="text-right font-bold">
-                           {Math.abs(item.balance).toLocaleString()} {item.balance > 0 ? "Dr" : item.balance < 0 ? "Cr" : ""}
+                        <td className="border border-black p-2 text-right">
+                           {item.debit > 0 ? Number(item.debit).toLocaleString('en-IN') : "-"}
+                        </td>
+                        <td className="border border-black p-2 text-right">
+                           {item.credit > 0 ? Number(item.credit).toLocaleString('en-IN') : "-"}
+                        </td>
+                        <td className="border border-black p-2 text-right font-bold">
+                           {Math.abs(item.balance).toLocaleString('en-IN')} {item.balance > 0 ? "Dr" : item.balance < 0 ? "Cr" : ""}
                         </td>
                      </tr>
                   ))}
@@ -333,18 +353,55 @@ const PartyLedger = () => {
                </div>
             </div>
 
-            {/* Web Balance Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-               <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                     <Wallet className="w-16 h-16" />
+            {/* Web Balance Cards & View Mode Toggle */}
+            <div className="flex flex-col lg:flex-row gap-6 items-end">
+               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                  <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm relative overflow-hidden group">
+                     <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                        <Wallet className="w-16 h-16" />
+                     </div>
+                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Total Invoiced / Sales</p>
+                     <h3 className="text-3xl font-black italic tracking-tighter text-gray-900">
+                        ₹{totalInvoiced.toLocaleString()}
+                     </h3>
                   </div>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Current Outstanding</p>
-                  <h3 className={`text-4xl font-black italic tracking-tighter ${statement?.totalOutstanding > 0 ? "text-red-600" : "text-green-600"}`}>
-                     ₹{Math.abs(statement?.totalOutstanding || 0).toLocaleString()}
-                     <span className="text-xs ml-2 font-black uppercase italic">{statement?.totalOutstanding > 0 ? "Dr" : "Cr"}</span>
-                  </h3>
+                  <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm relative overflow-hidden group">
+                     <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                        <Wallet className="w-16 h-16" />
+                     </div>
+                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Amount Settled / Paid</p>
+                     <h3 className="text-3xl font-black italic tracking-tighter text-green-600">
+                        ₹{totalPaid.toLocaleString()}
+                     </h3>
+                  </div>
                </div>
+
+               <div className="bg-gray-100 p-1.5 rounded-[1.5rem] flex items-center gap-1 shadow-inner min-w-[300px]">
+                  <button 
+                     onClick={() => setViewMode('full')}
+                     className={`flex-1 px-4 py-3 rounded-[1.2rem] text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'full' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                     Full Statement
+                  </button>
+                  <button 
+                     onClick={() => setViewMode('payments')}
+                     className={`flex-1 px-4 py-3 rounded-[1.2rem] text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'payments' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                     Payments Only
+                  </button>
+               </div>
+            </div>
+
+            <div className={`p-8 rounded-[2.5rem] border shadow-sm ${statement?.totalOutstanding > 0 ? "bg-red-50 border-red-100" : "bg-green-50 border-green-100"}`}>
+                <div className="flex justify-between items-center">
+                    <div>
+                        <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${statement?.totalOutstanding > 0 ? "text-red-400" : "text-green-400"}`}>Net Account Balance</p>
+                        <h3 className={`text-4xl font-black italic tracking-tighter ${statement?.totalOutstanding > 0 ? "text-red-600" : "text-green-600"}`}>
+                           ₹{Math.abs(statement?.totalOutstanding || 0).toLocaleString()}
+                           <span className="text-xs ml-2 font-black uppercase italic">{statement?.totalOutstanding > 0 ? "Dr" : "Cr"}</span>
+                        </h3>
+                    </div>
+                </div>
             </div>
 
             {/* Ledger Table (Web Style) */}
@@ -354,19 +411,25 @@ const PartyLedger = () => {
                      <thead>
                         <tr className="bg-gray-50/50 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
                            <th className="px-8 py-5">Date</th>
-                           <th className="px-8 py-5">Transaction Details</th>
-                           <th className="px-8 py-5 text-right font-black text-blue-600 italic">Credit (₹)</th>
-                           <th className="px-8 py-5 text-right pr-12">Balance</th>
+                           <th className="px-8 py-5">Transaction Summary</th>
+                           {viewMode === 'full' && (
+                              <>
+                                 <th className="px-8 py-5 text-right">Debit (₹)</th>
+                                 <th className="px-8 py-5 text-right">Credit (₹)</th>
+                              </>
+                           )}
+                           {viewMode === 'payments' && <th className="px-8 py-5 text-right font-black text-blue-600 italic">Settled (₹)</th>}
+                           <th className="px-8 py-5 text-right pr-12">Running Balance</th>
                         </tr>
                      </thead>
                      <tbody className="divide-y divide-gray-50 uppercase tracking-tight">
                         {(() => {
-                           const filteredTimeline = statement?.timeline?.filter(item => item.type === 'payment') || [];
+                           const filteredTimeline = statement?.timeline?.filter(item => viewMode === 'full' || item.type === 'payment') || [];
 
                            if (filteredTimeline.length === 0) {
                               return (
                                  <tr>
-                                    <td colSpan="4" className="px-8 py-20 text-center text-gray-400 font-bold italic lowercase">no payments recorded.</td>
+                                    <td colSpan={viewMode === 'full' ? 5 : 4} className="px-8 py-20 text-center text-gray-400 font-bold italic lowercase">no matching transactions found.</td>
                                  </tr>
                               );
                            }
@@ -379,16 +442,27 @@ const PartyLedger = () => {
                                  <td className="px-8 py-6">
                                     <div className="flex flex-col">
                                        <span className="text-[9px] font-black uppercase tracking-widest text-blue-600 underline underline-offset-4 mb-1">
-                                          ID: {item.ref.slice(-10)}
+                                          REF: {item.ref.slice(-8).toUpperCase()}
                                        </span>
                                        <span className="text-xs font-bold text-gray-700">{item.description}</span>
                                     </div>
                                  </td>
-                                 <td className="px-8 py-6 text-right">
-                                    <span className="text-xs font-black tabular-nums text-green-600 italic">
-                                       ₹{(item.debit || item.credit || 0).toLocaleString()}
-                                    </span>
-                                 </td>
+                                 {viewMode === 'full' ? (
+                                    <>
+                                       <td className="px-8 py-6 text-right tabular-nums text-red-600 font-bold">
+                                          {item.debit > 0 ? `₹${item.debit.toLocaleString()}` : "-"}
+                                       </td>
+                                       <td className="px-8 py-6 text-right tabular-nums text-green-600 font-bold">
+                                          {item.credit > 0 ? `₹${item.credit.toLocaleString()}` : "-"}
+                                       </td>
+                                    </>
+                                 ) : (
+                                    <td className="px-8 py-6 text-right">
+                                       <span className="text-xs font-black tabular-nums text-green-600 italic">
+                                          ₹{(item.debit || item.credit || 0).toLocaleString()}
+                                       </span>
+                                    </td>
+                                 )}
                                  <td className="px-8 py-6 text-right pr-12">
                                     <span className="text-sm font-black text-gray-900 tabular-nums italic">
                                        ₹{Math.abs(item.balance).toLocaleString()}

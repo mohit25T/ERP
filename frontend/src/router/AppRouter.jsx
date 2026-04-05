@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "../pages/Dashboard";
 import Products from "../pages/Products";
 import Customers from "../pages/Customers";
@@ -10,9 +10,18 @@ import Accounting from "../pages/Accounting";
 import Payroll from "../pages/Payroll";
 import Reports from "../pages/Reports";
 import PartyLedger from "../pages/PartyLedger";
+import CompanyStatement from "../pages/CompanyStatement";
 import Login from "../pages/Login";
 import PublicLedger from "../pages/PublicLedger";
 import ProtectedRoute from "./ProtectedRoute";
+
+import { useParams } from "react-router-dom";
+
+// Helper for param-aware redirects
+const RedirectWithId = ({ base }) => {
+  const { id } = useParams();
+  return <Navigate to={`${base}/${id}${window.location.search}`} replace />;
+};
 
 const AppRouter = () => {
   return (
@@ -29,8 +38,16 @@ const AppRouter = () => {
         <Route path="/accounting" element={<ProtectedRoute><Accounting /></ProtectedRoute>} />
         <Route path="/payroll" element={<ProtectedRoute><Payroll /></ProtectedRoute>} />
         <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-        <Route path="/reports/ledger" element={<ProtectedRoute><PartyLedger /></ProtectedRoute>} />
-        <Route path="/reports/party/:id" element={<ProtectedRoute><PartyLedger /></ProtectedRoute>} />
+        
+        {/* Statement & Ledger (Renamed from Reports Context) */}
+        <Route path="/statements" element={<ProtectedRoute><PartyLedger /></ProtectedRoute>} />
+        <Route path="/statements/:id" element={<ProtectedRoute><PartyLedger /></ProtectedRoute>} />
+        <Route path="/financial-statement" element={<ProtectedRoute><CompanyStatement /></ProtectedRoute>} />
+        
+        {/* Legacy Redirects for backwards compatibility */}
+        <Route path="/reports/ledger" element={<Navigate to="/statements" replace />} />
+        <Route path="/reports/party/:id" element={<RedirectWithId base="/statements" />} />
+
         <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
         <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />

@@ -162,10 +162,10 @@ const Customers = () => {
                   </div>
                   <div className="pt-2 border-t border-gray-50 flex justify-end">
                      <Link 
-                       to={`/reports/party/${customer._id}?type=customer`}
+                       to={`/statements/${customer._id}?type=customer`}
                        className="text-xs font-black italic text-blue-600 uppercase tracking-widest hover:underline underline-offset-4 decoration-2"
                      >
-                       View Statement 📄
+                       View Full Statement 📄
                      </Link>
                   </div>
                 </div>

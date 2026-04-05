@@ -220,7 +220,7 @@ const Suppliers = () => {
                       <td className="px-8 py-6 text-right pr-8">
                           <div className="flex justify-end gap-2 text-right">
                              <Link 
-                               to={`/reports/party/${s._id}?type=supplier`}
+                               to={`/statements/${s._id}?type=supplier`}
                                className="p-3 bg-white border border-gray-100 rounded-xl text-gray-400 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm hover:shadow-xl hover:shadow-blue-500/10"
                              >
                                 <FileText className="w-4 h-4" />

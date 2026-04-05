@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AppLayout from "../components/layout/AppLayout";
-import { dashboardApi, paymentApi } from "../api/erpApi";
+import { Link } from "react-router-dom";
+import { dashboardApi, paymentApi, api } from "../api/erpApi";
 import { 
   Package, 
   Users, 
@@ -12,7 +13,10 @@ import {
   ArrowUpCircle,
   ArrowDownCircle,
   DollarSign,
-  TrendingDown
+  TrendingDown,
+  Building2,
+  Search,
+  FileText
 } from "lucide-react";
 import {
   LineChart,
@@ -36,6 +40,9 @@ const Dashboard = () => {
   const [financials, setFinancials] = useState(null);
   const [pnl, setPnl] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [parties, setParties] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loadingParties, setLoadingParties] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,7 +63,27 @@ const Dashboard = () => {
       }
     };
     fetchData();
+    fetchParties();
   }, []);
+
+  const fetchParties = async () => {
+    try {
+       setLoadingParties(true);
+       const [cus, sup] = await Promise.all([
+          api.get("/customers"),
+          api.get("/suppliers")
+       ]);
+       const combined = [
+          ...cus.data.map(c => ({ ...c, type: 'customer' })),
+          ...sup.data.map(s => ({ ...s, type: 'supplier' }))
+       ];
+       setParties(combined);
+    } catch (err) {
+       console.error("Failed to fetch dashboard parties", err);
+    } finally {
+       setLoadingParties(false);
+    }
+ };
 
   if (loading) return (
     <AppLayout>
@@ -64,6 +91,12 @@ const Dashboard = () => {
          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     </AppLayout>
+  );
+
+  const filteredParties = parties.filter(p =>
+    (p.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.company || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.gstin || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const statCards = [
@@ -102,17 +135,18 @@ const Dashboard = () => {
                     <Icon className={`w-7 h-7 ${stat.color}`} />
                   </div>
                 </div>
-                <div className="mt-6 flex items-center gap-2">
-                   <div className={`flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${stat.trend.startsWith("+") ? "bg-green-50 text-green-600" : "bg-red-50 text-red-500"}`}>
-                      {stat.trend.startsWith("+") ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />}
-                      {stat.trend}
-                   </div>
-                   <span className="text-xs text-gray-400 font-medium tracking-tight whitespace-nowrap">vs last month</span>
-                </div>
+                 <div className="mt-6 flex items-center gap-2">
+                    <div className={`flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${stat.trend.startsWith("+") ? "bg-green-50 text-green-600" : "bg-red-50 text-red-500"}`}>
+                       {stat.trend.startsWith("+") ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />}
+                       {stat.trend}
+                    </div>
+                    <span className="text-xs text-gray-400 font-medium tracking-tight whitespace-nowrap">vs last month</span>
+                 </div>
               </div>
             );
           })}
         </div>
+
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

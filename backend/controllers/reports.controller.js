@@ -278,3 +278,54 @@ export const getPublicStatement = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+// Whole-Company Financial Statement (Master Ledger)
+export const getCompanyStatement = async (req, res) => {
+  try {
+    const orders = await Order.find({ status: { $nin: ["cancelled", "refunded"] } }).populate("customer").lean();
+    const purchases = await Purchase.find({ status: { $ne: "cancelled" } }).populate("supplier").lean();
+    const ledgerEntries = await Ledger.find().populate("customer supplier").lean();
+
+    const combined = [
+      ...orders.map(o => ({
+        date: o.createdAt || new Date(),
+        type: "sales",
+        ref: o._id,
+        debit: 0,
+        credit: Number(o.totalAmount || 0),
+        description: `Sales Invoice #${String(o._id).slice(-6)} — ${o.customer?.company || o.customer?.name || "B2C Customer"}`
+      })),
+      ...purchases.map(p => ({
+        date: p.createdAt || new Date(),
+        type: "purchase",
+        ref: p._id,
+        debit: Number(p.totalAmount || 0),
+        credit: 0,
+        description: `Inward Stock #${String(p._id).slice(-6)} — ${p.supplier?.company || p.supplier?.name || "Vendor"}`
+      })),
+      ...ledgerEntries.map(l => ({
+        date: l.date || new Date(),
+        type: l.type === "income" ? "receipt" : "payment",
+        ref: l._id,
+        debit: l.type === "expense" ? Number(l.amount || 0) : 0,
+        credit: l.type === "income" ? Number(l.amount || 0) : 0,
+        description: l.description || `${l.type === "income" ? "Manual Receipt" : "Manual Payment"} — ${l.customer?.name || l.supplier?.company || "External"}`
+      }))
+    ];
+
+    combined.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    let runningBalance = 0;
+    const timeline = combined.map(item => {
+      runningBalance += (item.credit - item.debit);
+      return { ...item, balance: Number(runningBalance.toFixed(2)) };
+    });
+
+    res.json({
+      companyName: "Nexus ERP Master Record",
+      timeline,
+      totalBalance: Number(runningBalance.toFixed(2))
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
