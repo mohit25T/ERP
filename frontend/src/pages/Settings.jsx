@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import AppLayout from "../components/layout/AppLayout";
-import { User, Shield, Bell, Globe, Save, Lock, Building2 } from "lucide-react";
+import { User, Shield, Bell, Globe, Save, Lock, Building2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { authApi } from "../api/erpApi";
 
@@ -20,12 +20,27 @@ const Settings = () => {
   const getDefaultContent = (val, def) => (val === def || !val) ? "" : val;
 
   const [invoiceSettings, setInvoiceSettings] = useState({
-    headers: {
-      product: getDefaultContent(user?.invoiceSettings?.headers?.product, "Product Details / HSN"),
-      quantity: getDefaultContent(user?.invoiceSettings?.headers?.quantity, "Qty"),
-      price: getDefaultContent(user?.invoiceSettings?.headers?.price, "Unit Price"),
-      taxable: getDefaultContent(user?.invoiceSettings?.headers?.taxable, "Taxable Val."),
-      amount: getDefaultContent(user?.invoiceSettings?.headers?.amount, "Net Amount"),
+    columns: {
+      product: {
+        label: getDefaultContent(user?.invoiceSettings?.columns?.product?.label ?? user?.invoiceSettings?.headers?.product, "Product Details / HSN"),
+        show: user?.invoiceSettings?.columns?.product?.show ?? true
+      },
+      quantity: {
+        label: getDefaultContent(user?.invoiceSettings?.columns?.quantity?.label ?? user?.invoiceSettings?.headers?.quantity, "Qty"),
+        show: user?.invoiceSettings?.columns?.quantity?.show ?? true
+      },
+      price: {
+        label: getDefaultContent(user?.invoiceSettings?.columns?.price?.label ?? user?.invoiceSettings?.headers?.price, "Unit Price"),
+        show: user?.invoiceSettings?.columns?.price?.show ?? true
+      },
+      taxable: {
+        label: getDefaultContent(user?.invoiceSettings?.columns?.taxable?.label ?? user?.invoiceSettings?.headers?.taxable, "Taxable Val."),
+        show: user?.invoiceSettings?.columns?.taxable?.show ?? true
+      },
+      amount: {
+        label: getDefaultContent(user?.invoiceSettings?.columns?.amount?.label ?? user?.invoiceSettings?.headers?.amount, "Net Amount"),
+        show: user?.invoiceSettings?.columns?.amount?.show ?? true
+      }
     },
     showLogo: user?.invoiceSettings?.showLogo ?? true,
     footerText: getDefaultContent(user?.invoiceSettings?.footerText, "Certified that the particulars given above are true and correct. Taxes shown above are extra as applicable."),
@@ -188,20 +203,41 @@ const Settings = () => {
                           { key: 'price', label: 'Rate/Unit Price Column', defaultVal: 'Unit Price' },
                           { key: 'taxable', label: 'Taxable Value Column', defaultVal: 'Taxable Val.' },
                           { key: 'amount', label: 'Net Amount Column', defaultVal: 'Net Amount' },
-                        ].map((item) => (
+                        ].map((item) => {
+                          const colConfig = invoiceSettings.columns[item.key];
+                          return (
                           <div key={item.key} className="space-y-1.5">
-                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">{item.label}</label>
+                            <div className="flex justify-between items-center ml-1">
+                              <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{item.label}</label>
+                              <button 
+                                type="button"
+                                onClick={() => setInvoiceSettings({
+                                  ...invoiceSettings,
+                                  columns: { 
+                                    ...invoiceSettings.columns, 
+                                    [item.key]: { ...colConfig, show: !colConfig.show } 
+                                  }
+                                })}
+                                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase transition-all ${colConfig.show ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-rose-50 text-rose-500 hover:bg-rose-100'}`}
+                              >
+                                {colConfig.show ? <><Eye className="w-3 h-3" /> Visible</> : <><EyeOff className="w-3 h-3" /> Hidden</>}
+                              </button>
+                            </div>
                             <input 
-                              className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-emerald-500/10 outline-none placeholder:text-gray-300 placeholder:italic" 
+                              className={`w-full px-5 py-3 ${colConfig.show ? 'bg-gray-50' : 'bg-gray-100 opacity-50'} border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-emerald-500/10 outline-none placeholder:text-gray-300 placeholder:italic transition-all`} 
                               placeholder={item.defaultVal}
-                              value={invoiceSettings.headers[item.key]} 
+                              value={colConfig.label} 
+                              disabled={!colConfig.show}
                               onChange={(e) => setInvoiceSettings({
                                 ...invoiceSettings,
-                                headers: { ...invoiceSettings.headers, [item.key]: e.target.value }
+                                columns: { 
+                                  ...invoiceSettings.columns, 
+                                  [item.key]: { ...colConfig, label: e.target.value } 
+                                }
                               })} 
                             />
                           </div>
-                        ))}
+                        )})}
                       </div>
                    </div>
 

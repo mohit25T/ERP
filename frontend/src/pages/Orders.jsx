@@ -154,6 +154,21 @@ const Orders = () => {
   const handlePrintInvoice = (order) => {
     const printWindow = window.open("", "_blank");
     const date = new Date(order.createdAt).toLocaleDateString();
+
+    const settings = user?.invoiceSettings?.columns || {};
+    const legacy = user?.invoiceSettings?.headers || {};
+    
+    // Helper to safely get visibility and label
+    const getCol = (key, legacyHeader, defaultLabel) => ({
+      show: settings[key]?.show ?? true,
+      label: settings[key]?.label || legacy[key] || defaultLabel
+    });
+
+    const cProduct = getCol('product', legacy.product, 'Product Details / HSN');
+    const cPrice = getCol('price', legacy.price, 'Unit Price');
+    const cQty = getCol('quantity', legacy.quantity, 'Qty');
+    const cTaxable = getCol('taxable', legacy.taxable, 'Taxable Val.');
+    const cAmount = getCol('amount', legacy.amount, 'Net Amount');
     
     const html = `
       <html>
@@ -204,26 +219,27 @@ const Orders = () => {
               </div>
             </div>
 
-            <table class="w-full mb-6">
+            <table class="w-full mb-6 relative">
               <thead>
                 <tr class="border-b-2 border-gray-900 text-left text-[9px] font-black uppercase text-gray-900 tracking-widest">
-                  <th class="pb-3">${user?.invoiceSettings?.headers?.product || 'Product Details / HSN'}</th>
-                  <th class="pb-3 text-center">${user?.invoiceSettings?.headers?.price || 'Unit Price'}</th>
-                  <th class="pb-3 text-center">${user?.invoiceSettings?.headers?.quantity || 'Qty'}</th>
-                  <th class="pb-3 text-center">${user?.invoiceSettings?.headers?.taxable || 'Taxable Val.'}</th>
-                  <th class="pb-3 text-right">${user?.invoiceSettings?.headers?.amount || 'Net Amount'}</th>
+                  ${cProduct.show ? `<th class="pb-3">${cProduct.label}</th>` : ''}
+                  ${cPrice.show ? `<th class="pb-3 text-center">${cPrice.label}</th>` : ''}
+                  ${cQty.show ? `<th class="pb-3 text-center">${cQty.label}</th>` : ''}
+                  ${cTaxable.show ? `<th class="pb-3 text-center">${cTaxable.label}</th>` : ''}
+                  ${cAmount.show ? `<th class="pb-3 text-right">${cAmount.label}</th>` : ''}
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100 italic font-medium">
                 <tr>
+                  ${cProduct.show ? `
                   <td class="py-4">
                      <p class="font-black text-gray-900 text-sm">${order.product?.name}</p>
                      <p class="text-[9px] text-gray-400 font-bold uppercase mt-0.5">HSN: ${order.hsnCode || 'N/A'}</p>
-                  </td>
-                  <td class="py-4 text-center text-gray-600 font-bold text-xs">₹${order.product?.price?.toFixed(2)}</td>
-                  <td class="py-4 text-center text-gray-900 font-black text-xs">${order.quantity}</td>
-                  <td class="py-4 text-center text-gray-600 font-bold text-xs">₹${order.taxableAmount?.toFixed(2)}</td>
-                  <td class="py-4 text-right font-black text-gray-900 text-base">₹${order.totalAmount?.toFixed(2)}</td>
+                  </td>` : ''}
+                  ${cPrice.show ? `<td class="py-4 text-center text-gray-600 font-bold text-xs">₹${order.product?.price?.toFixed(2)}</td>` : ''}
+                  ${cQty.show ? `<td class="py-4 text-center text-gray-900 font-black text-xs">${order.quantity}</td>` : ''}
+                  ${cTaxable.show ? `<td class="py-4 text-center text-gray-600 font-bold text-xs">₹${order.taxableAmount?.toFixed(2)}</td>` : ''}
+                  ${cAmount.show ? `<td class="py-4 text-right font-black text-gray-900 text-base">₹${order.totalAmount?.toFixed(2)}</td>` : ''}
                 </tr>
               </tbody>
             </table>
