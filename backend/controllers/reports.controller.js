@@ -146,7 +146,9 @@ export const getPartyStatement = async (req, res) => {
         ref: t._id,
         debit: type === "customer" ? Number(t.totalAmount || 0) : 0,
         credit: type === "supplier" ? Number(t.totalAmount || 0) : 0,
-        description: type === "customer" ? `Sales Invoice (Order #${String(t._id || 'N/A').slice(-6)})` : `Inward Stock (Pur #${String(t._id || 'N/A').slice(-6)})`
+        description: type === "customer" 
+          ? `Sales Invoice (Order #${String(t._id || 'N/A').slice(-6)}) — ${partyDoc.company || partyDoc.name}` 
+          : `Inward Stock (Pur #${String(t._id || 'N/A').slice(-6)}) — ${partyDoc.company || partyDoc.name}`
       })),
       ...payments.map(p => ({
         date: p.date || new Date(),
@@ -154,7 +156,7 @@ export const getPartyStatement = async (req, res) => {
         ref: p._id,
         debit: type === "supplier" ? Number(p.amount || 0) : 0,
         credit: type === "customer" ? Number(p.amount || 0) : 0,
-        description: p.description || `Settlement / Receipt (Ref #${String(p._id || 'N/A').slice(-6)})`
+        description: p.description || `Settlement / Receipt (Ref #${String(p._id || 'N/A').slice(-6)}) — ${partyDoc.company || partyDoc.name}`
       }))
     ];
 
@@ -223,7 +225,9 @@ export const getPublicStatement = async (req, res) => {
         ref: t._id,
         debit: type === "customer" ? Number(t.totalAmount || 0) : 0,
         credit: type === "supplier" ? Number(t.totalAmount || 0) : 0,
-        description: type === "customer" ? `Sales Invoice (Order #${String(t._id || 'N/A').slice(-6)})` : `Inward Stock (Pur #${String(t._id || 'N/A').slice(-6)})`
+        description: type === "customer" 
+          ? `Sales Invoice (Order #${String(t._id || 'N/A').slice(-6)}) — ${partyDoc.company || partyDoc.name}` 
+          : `Inward Stock (Pur #${String(t._id || 'N/A').slice(-6)}) — ${partyDoc.company || partyDoc.name}`
       })),
       ...payments.map(p => ({
         date: p.date || new Date(),
@@ -231,7 +235,7 @@ export const getPublicStatement = async (req, res) => {
         ref: p._id,
         debit: type === "supplier" ? Number(p.amount || 0) : 0,
         credit: type === "customer" ? Number(p.amount || 0) : 0,
-        description: p.description || `Settlement / Receipt (Ref #${String(p._id || 'N/A').slice(-6)})`
+        description: p.description || `Settlement / Receipt (Ref #${String(p._id || 'N/A').slice(-6)}) — ${partyDoc.company || partyDoc.name}`
       }))
     ];
 

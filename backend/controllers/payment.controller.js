@@ -58,7 +58,7 @@ export const recordOrderPayment = async (req, res) => {
       type: "income",
       category: "Direct Sales",
       amount: Number(amount),
-      description: description || `Payment for Order #${id.substring(id.length - 6).toUpperCase()}`,
+      description: description || `Payment for Order #${id.substring(id.length - 6).toUpperCase()} — ${order.customer?.name}`,
       customer: order.customer?._id,
       order: id,
       date: date || new Date()
@@ -109,7 +109,7 @@ export const recordPurchasePayment = async (req, res) => {
       type: "expense",
       category: "Material Cost",
       amount: Number(amount),
-      description: description || `Payment for Purchase #${id.substring(id.length - 6).toUpperCase()}`,
+      description: description || `Payment for Purchase #${id.substring(id.length - 6).toUpperCase()} — ${purchase.supplier?.company || purchase.supplier?.name}`,
       supplier: purchase.supplier?._id,
       purchase: id,
       date: date || new Date()

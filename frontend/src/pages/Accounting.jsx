@@ -24,6 +24,18 @@ const Accounting = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("receivables"); 
   const [details, setDetails] = useState([]);
+  
+  // Filter States
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterMonth, setFilterMonth] = useState("all");
+  const [filterParty, setFilterParty] = useState("all");
+
+  // Reset filters when tab changes
+  useEffect(() => {
+    setSearchTerm("");
+    setFilterMonth("all");
+    setFilterParty("all");
+  }, [activeTab]);
 
   const fetchData = async () => {
     try {
@@ -53,6 +65,38 @@ const Accounting = () => {
   useEffect(() => {
     fetchData();
   }, [activeTab]);
+
+  // Derived Data for Filters
+  const getPartyName = (item) => {
+    if (item.customer?.name) return item.customer.name;
+    if (item.supplier?.company) return item.supplier.company;
+    if (item.supplier?.name) return item.supplier.name;
+    return "Unknown/Other";
+  };
+
+  const getMonthStr = (item) => {
+    const d = new Date(item.date || item.createdAt);
+    if (isNaN(d.valueOf())) return "Invalid Date";
+    return `${d.toLocaleString('default', { month: 'short' })} ${d.getFullYear()}`;
+  };
+
+  const uniqueMonths = [...new Set(details.map(getMonthStr))].filter(m => m !== "Invalid Date");
+  const uniqueParties = [...new Set(details.map(getPartyName))];
+
+  // Apply all active filters
+  const filteredDetails = details.filter(item => {
+    const s = searchTerm.toLowerCase();
+    const matchSearch = s === "" || 
+      getPartyName(item).toLowerCase().includes(s) ||
+      (item.description && item.description.toLowerCase().includes(s)) ||
+      (item.category && item.category.toLowerCase().includes(s)) ||
+      (item._id && item._id.toLowerCase().includes(s));
+      
+    const matchMonth = filterMonth === "all" || getMonthStr(item) === filterMonth;
+    const matchParty = filterParty === "all" || getPartyName(item) === filterParty;
+    
+    return matchSearch && matchMonth && matchParty;
+  });
 
   return (
     <AppLayout>
@@ -134,14 +178,34 @@ const Accounting = () => {
                  {activeTab === 'receivables' ? <Users className="w-5 h-5 text-blue-600" /> : <Building2 className="w-5 h-5 text-red-600" />}
                  Detailed {activeTab === 'receivables' ? 'Receivables' : 'Payables'} Breakdown
               </h3>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                 <select 
+                   className="px-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold text-gray-700 outline-none hover:bg-gray-100 focus:ring-2 focus:ring-blue-500/10 transition-colors cursor-pointer"
+                   value={filterMonth}
+                   onChange={(e) => setFilterMonth(e.target.value)}
+                 >
+                   <option value="all">All Months</option>
+                   {uniqueMonths.map(m => <option key={m} value={m}>{m}</option>)}
+                 </select>
+
+                 <select 
+                   className="px-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold text-gray-700 outline-none hover:bg-gray-100 focus:ring-2 focus:ring-blue-500/10 transition-colors cursor-pointer max-w-[180px]"
+                   value={filterParty}
+                   onChange={(e) => setFilterParty(e.target.value)}
+                 >
+                   <option value="all">All Parties</option>
+                   {uniqueParties.map(p => <option key={p} value={p}>{p}</option>)}
+                 </select>
+
                  <div className="relative hidden md:block">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input className="pl-12 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-blue-500/10 outline-none w-64" placeholder="Search entity or reference..." />
+                    <input 
+                      className="pl-12 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-blue-500/10 outline-none w-64 transition-all" 
+                      placeholder="Search entity, ref, or notes..." 
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                  </div>
-                 <button className="p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                    <Filter className="w-4 h-4 text-gray-500" />
-                 </button>
               </div>
            </div>
 
@@ -150,7 +214,7 @@ const Accounting = () => {
                 <div className="p-20 text-center">
                    <div className="inline-block w-10 h-10 border-4 border-gray-100 border-t-blue-600 rounded-full animate-spin"></div>
                 </div>
-              ) : details.length === 0 ? (
+              ) : filteredDetails.length === 0 ? (
                 <div className="p-24 text-center">
                    <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
                       <History className="w-10 h-10 text-gray-200" />
@@ -182,7 +246,7 @@ const Accounting = () => {
                       </tr>
                    </thead>
                    <tbody className="divide-y divide-gray-100">
-                      {details.map((item) => (
+                      {filteredDetails.map((item) => (
                         <tr key={item._id} className="group hover:bg-gray-50/80 transition-colors">
                            {activeTab === "ledger" ? (
                              <>
@@ -206,7 +270,7 @@ const Accounting = () => {
                                   {item.customer ? (
                                     <span className="text-[10px] font-black text-blue-500 uppercase flex items-center gap-1"><Users className="w-3 h-3" /> {item.customer?.name}</span>
                                   ) : item.supplier ? (
-                                    <span className="text-[10px] font-black text-red-500 uppercase flex items-center gap-1"><Building2 className="w-3 h-3" /> {item.supplier?.name}</span>
+                                    <span className="text-[10px] font-black text-red-500 uppercase flex items-center gap-1"><Building2 className="w-3 h-3" /> {item.supplier?.company || item.supplier?.name}</span>
                                   ) : (
                                     <span className="text-[10px] font-black text-gray-300 uppercase italic">N/A</span>
                                   )}
