@@ -238,7 +238,7 @@ const Purchases = () => {
                 <p className="text-gray-400 text-sm max-w-xs mx-auto font-medium">Capture incoming raw materials and finished stock from vendors to track procurement GST and inventory levels.</p>
               </div>
             ) : (
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse whitespace-nowrap">
                 <thead>
                   <tr className="bg-gray-50/50 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
                     <th className="px-8 py-4">Inward Details</th>
