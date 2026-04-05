@@ -344,8 +344,8 @@ const Orders = () => {
         />
       </Modal>
 
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden mb-10">
-        <div className="p-6 border-b border-gray-50 flex justify-between items-center">
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden mb-10 w-full max-w-full">
+        <div className="p-6 border-b border-gray-50 flex justify-between items-center w-full">
              <div className="relative w-full max-w-sm">
                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                  <input
@@ -356,7 +356,7 @@ const Orders = () => {
              </div>
         </div>
         
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto w-full max-w-full">
           {loading ? (
              <div className="p-12 text-center text-gray-400 italic">Processing orders...</div>
           ) : orders.length === 0 ? (

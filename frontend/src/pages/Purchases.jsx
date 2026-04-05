@@ -206,8 +206,8 @@ const Purchases = () => {
         </div>
 
         {/* Main Ledger Card */}
-        <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-gray-100/50 backdrop-blur-xl overflow-hidden">
-          <div className="p-8 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gradient-to-r from-gray-50/50 to-white">
+        <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-gray-100/50 backdrop-blur-xl overflow-hidden w-full max-w-full">
+          <div className="p-8 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gradient-to-r from-gray-50/50 to-white w-full">
             <div className="flex items-center gap-8">
               <div className="flex flex-col">
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Purchases</span>
@@ -223,7 +223,7 @@ const Purchases = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto w-full max-w-full">
             {loading ? (
               <div className="p-20 text-center">
                 <div className="inline-block w-12 h-12 border-4 border-gray-100 border-t-orange-600 rounded-full animate-spin"></div>
