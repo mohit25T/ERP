@@ -241,12 +241,12 @@ const Purchases = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50/50 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
-                    <th className="px-8 py-4">Inward Details</th>
-                    <th className="px-8 py-4">Vendor & GST</th>
-                    <th className="px-8 py-4 text-center">Qty / Status</th>
-                    <th className="px-8 py-4 text-center">Payment</th>
-                    <th className="px-8 py-4 text-right">Value (₹)</th>
-                    <th className="px-8 py-4 text-right pr-12">Flow</th>
+                    <th className="px-4 py-3">Inward Details</th>
+                    <th className="px-4 py-3">Vendor & GST</th>
+                    <th className="px-4 py-3 text-center">Qty / Status</th>
+                    <th className="px-4 py-3 text-center">Payment</th>
+                    <th className="px-4 py-3 text-right">Value (₹)</th>
+                    <th className="px-4 py-3 text-right">Flow</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -302,7 +302,7 @@ const Purchases = () => {
                         </div>
                       </td>
                       <td className="px-8 py-6 text-right pr-8">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex flex-nowrap justify-end gap-2 whitespace-nowrap">
                           {p.status === "pending" && (
                             <>
                               <button

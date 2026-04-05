@@ -125,8 +125,8 @@ export const recordPurchasePayment = async (req, res) => {
 // Financial Summary (For Dashboard)
 export const getFinancialSummary = async (req, res) => {
   try {
-    const orders = await Order.find({ paymentStatus: { $ne: "paid" } });
-    const purchases = await Purchase.find({ paymentStatus: { $ne: "paid" } });
+    const orders = await Order.find({ paymentStatus: { $ne: "paid" }, status: { $nin: ["cancelled", "refunded"] } });
+    const purchases = await Purchase.find({ paymentStatus: { $ne: "paid" }, status: { $nin: ["cancelled", "refunded"] } });
 
     const totalReceivable = orders.reduce((sum, o) => sum + ((o.totalAmount || 0) - (o.amountPaid || 0)), 0);
     const totalPayable = purchases.reduce((sum, p) => sum + ((p.totalAmount || 0) - (p.amountPaid || 0)), 0);

@@ -369,13 +369,13 @@ const Orders = () => {
             <table className="w-full text-left font-sans">
               <thead>
                 <tr className="bg-gray-50/50 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-50">
-                  <th className="px-8 py-4">Ref ID</th>
-                  <th className="px-8 py-4">Customer</th>
-                  <th className="px-8 py-4">Logistics</th>
-                  <th className="px-8 py-4 ">Financials</th>
-                  <th className="px-8 py-4 text-center">Payment</th>
-                  <th className="px-8 py-4 text-center">Status</th>
-                  <th className="px-8 py-4 text-right">Actions</th>
+                  <th className="px-4 py-3">Ref ID</th>
+                  <th className="px-4 py-3">Customer</th>
+                  <th className="px-4 py-3">Logistics</th>
+                  <th className="px-4 py-3 ">Financials</th>
+                  <th className="px-4 py-3 text-center">Payment</th>
+                  <th className="px-4 py-3 text-center">Status</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -383,32 +383,32 @@ const Orders = () => {
                   const statusOpts = getStatusBadgeOptions(o.status);
                   return (
                     <tr key={o._id} className="hover:bg-gray-50/80 transition-all group">
-                      <td className="px-8 py-6">
+                      <td className="px-4 py-4">
                         <span className="text-xs font-black text-gray-400 bg-gray-100 px-2 py-1 rounded">
                           #{o._id.substring(o._id.length - 6).toUpperCase()}
                         </span>
                       </td>
-                      <td className="px-8 py-6">
+                      <td className="px-4 py-4">
                         <div className="flex flex-col">
                           <span className="text-sm font-bold text-gray-900">{o.customer?.name || "Unassigned"}</span>
                           <span className="text-[10px] text-gray-400 font-medium uppercase">{o.customer?.email}</span>
                         </div>
                       </td>
-                      <td className="px-8 py-6 font-medium text-gray-600 text-sm">
+                      <td className="px-4 py-4 font-medium text-gray-600 text-sm">
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                           {o.product?.name} (x{o.quantity})
                         </div>
                       </td>
-                      <td className="px-8 py-6">
+                      <td className="px-4 py-4">
                         <div className="flex flex-col">
                           <span className="text-sm font-black text-gray-900 tracking-tight">₹{o.totalAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                           <span className="text-[10px] text-gray-400 font-bold uppercase mt-1">Paid: ₹{o.amountPaid?.toLocaleString('en-IN')}</span>
                         </div>
                       </td>
-                      <td className="px-8 py-6 text-center">
+                      <td className="px-4 py-4 text-center">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter ${o.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' :
-                          o.paymentStatus === 'partial' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'
+                            o.paymentStatus === 'partial' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'
                           }`}>
                           {o.paymentStatus}
                         </span>
@@ -419,14 +419,14 @@ const Orders = () => {
                           ></div>
                         </div>
                       </td>
-                      <td className="px-8 py-6 text-center">
+                      <td className="px-4 py-4 text-center">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${statusOpts.color}`}>
                           {statusOpts.icon && <span className="mr-1.5 opacity-70">{statusOpts.icon}</span>}
                           {statusOpts.label}
                         </span>
                       </td>
-                      <td className="px-8 py-6 text-right">
-                        <div className="flex justify-end gap-2">
+                      <td className="px-4 py-4 text-right">
+                        <div className="flex flex-nowrap justify-end gap-2 whitespace-nowrap">
                           {o.paymentStatus !== 'paid' && !['cancelled', 'refunded'].includes(o.status) && (
                             <button
                               onClick={() => { setSelectedOrder(o); setIsPaymentModalOpen(true); }}

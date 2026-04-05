@@ -12,7 +12,7 @@ export const getDashboardStats = async (req, res) => {
 
     // Calculate Total Revenue
     const totalRevenue = orders
-      .filter(o => o.status !== "cancelled")
+      .filter(o => !["cancelled", "refunded"].includes(o.status))
       .reduce((acc, curr) => acc + curr.totalAmount, 0);
 
     // Calculate Sales Trends (by month)

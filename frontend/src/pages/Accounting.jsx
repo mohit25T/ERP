@@ -33,10 +33,10 @@ const Accounting = () => {
 
       if (activeTab === "receivables") {
           const res = await api.get("/orders");
-          setDetails(res.data.filter(o => o.paymentStatus !== "paid"));
+          setDetails(res.data.filter(o => o.paymentStatus !== "paid" && !["cancelled", "refunded"].includes(o.status)));
       } else if (activeTab === "payables") {
           const res = await api.get("/purchases");
-          setDetails(res.data.filter(p => p.paymentStatus !== "paid"));
+          setDetails(res.data.filter(p => p.paymentStatus !== "paid" && !["cancelled", "refunded"].includes(p.status)));
       } else {
           const res = await ledgerApi.getAll();
           setDetails(res.data);
