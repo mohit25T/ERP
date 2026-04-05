@@ -206,7 +206,7 @@ const Purchases = () => {
         </div>
 
         {/* Main Ledger Card */}
-        <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-gray-100/50 backdrop-blur-xl overflow-hidden w-full max-w-full">
+        <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-gray-100/50 backdrop-blur-xl w-full max-w-full">
           <div className="p-8 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gradient-to-r from-gray-50/50 to-white w-full">
             <div className="flex items-center gap-8">
               <div className="flex flex-col">
@@ -273,16 +273,16 @@ const Purchases = () => {
                       </td>
                       <td className="px-8 py-6 text-center">
                         <div className="flex flex-col items-center gap-2">
-                                                       <span className="px-4 py-1 bg-gray-100 rounded-full text-xs font-black text-gray-900">{p.quantity} <span className="text-[10px] uppercase opacity-60 ml-0.5">{p.unit || 'kg'}</span></span>
-                            <span className={`px-4 py-1.5 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${getStatusStyle(p.status)}`}>
-                              {p.status}
-                            </span>
+                          <span className="px-4 py-1 bg-gray-100 rounded-full text-xs font-black text-gray-900">{p.quantity} <span className="text-[10px] uppercase opacity-60 ml-0.5">{p.unit || 'kg'}</span></span>
+                          <span className={`px-4 py-1.5 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${getStatusStyle(p.status)}`}>
+                            {p.status}
+                          </span>
                         </div>
                       </td>
                       <td className="px-8 py-6 text-center">
                         <div className="flex flex-col items-center gap-1">
                           <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter ${p.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' :
-                              p.paymentStatus === 'partial' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'
+                            p.paymentStatus === 'partial' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'
                             }`}>
                             {p.paymentStatus}
                           </span>
