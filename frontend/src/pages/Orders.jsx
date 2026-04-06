@@ -170,6 +170,8 @@ const Orders = () => {
     const cTaxable = getCol('taxable', legacy.taxable, 'Taxable Val.');
     const cAmount = getCol('amount', legacy.amount, 'Net Amount');
 
+    const gstPercent = order.taxableAmount > 0 ? Math.round((order.gstAmount / order.taxableAmount) * 100) : 18;
+
     const html = `
       <html>
         <head>
@@ -226,6 +228,8 @@ const Orders = () => {
                   ${cPrice.show ? `<th class="pb-3 text-center">${cPrice.label}</th>` : ''}
                   ${cQty.show ? `<th class="pb-3 text-center">${cQty.label}</th>` : ''}
                   ${cTaxable.show ? `<th class="pb-3 text-center">${cTaxable.label}</th>` : ''}
+                  <th class="pb-3 text-center">GST (%)</th>
+                  <th class="pb-3 text-center">GST AMT</th>
                   ${cAmount.show ? `<th class="pb-3 text-right">${cAmount.label}</th>` : ''}
                 </tr>
               </thead>
@@ -239,6 +243,8 @@ const Orders = () => {
                   ${cPrice.show ? `<td class="py-4 text-center text-gray-600 font-bold text-xs">₹${order.product?.price?.toFixed(2)}</td>` : ''}
                   ${cQty.show ? `<td class="py-4 text-center text-gray-900 font-black text-xs">${order.quantity}</td>` : ''}
                   ${cTaxable.show ? `<td class="py-4 text-center text-gray-600 font-bold text-xs">₹${order.taxableAmount?.toFixed(2)}</td>` : ''}
+                  <td class="py-4 text-center text-gray-900 font-black text-xs">${gstPercent}%</td>
+                  <td class="py-4 text-center text-gray-600 font-bold text-xs">₹${order.gstAmount?.toFixed(2)}</td>
                   ${cAmount.show ? `<td class="py-4 text-right font-black text-gray-900 text-base">₹${order.totalAmount?.toFixed(2)}</td>` : ''}
                 </tr>
               </tbody>
@@ -253,16 +259,16 @@ const Orders = () => {
                 
                 ${order.cgst > 0 ? `
                 <div class="flex justify-between text-[10px] font-bold text-blue-600 uppercase tracking-widest">
-                  <span>CGST Output</span>
+                  <span>CGST Output (${gstPercent / 2}%)</span>
                   <span>₹${order.cgst?.toFixed(2)}</span>
                 </div>
                 <div class="flex justify-between text-[10px] font-bold text-blue-600 uppercase tracking-widest">
-                  <span>SGST Output</span>
+                  <span>SGST Output (${gstPercent / 2}%)</span>
                   <span>₹${order.sgst?.toFixed(2)}</span>
                 </div>
                 ` : `
                 <div class="flex justify-between text-[10px] font-bold text-indigo-600 uppercase tracking-widest">
-                  <span>IGST Output</span>
+                  <span>IGST Output (${gstPercent}%)</span>
                   <span>₹${order.igst?.toFixed(2)}</span>
                 </div>
                 `}
@@ -403,7 +409,10 @@ const Orders = () => {
                       <td className="px-4 py-4">
                         <div className="flex flex-col">
                           <span className="text-sm font-black text-gray-900 tracking-tight">₹{o.totalAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                          <span className="text-[10px] text-gray-400 font-bold uppercase mt-1">Paid: ₹{o.amountPaid?.toLocaleString('en-IN')}</span>
+                          <div className="flex justify-between items-center mt-1">
+                             <span className="text-[10px] text-gray-400 font-bold uppercase">Paid: ₹{o.amountPaid?.toLocaleString('en-IN')}</span>
+                             <span className="text-[9px] text-blue-500 font-black uppercase ml-2 tracking-tighter">GST: ₹{o.gstAmount?.toLocaleString('en-IN')}</span>
+                          </div>
                         </div>
                       </td>
                       <td className="px-4 py-4 text-center">

@@ -292,7 +292,7 @@ export const getCompanyStatement = async (req, res) => {
         ref: o._id,
         debit: 0,
         credit: Number(o.totalAmount || 0),
-        description: `Sales Invoice #${String(o._id).slice(-6)} — ${o.customer?.company || o.customer?.name || "B2C Customer"}`
+        description: `Sales Invoice #${String(o._id).slice(-6)} — ${o.customer?.company || o.customer?.name || "B2C Customer"} (Inc. ₹${o.gstAmount?.toLocaleString()} GST)`
       })),
       ...purchases.map(p => ({
         date: p.createdAt || new Date(),
