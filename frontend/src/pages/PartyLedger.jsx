@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useSearchParams, Link, useNavigate } from "react-router-dom";
 import AppLayout from "../components/layout/AppLayout";
-import { reportsApi, api } from "../api/erpApi";
+import { reportsApi, api, customerApi, supplierApi, ledgerApi } from "../api/erpApi";
+import Modal from "../components/common/Modal";
 import {
    FileText,
    ArrowLeft,
@@ -16,7 +17,10 @@ import {
    Wallet,
    Share2,
    Zap,
-   Search
+   Search,
+   CheckCircle2,
+   AlertCircle,
+   Loader2
 } from "lucide-react";
 
 const PartyLedger = () => {
@@ -31,6 +35,13 @@ const PartyLedger = () => {
    const [loading, setLoading] = useState(true);
    const [searchTerm, setSearchTerm] = useState("");
    const [copied, setCopied] = useState(false);
+   const [isGeneratingToken, setIsGeneratingToken] = useState(false);
+
+   // Reconciliation State
+   const [isReconcileOpen, setIsReconcileOpen] = useState(false);
+   const [reconcileAmount, setReconcileAmount] = useState(0);
+   const [reconcileNotes, setReconcileNotes] = useState("");
+   const [isSubmittingReconcile, setIsSubmittingReconcile] = useState(false);
 
    useEffect(() => {
       // Redirect if id is literally the placeholder ":id"
@@ -74,6 +85,8 @@ const PartyLedger = () => {
          ]);
          setStatement(statementRes.data);
          setParty(partyRes.data);
+         // Pre-fill reconcile amount with outstanding balance
+         setReconcileAmount(Math.abs(statementRes.data.totalOutstanding || 0));
       } catch (err) {
          console.error("Failed to fetch party ledger", err);
       } finally {
@@ -81,12 +94,58 @@ const PartyLedger = () => {
       }
    };
 
-   const handleShare = () => {
-      if (!party?.shareToken) return;
-      const shareUrl = `${window.location.origin}/public/ledger/${party.shareToken}`;
-      navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+   const handleShare = async () => {
+      try {
+         let token = party?.shareToken;
+         
+         if (!token) {
+            setIsGeneratingToken(true);
+            const apiObj = typeParam === 'customer' ? customerApi : supplierApi;
+            const res = await apiObj.generateShareToken(id);
+            token = res.data.shareToken;
+            setParty(res.data);
+         }
+
+         const shareUrl = `${window.location.origin}/public/ledger/${token}`;
+         await navigator.clipboard.writeText(shareUrl);
+         setCopied(true);
+         setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+         console.error("Failed to share portal access", err);
+         alert("Could not generate or copy share link.");
+      } finally {
+         setIsGeneratingToken(false);
+      }
+   };
+
+   const handleReconcileSubmit = async (e) => {
+      e.preventDefault();
+      if (!reconcileAmount || reconcileAmount <= 0) return;
+
+      try {
+         setIsSubmittingReconcile(true);
+         
+         const payload = {
+            type: typeParam === 'customer' ? 'income' : 'expense',
+            category: 'Settlement',
+            amount: Number(reconcileAmount),
+            description: reconcileNotes || `Account Reconciliation / Settlement — ${party.company || party.name}`,
+            date: new Date(),
+            [typeParam]: id
+         };
+
+         await api.post("/ledger", payload);
+         
+         // Refresh data
+         await fetchStatement();
+         setIsReconcileOpen(false);
+         setReconcileNotes("");
+      } catch (err) {
+         console.error("Reconciliation failed", err);
+         alert(err.response?.data?.error || "Failed to record settlement.");
+      } finally {
+         setIsSubmittingReconcile(false);
+      }
    };
 
    const handleExport = () => {
@@ -425,15 +484,19 @@ const PartyLedger = () => {
                      <div className="space-y-3">
                         <button
                            onClick={handleShare}
-                           className="w-full px-6 py-4 bg-gray-50 hover:bg-blue-50 text-gray-900 rounded-2xl flex items-center justify-between group transition-all"
+                           disabled={isGeneratingToken}
+                           className="w-full px-6 py-4 bg-gray-50 hover:bg-blue-50 text-gray-900 rounded-2xl flex items-center justify-between group transition-all disabled:opacity-50"
                         >
                            <div className="flex items-center gap-3">
-                              <Share2 className="w-5 h-5 text-gray-400 group-hover:text-blue-500" />
+                              {isGeneratingToken ? <Loader2 className="w-5 h-5 animate-spin text-blue-500" /> : <Share2 className="w-5 h-5 text-gray-400 group-hover:text-blue-500" />}
                               <span className="text-xs font-black uppercase tracking-widest">Share Portal Access</span>
                            </div>
                            {copied && <span className="text-[9px] font-black text-blue-500">COPIED</span>}
                         </button>
-                        <button className="w-full px-6 py-4 bg-gray-50 hover:bg-blue-50 text-gray-900 rounded-2xl flex items-center justify-between group transition-all">
+                        <button 
+                           onClick={() => setIsReconcileOpen(true)}
+                           className="w-full px-6 py-4 bg-gray-50 hover:bg-blue-50 text-gray-900 rounded-2xl flex items-center justify-between group transition-all"
+                        >
                            <div className="flex items-center gap-3">
                               <Zap className="w-5 h-5 text-gray-400 group-hover:text-blue-500" />
                               <span className="text-xs font-black uppercase tracking-widest">Reconcile Now</span>
@@ -444,6 +507,69 @@ const PartyLedger = () => {
                </div>
             </div>
          </div>
+
+         {/* Reconciliation Modal */}
+         <Modal 
+            isOpen={isReconcileOpen} 
+            onClose={() => setIsReconcileOpen(false)}
+            title={`Quick Settlement — ${party?.company || party?.name}`}
+         >
+            <form onSubmit={handleReconcileSubmit} className="space-y-6">
+               <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 flex items-start gap-4">
+                  <div className="p-2 bg-white rounded-xl text-blue-600 shadow-sm">
+                     <AlertCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                     <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1">Clear Outstanding Balance</p>
+                     <p className="text-xs font-bold text-blue-700 leading-relaxed">
+                        Recording this settlement will update the {typeParam}'s ledger and reduce the total outstanding amount.
+                     </p>
+                  </div>
+               </div>
+
+               <div className="space-y-4">
+                  <div>
+                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Settlement Amount (₹)</label>
+                     <input 
+                        type="number"
+                        className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-xl font-black text-gray-900 focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 outline-none transition-all mt-1.5"
+                        placeholder="0"
+                        value={reconcileAmount}
+                        onChange={(e) => setReconcileAmount(e.target.value)}
+                        required
+                     />
+                  </div>
+
+                  <div>
+                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Notes / Transaction Ref</label>
+                     <textarea 
+                        className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 outline-none transition-all mt-1.5 min-h-[100px]"
+                        placeholder="e.g. Bank Transfer, Cash settlement, etc."
+                        value={reconcileNotes}
+                        onChange={(e) => setReconcileNotes(e.target.value)}
+                     />
+                  </div>
+               </div>
+
+               <div className="flex gap-3 pt-2">
+                  <button
+                     type="button"
+                     onClick={() => setIsReconcileOpen(false)}
+                     className="flex-1 py-4 bg-white border border-gray-100 rounded-2xl text-xs font-black uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all active:scale-95"
+                  >
+                     Cancel
+                  </button>
+                  <button
+                     type="submit"
+                     disabled={isSubmittingReconcile || !reconcileAmount}
+                     className="flex-[2] py-4 bg-blue-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                     {isSubmittingReconcile ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                     {isSubmittingReconcile ? "Settling..." : "Confirm Settlement"}
+                  </button>
+               </div>
+            </form>
+         </Modal>
       </AppLayout>
    );
 };

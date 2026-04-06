@@ -54,3 +54,19 @@ export const deleteSupplier = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Generate Share Token
+export const generateShareToken = async (req, res) => {
+  try {
+    const supplier = await Supplier.findById(req.params.id);
+    if (!supplier) return res.status(404).json({ msg: "Supplier not found" });
+
+    // Mark as modified even if no body change, pre-save hook will handle it
+    supplier.shareToken = undefined; // Force generation
+    await supplier.save();
+    
+    res.json(supplier);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

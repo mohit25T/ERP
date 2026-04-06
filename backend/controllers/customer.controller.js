@@ -54,3 +54,19 @@ export const deleteCustomer = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Generate Share Token
+export const generateShareToken = async (req, res) => {
+  try {
+    const customer = await Customer.findById(req.params.id);
+    if (!customer) return res.status(404).json({ msg: "Customer not found" });
+
+    // Mark as modified even if no body change, pre-save hook will handle it
+    customer.shareToken = undefined; // Force generation
+    await customer.save();
+    
+    res.json(customer);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

@@ -28,14 +28,16 @@ export const customerApi = {
   getAll: () => api.get("/customers"),
   create: (data) => api.post("/customers", data),
   update: (id, data) => api.put(`/customers/${id}`, data),
-  delete: (id) => api.delete(`/customers/${id}`)
+  delete: (id) => api.delete(`/customers/${id}`),
+  generateShareToken: (id) => api.patch(`/customers/${id}/share-token`)
 };
 
 export const supplierApi = {
   getAll: () => api.get("/suppliers"),
   create: (data) => api.post("/suppliers", data),
   update: (id, data) => api.put(`/suppliers/${id}`, data),
-  delete: (id) => api.delete(`/suppliers/${id}`)
+  delete: (id) => api.delete(`/suppliers/${id}`),
+  generateShareToken: (id) => api.patch(`/suppliers/${id}/share-token`)
 };
 
 export const purchaseApi = {

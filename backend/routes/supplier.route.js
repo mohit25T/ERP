@@ -4,7 +4,8 @@ import {
   getSuppliers, 
   getSupplierById, 
   updateSupplier, 
-  deleteSupplier 
+  deleteSupplier,
+  generateShareToken
 } from "../controllers/supplier.controller.js";
 import { authMiddleware, adminMiddleware } from "../middleware/auth.middleware.js";
 
@@ -17,5 +18,6 @@ router.get("/", getSuppliers);
 router.get("/:id", getSupplierById);
 router.put("/:id", adminMiddleware, updateSupplier);
 router.delete("/:id", adminMiddleware, deleteSupplier);
+router.patch("/:id/share-token", generateShareToken);
 
 export default router;

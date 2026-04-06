@@ -5,6 +5,7 @@ import {
   getCustomerById,
   updateCustomer,
   deleteCustomer,
+  generateShareToken,
 } from "../controllers/customer.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 
@@ -20,5 +21,7 @@ router.route("/:id")
   .get(getCustomerById)
   .put(updateCustomer)
   .delete(deleteCustomer);
+
+router.patch("/:id/share-token", generateShareToken);
 
 export default router;
