@@ -1,4 +1,5 @@
 import Customer from "../models/Customer.js";
+import crypto from "crypto";
 
 // Create Customer
 export const createCustomer = async (req, res) => {
@@ -61,12 +62,14 @@ export const generateShareToken = async (req, res) => {
     const customer = await Customer.findById(req.params.id);
     if (!customer) return res.status(404).json({ msg: "Customer not found" });
 
-    // Mark as modified even if no body change, pre-save hook will handle it
-    customer.shareToken = undefined; // Force generation
+    // Generate token directly in controller for higher reliability
+    customer.shareToken = crypto.randomBytes(16).toString("hex");
     await customer.save();
     
+    console.log(`[SHARE TOKEN] Generated new token for customer: ${customer._id}`);
     res.json(customer);
   } catch (err) {
+    console.error(`[SHARE TOKEN ERROR] Customer ${req.params.id}:`, err);
     res.status(500).json({ error: err.message });
   }
 };

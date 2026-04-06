@@ -1,4 +1,5 @@
 import Supplier from "../models/Supplier.js";
+import crypto from "crypto";
 
 // Create Supplier
 export const createSupplier = async (req, res) => {
@@ -61,12 +62,14 @@ export const generateShareToken = async (req, res) => {
     const supplier = await Supplier.findById(req.params.id);
     if (!supplier) return res.status(404).json({ msg: "Supplier not found" });
 
-    // Mark as modified even if no body change, pre-save hook will handle it
-    supplier.shareToken = undefined; // Force generation
+    // Generate token directly in controller for higher reliability
+    supplier.shareToken = crypto.randomBytes(16).toString("hex");
     await supplier.save();
     
+    console.log(`[SHARE TOKEN] Generated new token for supplier: ${supplier._id}`);
     res.json(supplier);
   } catch (err) {
+    console.error(`[SHARE TOKEN ERROR] Supplier ${req.params.id}:`, err);
     res.status(500).json({ error: err.message });
   }
 };
