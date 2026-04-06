@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
     companyName: { type: String, default: "" },
     address: { type: String, default: "" },
     state: { type: String, default: "" },
+    pincode: { type: String, default: "" },
     invoiceSettings: {
       columns: {
         product: {

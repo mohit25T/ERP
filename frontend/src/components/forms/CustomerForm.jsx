@@ -12,6 +12,7 @@ const CustomerForm = ({ initialData, onSubmit, onCancel, loading }) => {
     state: initialData?.state || "",
     gstin: initialData?.gstin || "",
     address: initialData?.address || "",
+    pincode: initialData?.pincode || "",
   });
 
   const [gstValidation, setGstValidation] = useState({ isValid: true, message: "" });
@@ -178,6 +179,19 @@ const CustomerForm = ({ initialData, onSubmit, onCancel, loading }) => {
             className="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition resize-none"
             placeholder="Plot No, Street, Landmark..."
             value={formData.address}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="col-span-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Customer Pincode</label>
+          <input
+            name="pincode"
+            required
+            className="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition font-bold"
+            placeholder="400001"
+            maxLength="6"
+            value={formData.pincode}
             onChange={handleChange}
           />
         </div>

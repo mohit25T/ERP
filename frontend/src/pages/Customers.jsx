@@ -165,7 +165,7 @@ const Customers = () => {
                        to={`/statements/${customer._id}?type=customer`}
                        className="text-xs font-black italic text-blue-600 uppercase tracking-widest hover:underline underline-offset-4 decoration-2"
                      >
-                       View Full Statement 📄
+                       View Party Ledger 📄
                      </Link>
                   </div>
                 </div>

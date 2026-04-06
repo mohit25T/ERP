@@ -14,7 +14,7 @@ const Settings = () => {
     companyName: user?.companyName || "",
     gstin: user?.gstin || "",
     address: user?.address || "",
-    state: user?.state || "",
+    pincode: user?.pincode || "",
   });
 
   const getDefaultContent = (val, def) => (val === def || !val) ? "" : val;
@@ -164,7 +164,11 @@ const Settings = () => {
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Base State (for GST)</label>
                     <input name="state" className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500/10 outline-none" value={profileData.state} onChange={handleProfileChange} placeholder="e.g. Maharashtra" />
+                    <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Company Pincode</label>
+                    <input name="pincode" className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500/10 outline-none" value={profileData.pincode} onChange={handleProfileChange} placeholder="400001" maxLength="6" />
                   </div>
+                </div>
                 </div>
 
                 <div className="space-y-1.5">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useSearchParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link, useNavigate } from "react-router-dom";
 import AppLayout from "../components/layout/AppLayout";
 import { reportsApi, api } from "../api/erpApi";
 import {
@@ -22,6 +22,7 @@ import {
 const PartyLedger = () => {
    const { id } = useParams();
    const [searchParams] = useSearchParams();
+   const navigate = useNavigate();
    const typeParam = searchParams.get("type") || "customer"; // 'customer' or 'supplier'
 
    const [statement, setStatement] = useState(null);
@@ -30,17 +31,20 @@ const PartyLedger = () => {
    const [loading, setLoading] = useState(true);
    const [searchTerm, setSearchTerm] = useState("");
    const [copied, setCopied] = useState(false);
-   const [viewMode, setViewMode] = useState("full"); // 'full' or 'payments'
 
    useEffect(() => {
-   // ... existing useEffect logic
+      // Redirect if id is literally the placeholder ":id"
+      if (id === ":id") {
+        navigate("/statements", { replace: true });
+        return;
+      }
 
       if (id) {
          fetchStatement();
       } else {
          fetchParties();
       }
-   }, [id, typeParam]);
+   }, [id, typeParam, navigate]);
 
    const fetchParties = async () => {
       try {
@@ -87,19 +91,17 @@ const PartyLedger = () => {
 
    const handleExport = () => {
       if (!statement?.timeline) return;
-
-      // CSV Header row
-      const headers = ["Date", "Type", "Description", "Debit", "Credit", "Balance"];
-
-      // Format rows with double quotes to escape commas correctly
-      const rows = statement.timeline.map(item => [
-         `"${new Date(item.date).toLocaleDateString()}"`,
-         `"${item.type.toUpperCase()}"`,
-         `"${item.description.replace(/"/g, '""')}"`, // Escape double quotes
-         `"${item.debit || 0}"`,
-         `"${item.credit || 0}"`,
-         `"${item.balance || 0}"`
-      ].join(","));
+      
+      const headers = ["Date", "Description", "Ref", "Amount", "Balance"];
+      const rows = statement.timeline
+         .filter(item => item.type === 'payment')
+         .map(item => [
+            `"${new Date(item.date).toLocaleDateString()}"`,
+            `"${item.description.replace(/"/g, '""')}"`,
+            `"${String(item.ref).slice(-8).toUpperCase()}"`,
+            (item.debit || item.credit || 0),
+            item.balance
+         ].join(","));
 
       const csvString = [headers.join(","), ...rows].join("\n");
       const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
@@ -108,9 +110,8 @@ const PartyLedger = () => {
       const link = document.createElement("a");
       link.href = url;
 
-      // Sanitize filename to remove illegal '/' characters from dates
       const safeDate = new Date().toLocaleDateString().replace(/\//g, "-");
-      const fileName = `Statement_${party?.company || party?.name || "Party"}_${safeDate}.csv`;
+      const fileName = `Payment_Ledger_${party?.company || party?.name || "Party"}_${safeDate}.csv`;
 
       link.setAttribute("download", fileName);
       document.body.appendChild(link);
@@ -138,22 +139,25 @@ const PartyLedger = () => {
       return (
          <AppLayout>
             <div className="space-y-8 animate-in fade-in duration-700">
-               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-gray-100 pb-8">
                   <div>
                      <h2 className="text-4xl font-black text-gray-900 tracking-tight italic flex items-center gap-3">
-                        <span className="p-2.5 bg-blue-600 text-white rounded-2xl shadow-xl shadow-blue-500/20">
-                           <FileText className="w-8 h-8" />
-                        </span>
-                        Account Statement Hub
+                        <div className="p-3 bg-gray-900 text-white rounded-2xl shadow-xl shadow-gray-200">
+                           <Users className="w-8 h-8" />
+                        </div>
+                        Party Ledger Hub
                      </h2>
-                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2 ml-14">Universal Selection for Financial Reconciliation</p>
+                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2 ml-16 flex items-center gap-2">
+                         <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                         Select a customer or supplier to view payment history
+                     </p>
                   </div>
                   <div className="relative w-full md:w-96 group">
                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300 group-focus-within:text-blue-500 transition-colors" />
                      <input 
-                        type="text" 
-                        placeholder="Search Name, Company or GSTIN..."
-                        className="w-full pl-12 pr-6 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm"
+                        type="text"
+                        placeholder="Search by name, company or GSTIN..."
+                        className="w-full pl-12 pr-6 py-4 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all shadow-sm group-hover:shadow-md font-medium"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                      />
@@ -165,22 +169,26 @@ const PartyLedger = () => {
                      <Link 
                         key={p._id}
                         to={`/statements/${p._id}?type=${p.type}`}
-                        className="p-6 bg-white border border-gray-100 rounded-[2.5rem] hover:border-blue-300 hover:shadow-2xl hover:shadow-blue-500/5 transition-all group relative overflow-hidden"
+                        className="group bg-white p-6 rounded-[2.5rem] border border-gray-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 relative overflow-hidden"
                      >
-                        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                           {p.type === 'customer' ? <Users className="w-12 h-12" /> : <Building2 className="w-12 h-12" />}
+                        <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.1] group-hover:scale-125 transition-all duration-700">
+                           {p.type === 'customer' ? <User className="w-24 h-24" /> : <Building2 className="w-24 h-24" />}
                         </div>
-                        <div className="flex flex-col relative z-10 h-full">
-                           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${p.type === 'customer' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600'}`}>
-                              {p.type === 'customer' ? <Users className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
+                        
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 ${p.type === 'customer' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}>
+                           {p.type === 'customer' ? <User className="w-6 h-6" /> : <Building2 className="w-6 h-6" />}
+                        </div>
+
+                        <div className="space-y-1">
+                           <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-blue-500 transition-colors">{p.type}</p>
+                           <h4 className="text-xl font-black text-gray-900 group-hover:text-gray-800 transition-colors truncate">{p.company || p.name}</h4>
+                        </div>
+                        
+                        <div className="mt-8 flex items-center justify-between">
+                           <div className="text-[10px] font-black text-gray-400 group-hover:text-gray-600 uppercase tracking-tighter">
+                              Click to view ledger
                            </div>
-                           <h4 className="text-lg font-black text-gray-900 group-hover:text-blue-600 transition-colors uppercase tracking-tighter mb-1 truncate">
-                              {p.company || p.name}
-                           </h4>
-                           <div className="flex flex-col mt-auto">
-                              <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">{p.name || p.company}</span>
-                              <span className="text-[9px] font-bold text-blue-500 mt-1">{p.gstin || "B2C VENDOR"}</span>
-                           </div>
+                           <ArrowUpRight className="w-5 h-5 text-gray-300 group-hover:text-blue-500 transition-all transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                         </div>
                      </Link>
                   ))}
@@ -191,15 +199,6 @@ const PartyLedger = () => {
    }
 
    // STATEMENT VIEW (When party is selected)
-   // Calculate Totals for Summary Box
-   const totalInvoiced = statement?.timeline
-      .filter(item => item.type === 'invoice' || item.type === 'purchase')
-      .reduce((sum, item) => sum + (item.debit || item.credit || 0), 0) || 0;
-
-   const totalPaid = statement?.timeline
-      .filter(item => item.type === 'payment')
-      .reduce((sum, item) => sum + (item.debit || item.credit || 0), 0) || 0;
-
    return (
       <AppLayout>
          <style>{`
@@ -221,259 +220,227 @@ const PartyLedger = () => {
             <div className="flex justify-between items-start border-b-2 border-black pb-4 mb-6">
                <div>
                   <h1 className="text-2xl font-bold uppercase tracking-tight">Nexus ERP</h1>
-                  <p className="text-[10px] font-bold uppercase">Statement of Account</p>
+                  <p className="text-[10px] font-bold uppercase">Payment Ledger Statement</p>
                </div>
                <div className="text-right">
                   <p className="text-xs font-bold uppercase">Date: {new Date().toLocaleDateString()}</p>
                </div>
             </div>
 
-            {/* Party Details & Summary Box */}
-            <div className="flex justify-between items-start mb-8">
-               <div className="w-1/2">
-                  <p className="text-[10px] font-bold underline mb-1 uppercase">Party Details</p>
-                  <h2 className="text-lg font-bold uppercase">{party?.company || party?.name}</h2>
-                  <p className="text-xs">GSTIN: {party?.gstin || "N/A"}</p>
-                  <p className="text-xs mt-1 w-2/3">{party?.address || "No address provided"}</p>
+            {/* Party Header Info for Print */}
+            <div className="grid grid-cols-2 gap-8 mb-8 text-xs">
+               <div className="space-y-4">
+                  <div className="bg-gray-100 p-4 rounded border border-gray-200">
+                     <p className="font-bold uppercase border-b border-gray-300 pb-1 mb-2 text-[10px]">Recipient Party Details</p>
+                     <p className="text-lg font-bold">{party?.company || party?.name}</p>
+                     <p className="font-medium text-gray-600 mt-1">{party?.address || "Address not specified"}</p>
+                     <p className="font-bold mt-2">GSTIN: {party?.gstin || "N/A"}</p>
+                  </div>
                </div>
-               <div className="w-1/3 border border-black p-4 bg-gray-50/50">
-                  <p className="text-[10px] font-bold underline mb-2 uppercase text-center">Reconciliation Summary</p>
-                  <div className="space-y-1 text-sm tabular-nums">
-                     <div className="flex justify-between border-b border-dashed border-gray-400 pb-1">
-                        <span>Total Invoiced</span>
-                        <span>₹{totalInvoiced.toLocaleString()}</span>
-                     </div>
-                     <div className="flex justify-between border-b border-dashed border-gray-400 pb-1">
-                        <span>Total Paid</span>
-                        <span>₹{totalPaid.toLocaleString()}</span>
-                     </div>
-                     <div className="flex justify-between font-bold pt-1">
-                        <span>Net Outstanding</span>
-                        <span className={statement?.totalOutstanding > 0 ? "text-red-700" : "text-green-700"}>
-                           ₹{Math.abs(statement?.totalOutstanding || 0).toLocaleString()}
-                           <span className="text-[8px] ml-1 uppercase">{statement?.totalOutstanding > 0 ? "Dr" : "Cr"}</span>
-                        </span>
-                     </div>
+               <div className="flex flex-col justify-end text-right space-y-2">
+                  <div className="border-l-2 border-black pl-4">
+                     <p className="text-[10px] font-bold uppercase text-gray-500">Statement Type</p>
+                     <p className="text-sm font-bold uppercase">Consolidated Payment Ledger</p>
+                  </div>
+                  <div className="border-l-2 border-black pl-4">
+                     <p className="text-[10px] font-bold uppercase text-gray-500">Generated Period</p>
+                     <p className="text-sm font-bold capitalize">Full History to Date</p>
                   </div>
                </div>
             </div>
 
-            {/* Detailed Ledger Table */}
-            <table className="mb-10 w-full border-collapse">
+            {/* Transaction Table for Print */}
+            <table className="w-full mb-8">
                <thead>
-                  <tr className="bg-gray-100 uppercase text-[9px] font-bold">
-                     <th className="border border-black p-2 text-left">Date</th>
-                     <th className="border border-black p-2 text-left">Transaction Details</th>
-                     <th className="border border-black p-2 text-right">Debit (₹)</th>
-                     <th className="border border-black p-2 text-right">Credit (₹)</th>
-                     <th className="border border-black p-2 text-right">Balance (₹)</th>
+                  <tr className="bg-gray-100 uppercase font-black text-[10px]">
+                     <th className="text-left w-24">Date</th>
+                     <th className="text-left">Transaction Details</th>
+                     <th className="text-right w-32">Amount (₹)</th>
+                     <th className="text-right w-32">Balance (₹)</th>
                   </tr>
                </thead>
                <tbody>
-                  {statement?.timeline?.filter(item => viewMode === 'full' || item.type === 'payment').map((item, idx) => (
-                     <tr key={idx} className="text-[10px]">
-                        <td className="border border-black p-2">{new Date(item.date).toLocaleDateString()}</td>
-                        <td className="border border-black p-2">
-                           <div className="font-bold uppercase">{item.description}</div>
-                           <div className="text-[8px] text-gray-500">REF: {item.ref.slice(-8).toUpperCase()}</div>
+                  {statement?.timeline?.filter(item => item.type === 'payment').map((item, idx) => (
+                     <tr key={idx} className="border-b border-gray-100">
+                        <td className="align-top py-2">{new Date(item.date).toLocaleDateString()}</td>
+                        <td className="align-top py-2">
+                           <div className="font-bold text-[10px]">{item.description}</div>
+                           <div className="text-[8px] text-gray-500 uppercase tracking-widest mt-0.5">REF: {String(item.ref).slice(-8).toUpperCase()}</div>
                         </td>
-                        <td className="border border-black p-2 text-right">
-                           {item.debit > 0 ? Number(item.debit).toLocaleString('en-IN') : "-"}
-                        </td>
-                        <td className="border border-black p-2 text-right">
-                           {item.credit > 0 ? Number(item.credit).toLocaleString('en-IN') : "-"}
-                        </td>
-                        <td className="border border-black p-2 text-right font-bold">
-                           {Math.abs(item.balance).toLocaleString('en-IN')} {item.balance > 0 ? "Dr" : item.balance < 0 ? "Cr" : ""}
+                        <td className="align-top py-2 text-right font-bold">{(item.debit || item.credit || 0).toLocaleString()}</td>
+                        <td className="align-top py-2 text-right font-bold">
+                           {Math.abs(item.balance).toLocaleString()} {item.balance > 0 ? "Dr" : item.balance < 0 ? "Cr" : ""}
                         </td>
                      </tr>
                   ))}
                </tbody>
             </table>
 
-            {/* Print Footer */}
-            <div className="mt-20 flex justify-between items-end border-t border-black pt-8">
-               <div className="text-[9px] text-gray-400 uppercase italic">
-                  This is a computer-generated statement and does not require a physical signature.<br />
-                  Powered by Nexus ERP Solutions.
-               </div>
-               <div className="text-center">
-                  <div className="w-48 border-b border-black mb-1"></div>
-                  <p className="text-[10px] font-bold uppercase">Authorized Signatory</p>
+            {/* Print Footer Summary */}
+            <div className="flex justify-end gap-12 border-t-2 border-black pt-4">
+               <div>
+                  <p className="text-[10px] font-bold uppercase text-gray-500 mb-1">Account Closing Balance</p>
+                  <p className="text-2xl font-bold">₹{Math.abs(statement?.totalOutstanding || 0).toLocaleString()} {statement?.totalOutstanding > 0 ? "DR" : statement?.totalOutstanding < 0 ? "CR" : ""}</p>
                </div>
             </div>
          </div>
 
-         {/* INTERACTIVE WEB INTERFACE (Hidden on print) */}
-         <div className="main-app-content space-y-8 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+         {/* WEB INTERFACE (The main UI) */}
+         <div className="main-app-content space-y-8 animate-in fade-in duration-700">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                <div className="flex items-center gap-4">
-                  <button
-                     onClick={() => window.history.back()}
-                     className="p-3 bg-white border border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors shadow-sm"
+                  <Link
+                     to="/statements"
+                     className="p-4 bg-white border border-gray-100 rounded-3xl text-gray-400 hover:text-blue-600 hover:border-blue-100 hover:shadow-xl hover:shadow-blue-500/5 transition-all active:scale-95 shadow-sm group"
                   >
-                     <ArrowLeft className="w-5 h-5 text-gray-400" />
-                  </button>
+                     <ArrowLeft className="w-6 h-6 transition-transform group-hover:-translate-x-1" />
+                  </Link>
                   <div>
-                     <h2 className="text-3xl font-black text-gray-900 tracking-tight italic flex items-center gap-2">
-                        Statement: <span className="text-blue-600 underline underline-offset-8 decoration-4">{party?.company || party?.name}</span>
+                     <h2 className="text-4xl font-black text-gray-900 tracking-tight italic flex items-center gap-3">
+                        <div className="p-3 bg-gray-900 text-white rounded-2xl shadow-xl shadow-gray-200">
+                           <FileText className="w-8 h-8" />
+                        </div>
+                        Party Payment Ledger
                      </h2>
-                     <div className="flex items-center gap-3 mt-2">
-                        <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest flex items-center gap-1">
-                           <User className="w-3 h-3" /> {typeParam.toUpperCase()}
-                        </span>
-                        <span className="w-1.5 h-1.5 bg-gray-200 rounded-full"></span>
-                        <span className="text-[10px] font-black uppercase text-blue-500 tracking-widest flex items-center gap-1">
-                           <Building2 className="w-3 h-3" /> {party?.gstin || "UNREGISTERED"}
-                        </span>
-                     </div>
+                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2 ml-16 flex items-center gap-2">
+                         <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                         Account history for {party?.company || party?.name}
+                     </p>
                   </div>
                </div>
 
                <div className="flex items-center gap-3">
                   <button
-                     onClick={handleShare}
-                     className={`px-6 py-3 border rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all shadow-sm ${copied ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-gray-100 text-blue-600 hover:bg-blue-50'}`}
-                  >
-                     {copied ? "Link Copied!" : <><Zap className="w-4 h-4 fill-current" /> Share Live Portal</>}
-                  </button>
-                  <button
                      onClick={() => window.print()}
-                     className="px-6 py-3 bg-white border border-gray-100 rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-500 hover:bg-gray-50 transition-all shadow-sm"
+                     className="px-6 py-4 bg-white border border-gray-100 rounded-3xl flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-500 hover:bg-gray-50 hover:text-blue-600 transition-all shadow-sm active:scale-95"
                   >
-                     <Printer className="w-4 h-4" /> Print Statement
+                     <Printer className="w-4 h-4" /> Print Ledger
                   </button>
                   <button
                      onClick={handleExport}
-                     className="px-6 py-3 bg-gray-900 text-white rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-gray-200"
+                     className="px-6 py-4 bg-gray-900 text-white rounded-3xl flex items-center gap-2 text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-gray-200 active:scale-95"
                   >
                      <Download className="w-4 h-4" /> Export CSV
                   </button>
                </div>
             </div>
 
-            {/* Web Balance Cards & View Mode Toggle */}
-            <div className="flex flex-col lg:flex-row gap-6 items-end">
-               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-                  <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm relative overflow-hidden group">
-                     <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                        <Wallet className="w-16 h-16" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+               <div className="lg:col-span-2 space-y-8">
+                  {/* Party Snapshot Bar */}
+                  <div className="p-8 bg-white border border-gray-100 rounded-[3rem] shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6 group hover:shadow-xl hover:shadow-blue-500/5 transition-all">
+                     <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-blue-50 rounded-[1.5rem] flex items-center justify-center text-blue-600 shadow-inner group-hover:scale-110 transition-transform">
+                           {typeParam === 'customer' ? <User className="w-8 h-8" /> : <Building2 className="w-8 h-8" />}
+                        </div>
+                        <div>
+                           <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Connected account</h3>
+                           <h2 className="text-2xl font-black text-gray-900 italic tracking-tight">{party?.company || party?.name}</h2>
+                           <p className={`text-[10px] font-bold mt-1 inline-block px-3 py-1 rounded-full uppercase tracking-tighter ${party?.gstin ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                              GSTIN: {party?.gstin || "No GST Registered"}
+                           </p>
+                        </div>
                      </div>
-                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Total Invoiced / Sales</p>
-                     <h3 className="text-3xl font-black italic tracking-tighter text-gray-900">
-                        ₹{totalInvoiced.toLocaleString()}
-                     </h3>
                   </div>
-                  <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm relative overflow-hidden group">
-                     <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                        <Wallet className="w-16 h-16" />
-                     </div>
-                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Amount Settled / Paid</p>
-                     <h3 className="text-3xl font-black italic tracking-tighter text-green-600">
-                        ₹{totalPaid.toLocaleString()}
-                     </h3>
-                  </div>
-               </div>
 
-               <div className="bg-gray-100 p-1.5 rounded-[1.5rem] flex items-center gap-1 shadow-inner min-w-[300px]">
-                  <button 
-                     onClick={() => setViewMode('full')}
-                     className={`flex-1 px-4 py-3 rounded-[1.2rem] text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'full' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                  >
-                     Full Statement
-                  </button>
-                  <button 
-                     onClick={() => setViewMode('payments')}
-                     className={`flex-1 px-4 py-3 rounded-[1.2rem] text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'payments' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                  >
-                     Payments Only
-                  </button>
-               </div>
-            </div>
-
-            <div className={`p-8 rounded-[2.5rem] border shadow-sm ${statement?.totalOutstanding > 0 ? "bg-red-50 border-red-100" : "bg-green-50 border-green-100"}`}>
-                <div className="flex justify-between items-center">
-                    <div>
-                        <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${statement?.totalOutstanding > 0 ? "text-red-400" : "text-green-400"}`}>Net Account Balance</p>
-                        <h3 className={`text-4xl font-black italic tracking-tighter ${statement?.totalOutstanding > 0 ? "text-red-600" : "text-green-600"}`}>
-                           ₹{Math.abs(statement?.totalOutstanding || 0).toLocaleString()}
-                           <span className="text-xs ml-2 font-black uppercase italic">{statement?.totalOutstanding > 0 ? "Dr" : "Cr"}</span>
-                        </h3>
-                    </div>
-                </div>
-            </div>
-
-            {/* Ledger Table (Web Style) */}
-            <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden">
-               <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                     <thead>
-                        <tr className="bg-gray-50/50 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
-                           <th className="px-8 py-5">Date</th>
-                           <th className="px-8 py-5">Transaction Summary</th>
-                           {viewMode === 'full' && (
-                              <>
-                                 <th className="px-8 py-5 text-right">Debit (₹)</th>
-                                 <th className="px-8 py-5 text-right">Credit (₹)</th>
-                              </>
-                           )}
-                           {viewMode === 'payments' && <th className="px-8 py-5 text-right font-black text-blue-600 italic">Settled (₹)</th>}
-                           <th className="px-8 py-5 text-right pr-12">Running Balance</th>
-                        </tr>
-                     </thead>
-                     <tbody className="divide-y divide-gray-50 uppercase tracking-tight">
-                        {(() => {
-                           const filteredTimeline = statement?.timeline?.filter(item => viewMode === 'full' || item.type === 'payment') || [];
-
-                           if (filteredTimeline.length === 0) {
-                              return (
-                                 <tr>
-                                    <td colSpan={viewMode === 'full' ? 5 : 4} className="px-8 py-20 text-center text-gray-400 font-bold italic lowercase">no matching transactions found.</td>
-                                 </tr>
-                              );
-                           }
-
-                           return filteredTimeline.map((item, idx) => (
-                              <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
-                                 <td className="px-8 py-6">
-                                    <span className="text-xs font-black text-gray-900 italic tracking-tight">{new Date(item.date).toLocaleDateString()}</span>
-                                 </td>
-                                 <td className="px-8 py-6">
-                                    <div className="flex flex-col">
-                                       <span className="text-[9px] font-black uppercase tracking-widest text-blue-600 underline underline-offset-4 mb-1">
-                                          REF: {item.ref.slice(-8).toUpperCase()}
-                                       </span>
-                                       <span className="text-xs font-bold text-gray-700">{item.description}</span>
-                                    </div>
-                                 </td>
-                                 {viewMode === 'full' ? (
-                                    <>
-                                       <td className="px-8 py-6 text-right tabular-nums text-red-600 font-bold">
-                                          {item.debit > 0 ? `₹${item.debit.toLocaleString()}` : "-"}
-                                       </td>
-                                       <td className="px-8 py-6 text-right tabular-nums text-green-600 font-bold">
-                                          {item.credit > 0 ? `₹${item.credit.toLocaleString()}` : "-"}
-                                       </td>
-                                    </>
-                                 ) : (
-                                    <td className="px-8 py-6 text-right">
-                                       <span className="text-xs font-black tabular-nums text-green-600 italic">
-                                          ₹{(item.debit || item.credit || 0).toLocaleString()}
-                                       </span>
-                                    </td>
-                                 )}
-                                 <td className="px-8 py-6 text-right pr-12">
-                                    <span className="text-sm font-black text-gray-900 tabular-nums italic">
-                                       ₹{Math.abs(item.balance).toLocaleString()}
-                                       <span className="text-[10px] ml-1 uppercase">{item.balance > 0 ? "Dr" : item.balance < 0 ? "Cr" : ""}</span>
-                                    </span>
-                                 </td>
+                  {/* Transaction Table */}
+                  <div className="bg-white rounded-[3.5rem] border border-gray-100 shadow-sm overflow-hidden min-h-[500px]">
+                     <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                           <thead>
+                              <tr className="bg-gray-50/50 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
+                                 <th className="px-8 py-5">Date</th>
+                                 <th className="px-8 py-5">Transaction Summary</th>
+                                 <th className="px-8 py-5 text-right font-black text-blue-600 italic">Settled (₹)</th>
+                                 <th className="px-8 py-5 text-right pr-12">Running Balance</th>
                               </tr>
-                           ));
-                        })()}
-                     </tbody>
-                  </table>
+                           </thead>
+                           <tbody className="divide-y divide-gray-50 uppercase tracking-tight">
+                              {(() => {
+                                 const filteredTimeline = statement?.timeline?.filter(item => item.type === 'payment') || [];
+                                 
+                                 if (filteredTimeline.length === 0) {
+                                    return (
+                                       <tr>
+                                          <td colSpan="4" className="px-8 py-20 text-center text-gray-400 font-bold italic lowercase">no matching payment records found.</td>
+                                       </tr>
+                                    );
+                                 }
+
+                                 return filteredTimeline.map((item, idx) => (
+                                    <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
+                                       <td className="px-8 py-6">
+                                          <span className="text-xs font-black text-gray-900 italic tracking-tight">{new Date(item.date).toLocaleDateString()}</span>
+                                       </td>
+                                       <td className="px-8 py-6">
+                                          <div className="flex flex-col">
+                                             <span className="text-[9px] font-black uppercase tracking-widest text-blue-600 underline underline-offset-4 mb-1">
+                                                REF: {item.ref.slice(-8).toUpperCase()}
+                                             </span>
+                                             <span className="text-xs font-bold text-gray-700">{item.description}</span>
+                                          </div>
+                                       </td>
+                                       <td className="px-8 py-6 text-right">
+                                          <span className="text-xs font-black tabular-nums text-green-600 italic">
+                                             ₹{(item.debit || item.credit || 0).toLocaleString()}
+                                          </span>
+                                       </td>
+                                       <td className="px-8 py-6 text-right pr-12">
+                                          <span className="text-sm font-black text-gray-900 tabular-nums italic">
+                                             ₹{Math.abs(item.balance).toLocaleString()}
+                                             <span className="text-[10px] ml-1 uppercase">{item.balance > 0 ? "Dr" : item.balance < 0 ? "Cr" : ""}</span>
+                                          </span>
+                                       </td>
+                                    </tr>
+                                 ));
+                              })()}
+                           </tbody>
+                        </table>
+                     </div>
+                  </div>
+               </div>
+
+               {/* Professional Balance Panel (Right Col) */}
+               <div className="space-y-6">
+                  <div className={`p-8 rounded-[3rem] border shadow-2xl transition-all duration-700 ${statement?.totalOutstanding > 0 ? "bg-red-600 border-red-500 shadow-red-500/10 text-white" : "bg-blue-600 border-blue-500 shadow-blue-500/10 text-white"}`}>
+                     <p className="text-[10px] font-black uppercase tracking-widest opacity-60 flex items-center gap-2">
+                        <Wallet className="w-4 h-4" /> Final Closing Balance
+                     </p>
+                     <h2 className="text-4xl font-black italic tracking-tighter mt-4 flex items-baseline gap-2">
+                        ₹{Math.abs(statement?.totalOutstanding || 0).toLocaleString()}
+                        <span className="text-sm italic opacity-60 uppercase tracking-widest">
+                           {statement?.totalOutstanding > 0 ? "Receivable" : statement?.totalOutstanding < 0 ? "Payable" : "Clear"}
+                        </span>
+                     </h2>
+                     <p className="text-[10px] font-bold mt-4 opacity-70">
+                        {statement?.totalOutstanding > 0 ? "Funds are due from this party." : "Funds are owed to this party."}
+                     </p>
+                  </div>
+
+                  <div className="bg-white border border-gray-100 p-8 rounded-[3rem] shadow-sm">
+                     <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-6 flex items-center justify-between">
+                        Ledger Actions
+                        <div className="w-1 h-1 bg-gray-200 rounded-full"></div>
+                     </h3>
+                     <div className="space-y-3">
+                        <button
+                           onClick={handleShare}
+                           className="w-full px-6 py-4 bg-gray-50 hover:bg-blue-50 text-gray-900 rounded-2xl flex items-center justify-between group transition-all"
+                        >
+                           <div className="flex items-center gap-3">
+                              <Share2 className="w-5 h-5 text-gray-400 group-hover:text-blue-500" />
+                              <span className="text-xs font-black uppercase tracking-widest">Share Portal Access</span>
+                           </div>
+                           {copied && <span className="text-[9px] font-black text-blue-500">COPIED</span>}
+                        </button>
+                        <button className="w-full px-6 py-4 bg-gray-50 hover:bg-blue-50 text-gray-900 rounded-2xl flex items-center justify-between group transition-all">
+                           <div className="flex items-center gap-3">
+                              <Zap className="w-5 h-5 text-gray-400 group-hover:text-blue-500" />
+                              <span className="text-xs font-black uppercase tracking-widest">Reconcile Now</span>
+                           </div>
+                        </button>
+                     </div>
+                  </div>
                </div>
             </div>
          </div>

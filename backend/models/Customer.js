@@ -30,6 +30,10 @@ const customerSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    pincode: {
+      type: String,
+      default: "",
+    },
     shareToken: {
       type: String,
       unique: true,

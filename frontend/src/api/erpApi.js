@@ -108,4 +108,8 @@ export const publicApi = {
   getPublicLedger: (token) => api.get(`/public/ledger/${token}`)
 };
 
+export const distanceApi = {
+  fetch: (fromPin, toPin) => api.get(`/distance/fetch?fromPin=${fromPin}&toPin=${toPin}`)
+};
+
 export default api;

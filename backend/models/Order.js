@@ -63,6 +63,13 @@ const orderSchema = new mongoose.Schema(
     dueDate: {
       type: Date,
     },
+    ewayBillData: {
+      distance: { type: Number, default: 0 },
+      transporterId: { type: String, default: "" },
+      vehicleNo: { type: String, default: "" },
+      mode: { type: String, enum: ["road", "rail", "air", "ship"], default: "road" },
+      active: { type: Boolean, default: false }
+    },
   },
   { timestamps: true }
 );
