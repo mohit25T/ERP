@@ -8,10 +8,10 @@ const AppLayout = ({ children }) => {
   const { user } = useAuth();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex bg-gray-50 md:h-screen md:overflow-hidden print:block print:bg-white">
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
       
-      <div className="relative flex flex-col flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
+      <div className="relative flex flex-col flex-1 min-w-0 md:overflow-y-auto overflow-x-hidden print:block print:overflow-visible">
         <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-4 bg-white border-b border-gray-200 sm:px-6 lg:px-8">
           <div className="flex items-center">
             <button

@@ -19,7 +19,8 @@ const Suppliers = () => {
     company: "",
     gstin: "",
     state: "",
-    address: ""
+    address: "",
+    pincode: ""
   });
 
   const [gstValidation, setGstValidation] = useState({ isValid: true, message: "" });
@@ -77,7 +78,7 @@ const Suppliers = () => {
       setFormData(supplier);
     } else {
       setEditingSupplier(null);
-      setFormData({ name: "", email: "", phone: "", company: "", gstin: "", state: "", address: "" });
+      setFormData({ name: "", email: "", phone: "", company: "", gstin: "", state: "", address: "", pincode: "" });
     }
     setIsModalOpen(true);
   };
@@ -361,6 +362,18 @@ const Suppliers = () => {
                   value={formData.address}
                   onChange={(e) => setFormData({...formData, address: e.target.value})}
                   placeholder="Warehouse address, Landmarker, etc."
+                />
+              </div>
+
+              <div className="col-span-2 md:col-span-1">
+                <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 px-1">Partner Pincode</label>
+                <input 
+                  required
+                  className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all shadow-inner"
+                  value={formData.pincode}
+                  onChange={(e) => setFormData({...formData, pincode: e.target.value})}
+                  placeholder="400001"
+                  maxLength="6"
                 />
               </div>
             </div>

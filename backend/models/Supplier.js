@@ -30,6 +30,10 @@ const supplierSchema = new mongoose.Schema(
     address: {
       type: String,
     },
+    pincode: {
+      type: String,
+      default: "",
+    },
     shareToken: {
       type: String,
       unique: true,

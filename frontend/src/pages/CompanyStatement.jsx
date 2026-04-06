@@ -69,12 +69,14 @@ const CompanyStatement = () => {
     <AppLayout>
       <style>{`
         @media print {
-          @page { size: A4; margin: 1cm; }
+          @page { size: A4; margin: 0.5cm; }
+          html, body, #root { height: auto !important; overflow: visible !important; }
           .main-app-content, aside, header { display: none !important; }
           .printable-document { display: block !important; width: 100% !important; background: white !important; color: black !important; }
-          table { width: 100% !important; border-collapse: collapse !important; }
-          th, td { border: 1px solid #000 !important; padding: 6px !important; font-size: 9pt !important; }
+          table { width: 100% !important; border-collapse: collapse !important; table-layout: auto !important; }
+          th, td { border: 1px solid #000 !important; padding: 6px !important; font-size: 8pt !important; word-wrap: break-word !important; }
           th { background: #f3f4f6 !important; }
+          tr { page-break-inside: avoid !important; }
         }
         .printable-document { display: none; }
       `}</style>

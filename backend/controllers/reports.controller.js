@@ -312,7 +312,11 @@ export const getCompanyStatement = async (req, res) => {
       }))
     ];
 
-    combined.sort((a, b) => new Date(a.date) - new Date(b.date));
+    combined.sort((a, b) => {
+      const dateA = new Date(a.date || 0);
+      const dateB = new Date(b.date || 0);
+      return dateA.getTime() - dateB.getTime();
+    });
 
     let runningBalance = 0;
     const timeline = combined.map(item => {

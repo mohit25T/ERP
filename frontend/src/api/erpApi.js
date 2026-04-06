@@ -109,7 +109,7 @@ export const publicApi = {
 };
 
 export const distanceApi = {
-  fetch: (fromPin, toPin) => api.get(`/distance/fetch?fromPin=${fromPin}&toPin=${toPin}`)
+  fetch: (fromAddress, toAddress) => api.get(`/distance/fetch?fromAddress=${encodeURIComponent(fromAddress)}&toAddress=${encodeURIComponent(toAddress)}`)
 };
 
 export default api;

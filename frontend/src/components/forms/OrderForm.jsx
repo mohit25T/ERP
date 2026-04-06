@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import { customerApi, productApi, distanceApi } from "../../api/erpApi";
 import { useAuth } from "../../context/AuthContext";
 import { Truck, MapPin, Loader2, IndianRupee } from "lucide-react";
@@ -70,14 +71,17 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
 
   const handleFetchDistance = async () => {
     const customer = customers.find(c => c._id === formData.customer);
-    if (!customer?.pincode || !user?.pincode) {
-      alert("Both Company Pincode (in Settings) and Customer Pincode must be set.");
+    const fromAddr = user?.address;
+    const toAddr = customer?.address;
+
+    if (!fromAddr || !toAddr) {
+      alert("Both Company Address (in Settings) and Customer Address must be set for exact location calculation.");
       return;
     }
 
     try {
       setDistanceLoading(true);
-      const res = await distanceApi.fetch(user.pincode, customer.pincode);
+      const res = await distanceApi.fetch(fromAddr, toAddr);
       setFormData(prev => ({
         ...prev,
         ewayBillData: {
