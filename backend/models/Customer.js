@@ -44,11 +44,10 @@ const customerSchema = new mongoose.Schema(
 );
 
 
-customerSchema.pre("save", function (next) {
+customerSchema.pre("save", async function () {
   if (!this.shareToken) {
     this.shareToken = crypto.randomBytes(16).toString("hex");
   }
-  next();
 });
 
 const Customer = mongoose.model("Customer", customerSchema);

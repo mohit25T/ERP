@@ -44,11 +44,10 @@ const supplierSchema = new mongoose.Schema(
 );
 
 
-supplierSchema.pre("save", function (next) {
+supplierSchema.pre("save", async function () {
   if (!this.shareToken) {
     this.shareToken = crypto.randomBytes(16).toString("hex");
   }
-  next();
 });
 
 const Supplier = mongoose.model("Supplier", supplierSchema);
