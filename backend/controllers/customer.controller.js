@@ -59,13 +59,17 @@ export const deleteCustomer = async (req, res) => {
 // Generate Share Token
 export const generateShareToken = async (req, res) => {
   try {
-    const customer = await Customer.findById(req.params.id);
+    const newToken = crypto.randomBytes(16).toString("hex");
+    
+    // Using findByIdAndUpdate with runValidators: false to bypass issues with old/incomplete data
+    const customer = await Customer.findByIdAndUpdate(
+      req.params.id, 
+      { shareToken: newToken }, 
+      { new: true, runValidators: false }
+    );
+
     if (!customer) return res.status(404).json({ msg: "Customer not found" });
 
-    // Generate token directly in controller for higher reliability
-    customer.shareToken = crypto.randomBytes(16).toString("hex");
-    await customer.save();
-    
     console.log(`[SHARE TOKEN] Generated new token for customer: ${customer._id}`);
     res.json(customer);
   } catch (err) {

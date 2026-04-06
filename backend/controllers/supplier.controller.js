@@ -59,13 +59,17 @@ export const deleteSupplier = async (req, res) => {
 // Generate Share Token
 export const generateShareToken = async (req, res) => {
   try {
-    const supplier = await Supplier.findById(req.params.id);
+    const newToken = crypto.randomBytes(16).toString("hex");
+    
+    // Using findByIdAndUpdate with runValidators: false for robustness
+    const supplier = await Supplier.findByIdAndUpdate(
+      req.params.id, 
+      { shareToken: newToken }, 
+      { new: true, runValidators: false }
+    );
+
     if (!supplier) return res.status(404).json({ msg: "Supplier not found" });
 
-    // Generate token directly in controller for higher reliability
-    supplier.shareToken = crypto.randomBytes(16).toString("hex");
-    await supplier.save();
-    
     console.log(`[SHARE TOKEN] Generated new token for supplier: ${supplier._id}`);
     res.json(supplier);
   } catch (err) {
