@@ -41,14 +41,16 @@ const Suppliers = () => {
     try {
       setFetchLoading(true);
       const res = await gstApi.lookup(formData.gstin);
-      const { companyName, address, state } = res.data;
+      const data = res.data;
       
       setFormData(prev => ({
         ...prev,
-        company: companyName || prev.company,
-        address: address || prev.address,
-        state: state || prev.state
+        company: data.companyName || prev.company,
+        address: data.address || prev.address,
+        state: data.state || prev.state,
+        pincode: data.pincode || prev.pincode
       }));
+      alert("Vendor details successfully fetched!");
     } catch (err) {
       console.error("Failed to fetch GST details", err);
     } finally {
@@ -279,30 +281,28 @@ const Suppliers = () => {
 
               <div className="col-span-2 md:col-span-1">
                 <div className="flex items-center justify-between mb-2 px-1">
-                   <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest">Vendor GSTIN</label>
-                   {formData.gstin && gstValidation.isValid && (
-                      <button 
-                        type="button"
-                        onClick={handleFetchDetails}
-                        disabled={fetchLoading}
-                        className="flex items-center gap-1 text-[9px] font-black text-purple-600 uppercase hover:text-purple-700 transition-colors disabled:opacity-50"
-                      >
-                         {fetchLoading ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <Search className="w-2.5 h-2.5" />}
-                         {fetchLoading ? "Fetching..." : "Auto-Fill"}
-                      </button>
-                   )}
-                </div>
-                <div className="relative">
-                  <input 
-                    className={`w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 outline-none transition-all shadow-inner uppercase tracking-widest placeholder:normal-case ${
-                      formData.gstin 
-                        ? (gstValidation.isValid ? 'text-green-600 ring-green-500/20' : 'text-red-500 ring-red-500/20')
-                        : 'text-blue-600 focus:ring-purple-500/20'
-                    }`}
-                    value={formData.gstin}
-                    onChange={(e) => setFormData({...formData, gstin: e.target.value.replace(/\s+/g, "").toUpperCase()})}
-                    placeholder="Optional for ITC"
-                  />
+                    <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest">Vendor GSTIN</label>
+                 </div>
+                 <div className="relative group">
+                   <input 
+                     className={`w-full pl-5 pr-14 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 outline-none transition-all shadow-inner uppercase tracking-widest placeholder:normal-case ${
+                       formData.gstin 
+                         ? (gstValidation.isValid ? 'text-green-600 ring-green-500/20' : 'text-red-500 ring-red-500/20')
+                         : 'text-blue-600 focus:ring-purple-500/20'
+                     }`}
+                     value={formData.gstin}
+                     onChange={(e) => setFormData({...formData, gstin: e.target.value.replace(/\s+/g, "").toUpperCase()})}
+                     placeholder="Optional for ITC"
+                   />
+                   <button
+                     type="button"
+                     onClick={handleFetchDetails}
+                     disabled={fetchLoading || !gstValidation.isValid || !formData.gstin}
+                     className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-purple-600 text-white rounded-xl shadow-lg shadow-purple-600/20 hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
+                     title="Auto-fetch from GST Network"
+                   >
+                     {fetchLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                   </button>
                   {formData.gstin && (
                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
                       {gstValidation.isValid ? (

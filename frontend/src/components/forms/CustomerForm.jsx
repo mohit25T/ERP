@@ -33,14 +33,16 @@ const CustomerForm = ({ initialData, onSubmit, onCancel, loading }) => {
     try {
       setFetchLoading(true);
       const res = await gstApi.lookup(formData.gstin);
-      const { companyName, address, state } = res.data;
+      const data = res.data;
       
       setFormData(prev => ({
         ...prev,
-        company: companyName || prev.company,
-        address: address || prev.address,
-        state: state || prev.state
+        company: data.companyName || prev.company,
+        address: data.address || prev.address,
+        state: data.state || prev.state,
+        pincode: data.pincode || prev.pincode
       }));
+      alert("Customer details successfully fetched!");
     } catch (err) {
       console.error("Failed to fetch GST details", err);
     } finally {
@@ -129,22 +131,11 @@ const CustomerForm = ({ initialData, onSubmit, onCancel, loading }) => {
         <div className="col-span-1">
           <div className="flex items-center justify-between mb-1">
              <label className="block text-sm font-medium text-gray-700">Customer GSTIN</label>
-             {formData.gstin && gstValidation.isValid && (
-                <button 
-                  type="button"
-                  onClick={handleFetchDetails}
-                  disabled={fetchLoading}
-                  className="flex items-center gap-1 text-[10px] font-black text-blue-600 uppercase hover:text-blue-700 transition-colors disabled:opacity-50"
-                >
-                   {fetchLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Search className="w-3 h-3" />}
-                   {fetchLoading ? "Fetching..." : "Fetch Details"}
-                </button>
-             )}
           </div>
           <div className="relative group">
             <input
               name="gstin"
-              className={`w-full px-4 py-2 border rounded-xl bg-gray-50 focus:ring-2 outline-none transition uppercase font-black tracking-tight ${
+              className={`w-full pl-4 pr-14 py-2 border rounded-xl bg-gray-50 focus:ring-2 outline-none transition uppercase font-black tracking-tight ${
                 formData.gstin 
                   ? (gstValidation.isValid ? 'border-green-200 focus:ring-green-500/20 text-green-700' : 'border-red-200 focus:ring-red-500/20 text-red-600')
                   : 'border-gray-200 focus:ring-blue-500/20 text-blue-600'
@@ -153,8 +144,17 @@ const CustomerForm = ({ initialData, onSubmit, onCancel, loading }) => {
               value={formData.gstin}
               onChange={handleChange}
             />
+            <button
+               type="button"
+               onClick={handleFetchDetails}
+               disabled={fetchLoading || !gstValidation.isValid || !formData.gstin}
+               className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-blue-600 text-white rounded-lg shadow-lg shadow-blue-500/20 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
+               title="Auto-fetch from GST Network"
+            >
+               {fetchLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
+            </button>
             {formData.gstin && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <div className="absolute right-12 top-1/2 -translate-y-1/2">
                 {gstValidation.isValid ? (
                   <CheckCircle2 className="w-4 h-4 text-green-500" />
                 ) : (
