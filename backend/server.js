@@ -77,6 +77,9 @@ app.get("/api/gst/lookup/:gstin", async (req, res) => {
     const biz = result.data;
     const addr = biz.pradr.addr;
 
+    console.log(`[GST FETCH SUCCESS]: Captured details for ${biz.lgnm || biz.tradeNam}`);
+    console.log(`[GST DATA DEBUG]:`, JSON.stringify(biz, null, 2));
+
     // Combine address parts into a clean string
     const combinedAddress = [
       addr.bnm, addr.bno, addr.flno, addr.st, addr.loc, addr.dst, addr.city
