@@ -15,10 +15,22 @@ export const getDistance = async (req, res) => {
       return res.json({ distance: 1, unit: "km" });
     }
 
-    // --- SMART SIMULATION LOGIC ---
-    // In a production environment, you would use:
-    // const googleRes = await axios.get(`https://maps.googleapis.com/maps/api/distancematrix/json?origins=${fromAddress}&destinations=${toAddress}&key=${process.env.GOOGLE_MAPS_API_KEY}`);
-    
+    // --- DETERMINISTIC SIMULATION LOGIC ---
+    // This ensures that the same address pair always returns the same distance.
+    const getSeed = (str) => {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return Math.abs(hash);
+    };
+
+    const seed = getSeed(fromAddress + toAddress);
+    const deterministicRandom = (max, min = 0) => {
+      return (seed % (max - min + 1)) + min;
+    };
+
     // For demonstration, we simulate distance based on city markers in the address
     const getRegion = (addr) => {
       const a = addr.toLowerCase();
@@ -38,14 +50,14 @@ export const getDistance = async (req, res) => {
     let distance = 0;
     if (fromRegion === toRegion && fromRegion !== 0) {
       // Same major city/state: 10 - 80 km
-      distance = Math.floor(Math.random() * 70) + 10;
+      distance = deterministicRandom(80, 10);
     } else if (fromRegion !== 0 && toRegion !== 0) {
       // Known cross-region pairs: 500 - 2000 km
       const diff = Math.abs(fromRegion - toRegion);
-      distance = diff * 350 + Math.floor(Math.random() * 200);
+      distance = diff * 350 + deterministicRandom(200);
     } else {
       // Default fallback
-      distance = Math.floor(Math.random() * 500) + 120;
+      distance = deterministicRandom(500, 120);
     }
 
     // Simulate network delay
@@ -57,9 +69,10 @@ export const getDistance = async (req, res) => {
         unit: "km",
         status: "success",
         isSimulated: true,
+        isDeterministic: true,
         note: "Distance calculated using exact address markers. Link a Google Maps API Key for 100% precision." 
       });
-    }, 1200);
+    }, 800);
 
   } catch (err) {
     res.status(500).json({ error: err.message });
