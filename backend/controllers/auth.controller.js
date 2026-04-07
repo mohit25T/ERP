@@ -128,16 +128,58 @@ export const changePassword = async (req, res) => {
   }
 };
 
-// Update Profile
+// Update Profile (With Global Company Sync)
 export const updateProfile = async (req, res) => {
   try {
-    const { name, gstin, companyName, address, state, invoiceSettings } = req.body;
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { name, gstin, companyName, address, state, invoiceSettings },
-      { new: true }
-    );
-    res.json(user);
+    const { name, gstin, companyName, address, state, pincode, invoiceSettings } = req.body;
+    
+    // 1. Personal Profile Update (Current User)
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser) return res.status(404).json({ msg: "User not found" });
+
+    if (name !== undefined) currentUser.name = name;
+    await currentUser.save();
+
+    // 2. Global Company Profile Update (Admin Only)
+    // If these fields are present and the user has permission, update the Master Record (Super Admin)
+    if (["super_admin", "admin"].includes(currentUser.role)) {
+       const masterAdmin = await User.findOne({ role: "super_admin" });
+       if (masterAdmin) {
+          if (gstin !== undefined) masterAdmin.gstin = gstin;
+          if (companyName !== undefined) masterAdmin.companyName = companyName;
+          if (address !== undefined) masterAdmin.address = address;
+          if (state !== undefined) masterAdmin.state = state;
+          if (pincode !== undefined) masterAdmin.pincode = pincode;
+          if (invoiceSettings !== undefined) masterAdmin.invoiceSettings = invoiceSettings;
+          
+          await masterAdmin.save();
+          console.log(`[GLOBAL SYNC]: Company Identity updated by ${currentUser.name}`);
+       }
+    }
+
+    res.json(currentUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Get Global Company Profile
+export const getGlobalCompanyProfile = async (req, res) => {
+  try {
+    const masterAdmin = await User.findOne({ role: "super_admin" }).lean();
+    if (!masterAdmin) {
+      return res.status(404).json({ error: "Master company record not found." });
+    }
+
+    res.json({
+      name: masterAdmin.name,
+      companyName: masterAdmin.companyName,
+      gstin: masterAdmin.gstin,
+      address: masterAdmin.address,
+      state: masterAdmin.state,
+      pincode: masterAdmin.pincode,
+      invoiceSettings: masterAdmin.invoiceSettings
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

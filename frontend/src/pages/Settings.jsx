@@ -1,8 +1,5 @@
-import React, { useState } from "react";
-import AppLayout from "../components/layout/AppLayout";
-import { User, Shield, Bell, Globe, Save, Lock, Building2, Eye, EyeOff } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
 import { authApi } from "../api/erpApi";
+import { useEffect } from "react";
 
 const Settings = () => {
   const { user, logout, setUser } = useAuth();
@@ -14,6 +11,7 @@ const Settings = () => {
     companyName: user?.companyName || "",
     gstin: user?.gstin || "",
     address: user?.address || "",
+    state: user?.state || "",
     pincode: user?.pincode || "",
   });
 
@@ -51,6 +49,57 @@ const Settings = () => {
     newPassword: "",
     confirmPassword: "",
   });
+
+  // Global Company Profile Fetching
+  useEffect(() => {
+    const fetchGlobalProfile = async () => {
+      try {
+        const res = await authApi.getCompanyProfile();
+        const globalData = res.data;
+        
+        setProfileData(prev => ({
+          ...prev,
+          companyName: globalData.companyName || "",
+          gstin: globalData.gstin || "",
+          address: globalData.address || "",
+          state: globalData.state || "",
+          pincode: globalData.pincode || "",
+        }));
+
+        if (globalData.invoiceSettings) {
+           setInvoiceSettings({
+              columns: {
+                 product: {
+                    label: globalData.invoiceSettings.columns?.product?.label || "Product Details / HSN",
+                    show: globalData.invoiceSettings.columns?.product?.show ?? true
+                 },
+                 quantity: {
+                    label: globalData.invoiceSettings.columns?.quantity?.label || "Qty",
+                    show: globalData.invoiceSettings.columns?.quantity?.show ?? true
+                 },
+                 price: {
+                    label: globalData.invoiceSettings.columns?.price?.label || "Unit Price",
+                    show: globalData.invoiceSettings.columns?.price?.show ?? true
+                 },
+                 taxable: {
+                    label: globalData.invoiceSettings.columns?.taxable?.label || "Taxable Val.",
+                    show: globalData.invoiceSettings.columns?.taxable?.show ?? true
+                 },
+                 amount: {
+                    label: globalData.invoiceSettings.columns?.amount?.label || "Net Amount",
+                    show: globalData.invoiceSettings.columns?.amount?.show ?? true
+                 }
+              },
+              showLogo: globalData.invoiceSettings.showLogo ?? true,
+              footerText: globalData.invoiceSettings.footerText || "Certified that the particulars given above are true and correct. Taxes shown above are extra as applicable.",
+           });
+        }
+      } catch (err) {
+        console.error("Failed to load global company profile", err);
+      }
+    };
+    fetchGlobalProfile();
+  }, []);
 
   const handleProfileChange = (e) => {
     setProfileData({ ...profileData, [e.target.name]: e.target.value });

@@ -64,6 +64,7 @@ export const authApi = {
   loginStep2: (data) => api.post("/auth/login-step2", data),
   register: (data) => api.post("/auth/register", data),
   updateProfile: (data) => api.put("/auth/profile", data),
+  getCompanyProfile: () => api.get("/auth/company-profile"),
   changePassword: (data) => api.post("/auth/change-password", data),
 };
 
