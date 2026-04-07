@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import AppLayout from "../components/layout/AppLayout";
-import { User, Shield, Bell, Globe, Save, Lock, Building2, Eye, EyeOff } from "lucide-react";
+import { User, Shield, Bell, Globe, Save, Lock, Building2, Eye, EyeOff, Search } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { authApi } from "../api/erpApi";
+import { authApi, gstApi } from "../api/erpApi";
 
 const Settings = () => {
   const { user, logout, setUser } = useAuth();
@@ -112,6 +112,33 @@ const Settings = () => {
     setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
   };
 
+  const handleGstLookup = async () => {
+    if (!profileData.gstin || profileData.gstin.length < 15) {
+      alert("Please enter a valid 15-digit GSTIN first.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await gstApi.lookup(profileData.gstin);
+      const data = res.data;
+      
+      setProfileData(prev => ({
+        ...prev,
+        companyName: data.companyName,
+        address: data.address,
+        state: data.state,
+        pincode: data.pincode
+      }));
+      
+      alert("Business details successfully fetched from GST Network!");
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to fetch GST details. Please enter manually.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const updateProfile = async (e) => {
     e.preventDefault();
     try {
@@ -211,7 +238,24 @@ const Settings = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">GSTIN Number</label>
-                    <input name="gstin" className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-black text-blue-600 focus:ring-2 focus:ring-blue-500/10 outline-none uppercase placeholder:text-gray-300" value={profileData.gstin} onChange={handleProfileChange} placeholder="27XXXXX0000X1Z5" />
+                    <div className="relative group">
+                      <input 
+                        name="gstin" 
+                        className="w-full pl-5 pr-14 py-3 bg-gray-50 border-none rounded-2xl text-sm font-black text-blue-600 focus:ring-2 focus:ring-blue-500/10 outline-none uppercase placeholder:text-gray-300 transition-all" 
+                        value={profileData.gstin} 
+                        onChange={handleProfileChange} 
+                        placeholder="27XXXXX0000X1Z5" 
+                      />
+                      <button
+                        type="button"
+                        onClick={handleGstLookup}
+                        disabled={loading}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-600/20 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
+                        title="Fetch business details from GST Network"
+                      >
+                        <Search className={`w-4 h-4 ${loading ? 'animate-pulse' : ''}`} />
+                      </button>
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Base State (for GST)</label>

@@ -1,4 +1,5 @@
 import express from "express";
+import axios from "axios";
 import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
@@ -55,30 +56,43 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api/distance", distanceRoutes);
 
-// GST MOCK LOOKUP API (For Demonstration)
-app.get("/api/gst/lookup/:gstin", (req, res) => {
+// REAL GST LOOKUP API (gstincheck.co.in)
+app.get("/api/gst/lookup/:gstin", async (req, res) => {
   const { gstin } = req.params;
-  const stateCode = gstin.substring(0, 2);
+  const apiKey = process.env.GST_API_KEY;
 
-  // Real State Mapping for Demo
-  const states = {
-    "27": "MAHARASHTRA",
-    "07": "DELHI",
-    "24": "GUJARAT",
-    "29": "KARNATAKA",
-    "33": "TAMIL NADU",
-    "19": "WEST BENGAL"
-  };
+  if (!apiKey) {
+    console.error("[GST LOOKUP]: GST_API_KEY missing from .env");
+    return res.status(500).json({ error: "Server Configuration Error: GST API Key not found." });
+  }
 
-  // Simulated Delay for realism
-  setTimeout(() => {
+  try {
+    const response = await axios.get(`https://sheet.gstincheck.co.in/check/${apiKey}/${gstin}`);
+    const result = response.data;
+
+    if (!result.flag || !result.data) {
+      return res.status(404).json({ error: result.message || "GSTIN not found or invalid." });
+    }
+
+    const biz = result.data;
+    const addr = biz.pradr.addr;
+
+    // Combine address parts into a clean string
+    const combinedAddress = [
+      addr.bnm, addr.bno, addr.flno, addr.st, addr.loc, addr.dst, addr.city
+    ].filter(Boolean).join(", ");
+
     res.json({
-      companyName: `MOCK BUSINESS (${gstin}) PVT LTD`,
-      address: `Industrial Complex No. ${Math.floor(Math.random() * 100)}, GIDC Area, Block ${gstin.substring(2, 5)}`,
-      state: states[stateCode] || "OTHER STATE",
-      status: "Active"
+      companyName: biz.lgnm || biz.tradeNam,
+      address: combinedAddress,
+      state: addr.stcd,
+      pincode: addr.pncd,
+      status: biz.sts
     });
-  }, 800);
+  } catch (err) {
+    console.error("[GST LOOKUP ERROR]:", err.message);
+    res.status(500).json({ error: "Connectivity error with GST network. Please enter details manually." });
+  }
 });
 const PORT = process.env.PORT || 5000;
 
