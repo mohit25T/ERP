@@ -32,43 +32,41 @@ export const getDistance = async (req, res) => {
     };
 
     // --- ENHANCED REGION MAPPING ---
-    const getRegion = (addr) => {
+    const getRegionInfo = (addr) => {
       const a = addr.toLowerCase();
 
       // Indian Pincode Extraction (6 digits)
       const pinMatch = a.match(/\b\d{6}\b/);
       if (pinMatch) {
          const pin = pinMatch[0];
-         // Basic India Pincode Regions
-         if (pin.startsWith('1')) return 2; // North (Delhi/NCR area)
-         if (pin.startsWith('2')) return 2; // UP
-         if (pin.startsWith('3')) return 6; // West (Gujarat/Rajasthan)
-         if (pin.startsWith('4')) return 1; // West (Maharashtra/MP)
-         if (pin.startsWith('5')) return 7; // South (Telangana/AP)
-         if (pin.startsWith('6')) return 4; // South (Tamil Nadu/Kerala)
-         if (pin.startsWith('7')) return 5; // East (West Bengal)
-         if (pin.startsWith('8')) return 5; // East (Bihar/Jharkhand)
+         if (pin.startsWith('1') || pin.startsWith('2')) return { id: 2, state: "north" };
+         if (pin.startsWith('3')) return { id: 6, state: "gujarat" };
+         if (pin.startsWith('4')) return { id: 1, state: "west" };
+         if (pin.startsWith('5')) return { id: 7, state: "south" };
+         if (pin.startsWith('6')) return { id: 4, state: "south" };
+         if (pin.startsWith('7') || pin.startsWith('8')) return { id: 5, state: "east" };
       }
 
-      // Major Metros (1-7)
-      if (a.includes("mumbai") || a.includes("maharashtra")) return 1;
-      if (a.includes("delhi") || a.includes("ncr")) return 2;
-      if (a.includes("bangalore") || a.includes("karnataka")) return 3;
-      if (a.includes("chennai") || a.includes("tamil nadu")) return 4;
-      if (a.includes("kolkata") || a.includes("west bengal")) return 5;
-      if (a.includes("ahmedabad") || a.includes("gujarat")) return 6;
-      if (a.includes("hyderabad") || a.includes("telangana")) return 7;
+      // Major Metros & States
+      if (a.includes("mumbai") || a.includes("maharashtra")) return { id: 1, state: "maharashtra" };
+      if (a.includes("delhi") || a.includes("ncr")) return { id: 2, state: "delhi" };
+      if (a.includes("bangalore") || a.includes("karnataka")) return { id: 3, state: "karnataka" };
+      if (a.includes("chennai") || a.includes("tamil nadu")) return { id: 4, state: "tamil_nadu" };
+      if (a.includes("kolkata") || a.includes("west bengal")) return { id: 5, state: "west_bengal" };
+      if (a.includes("ahmedabad") || a.includes("gujarat")) return { id: 6, state: "gujarat" };
+      if (a.includes("hyderabad") || a.includes("telangana")) return { id: 7, state: "telangana" };
       
-      // Local Business Hubs (8+)
-      if (a.includes("rajkot")) return 8;
-      if (a.includes("surat")) return 9;
-      if (a.includes("vadodara")) return 10;
-      if (a.includes("morbi")) return 11;
-      return 0; // Other region
+      // Local Business Hubs (Gujarat Specific)
+      if (a.includes("rajkot")) return { id: 8, state: "gujarat" };
+      if (a.includes("surat")) return { id: 9, state: "gujarat" };
+      if (a.includes("vadodara")) return { id: 10, state: "gujarat" };
+      if (a.includes("morbi")) return { id: 11, state: "gujarat" };
+      
+      return { id: 0, state: "other" };
     };
 
-    const fromRegion = getRegion(fromAddress);
-    const toRegion = getRegion(toAddress);
+    const fromInfo = getRegionInfo(fromAddress);
+    const toInfo = getRegionInfo(toAddress);
 
     // --- SAME CITY DETECTION ---
     const getCityMatch = (addr1, addr2) => {
@@ -87,16 +85,16 @@ export const getDistance = async (req, res) => {
     let matchType = "Fallback";
 
     if (cityMatch) {
-      // Very high accuracy for same-city matches (within district)
+      // Very high accuracy for same-city matches
       distance = deterministicRandom(45, 15);
       matchType = `Same City (${cityMatch})`;
-    } else if (fromRegion === toRegion && fromRegion !== 0) {
-      // Same state/major region
-      distance = deterministicRandom(150, 40);
-      matchType = "Same Region";
-    } else if (fromRegion !== 0 && toRegion !== 0) {
-      // Cross-region
-      const diff = Math.abs(fromRegion - toRegion);
+    } else if (fromInfo.state === toInfo.state && fromInfo.state !== "other") {
+      // Intra-state match (e.g., Gujarat state to Rajkot city)
+      distance = deterministicRandom(180, 60);
+      matchType = `Intra-State (${fromInfo.state})`;
+    } else if (fromInfo.id !== 0 && toInfo.id !== 0) {
+      // Cross-region match
+      const diff = Math.abs(fromInfo.id - toInfo.id);
       distance = diff * 350 + deterministicRandom(250);
       matchType = "Cross-Region";
     } else {
