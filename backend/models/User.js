@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema(
       default: "worker",
     },
     gstin: { type: String, default: "" },
+    pan: { type: String, default: "" },
     companyName: { type: String, default: "" },
     address: { type: String, default: "" },
     state: { type: String, default: "" },

@@ -13,6 +13,7 @@ const Settings = () => {
     name: user?.name || "",
     companyName: user?.companyName || "",
     gstin: user?.gstin || "",
+    pan: user?.pan || ( (user?.gstin)?.length >= 12 ? (user?.gstin).substring(2, 12) : "" ),
     address: user?.address || "",
     state: user?.state || "",
     pincode: user?.pincode || "",
@@ -64,6 +65,7 @@ const Settings = () => {
           ...prev,
           companyName: globalData.companyName || "",
           gstin: globalData.gstin || "",
+          pan: globalData.pan || ( (globalData.gstin)?.length >= 12 ? (globalData.gstin).substring(2, 12) : "" ),
           address: globalData.address || "",
           state: globalData.state || "",
           pincode: globalData.pincode || "",
@@ -105,7 +107,13 @@ const Settings = () => {
   }, []);
 
   const handleProfileChange = (e) => {
-    setProfileData({ ...profileData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "gstin") {
+      const derivedPan = value.length >= 12 ? value.substring(2, 12).toUpperCase() : "";
+      setProfileData({ ...profileData, gstin: value.toUpperCase(), pan: derivedPan });
+    } else {
+      setProfileData({ ...profileData, [name]: value });
+    }
   };
 
   const handlePasswordChange = (e) => {
@@ -128,7 +136,8 @@ const Settings = () => {
         companyName: data.companyName,
         address: data.address,
         state: data.state,
-        pincode: data.pincode
+        pincode: data.pincode,
+        pan: data.pan || (data.gstin?.length >= 12 ? data.gstin.substring(2, 12) : prev.pan)
       }));
       
       alert("Business details successfully fetched from GST Network!");
@@ -260,11 +269,18 @@ const Settings = () => {
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Base State (for GST)</label>
                     <input name="state" className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500/10 outline-none" value={profileData.state} onChange={handleProfileChange} placeholder="e.g. Maharashtra" />
-                    <div className="space-y-1.5">
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Permanent Account Number (PAN)</label>
+                    <input name="pan" readOnly className="w-full px-5 py-3 bg-gray-100 border-none rounded-2xl text-sm font-black text-indigo-600 outline-none cursor-not-allowed opacity-80" value={profileData.pan} placeholder="Derived from GSTIN" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Company Pincode</label>
                     <input name="pincode" className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500/10 outline-none" value={profileData.pincode} onChange={handleProfileChange} placeholder="400001" maxLength="6" />
                   </div>
-                </div>
                 </div>
 
                 <div className="space-y-1.5">

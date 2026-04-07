@@ -13,6 +13,7 @@ const getMergedUser = (user, masterAdmin) => {
     mobile: user.mobile,
     // GLOBAL OVERRIDE: Always use masterAdmin details for the entire organization
     gstin: masterAdmin?.gstin || user.gstin,
+    pan: masterAdmin?.pan || ( (masterAdmin?.gstin || user.gstin)?.length >= 12 ? (masterAdmin?.gstin || user.gstin).substring(2, 12) : "" ),
     companyName: masterAdmin?.companyName || user.companyName,
     address: masterAdmin?.address || user.address,
     state: masterAdmin?.state || user.state,
@@ -168,7 +169,12 @@ export const updateProfile = async (req, res) => {
     if (["super_admin", "admin"].includes(currentUser.role)) {
        const masterAdmin = await User.findOne({ role: "super_admin" });
        if (masterAdmin) {
-          if (gstin !== undefined) masterAdmin.gstin = gstin;
+          if (gstin !== undefined) {
+             masterAdmin.gstin = gstin;
+             if (gstin.length >= 12) {
+                masterAdmin.pan = gstin.substring(2, 12).toUpperCase();
+             }
+          }
           if (companyName !== undefined) masterAdmin.companyName = companyName;
           if (address !== undefined) masterAdmin.address = address;
           if (state !== undefined) masterAdmin.state = state;
