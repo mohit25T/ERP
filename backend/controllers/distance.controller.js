@@ -59,18 +59,18 @@ export const getDistance = async (req, res) => {
       // Default fallback
       distance = deterministicRandom(500, 120);
     }
-
+    console.log(distance);
     // Simulate network delay
     setTimeout(() => {
-      res.json({ 
-        fromAddress, 
-        toAddress, 
-        distance, 
+      res.json({
+        fromAddress,
+        toAddress,
+        distance,
         unit: "km",
         status: "success",
         isSimulated: true,
         isDeterministic: true,
-        note: "Distance calculated using exact address markers. Link a Google Maps API Key for 100% precision." 
+        note: "Distance calculated using exact address markers. Link a Google Maps API Key for 100% precision."
       });
     }, 800);
 
