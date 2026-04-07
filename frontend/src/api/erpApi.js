@@ -11,6 +11,11 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
+  // Cache Busting: Appends a timestamp to all GET requests to bypass aggressive browser/proxy caches
+  if (config.method?.toLowerCase() === 'get') {
+    config.params = { ...config.params, _t: Date.now() };
+  }
+
   // Debugger: Logs the full URL in your browser console
   console.log(`[ERP NETWORK DEBUG] Sending ${config.method?.toUpperCase()} to: ${config.baseURL}${config.url}`);
 

@@ -153,7 +153,6 @@ const PartyLedger = () => {
       
       const headers = ["Date", "Description", "Ref", "Amount", "Balance"];
       const rows = statement.timeline
-         .filter(item => item.type === 'payment')
          .map(item => [
             `"${new Date(item.date).toLocaleDateString()}"`,
             `"${item.description.replace(/"/g, '""')}"`,
@@ -319,7 +318,7 @@ const PartyLedger = () => {
                   </tr>
                </thead>
                <tbody>
-                  {statement?.timeline?.filter(item => item.type === 'payment').map((item, idx) => (
+                  {statement?.timeline?.map((item, idx) => (
                      <tr key={idx} className="border-b border-gray-100">
                         <td className="align-top py-2">{new Date(item.date).toLocaleDateString()}</td>
                         <td className="align-top py-2">
@@ -416,7 +415,7 @@ const PartyLedger = () => {
                            </thead>
                            <tbody className="divide-y divide-gray-50 uppercase tracking-tight">
                               {(() => {
-                                 const filteredTimeline = statement?.timeline?.filter(item => item.type === 'payment') || [];
+                                 const filteredTimeline = statement?.timeline || [];
                                  
                                  if (filteredTimeline.length === 0) {
                                     return (

@@ -62,6 +62,10 @@ export const createLedgerEntry = async (req, res) => {
 export const getLedgerEntries = async (req, res) => {
   try {
     const { order, purchase, customer, supplier } = req.query;
+    
+    // Disable Caching for fresh financial data
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
     let query = {};
     
     if (order && mongoose.Types.ObjectId.isValid(order)) query.order = order;
@@ -79,6 +83,9 @@ export const getLedgerEntries = async (req, res) => {
 // Get Profit & Loss Summary
 export const getPnLSummary = async (req, res) => {
   try {
+    // Disable Caching for fresh financial data
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
     // 1. Direct Sales Income (Only what's actually paid as per Ledger philosophy, or Total Sales)
     // We'll use Total Sales Revenue for standard accrual-based P&L
     const salesInvoices = await Order.find({ status: { $ne: "cancelled" } });

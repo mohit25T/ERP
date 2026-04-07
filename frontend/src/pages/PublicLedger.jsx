@@ -47,11 +47,11 @@ const PublicLedger = () => {
        </div>
        <h1 className="text-2xl font-black text-gray-900 mb-2">Access Denied</h1>
        <p className="text-gray-500 max-w-xs mx-auto italic">{error}</p>
-       <p className="mt-8 text-[10px] font-black uppercase text-gray-300 tracking-[0.3em]">Nexus ERP Protection</p>
+       <p className="mt-8 text-[10px] font-black uppercase text-gray-300 tracking-[0.3em] uppercase">Security Protocols Active</p>
     </div>
   );
-
-  const { party, type, timeline, totalOutstanding } = data;
+ 
+  const { party, type, timeline, totalOutstanding, companyInfo } = data;
 
   // UPI Deep Link Generation
   const upiLink = `upi://pay?pa=nexus-ops@okaxis&pn=NexusERP&am=${Math.abs(totalOutstanding)}&cu=INR&tn=LedgerSettlement`;
@@ -61,8 +61,8 @@ const PublicLedger = () => {
       {/* Portal Header */}
       <nav className="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
          <div className="flex flex-col">
-            <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 leading-none mb-1">Nexus Connect</span>
-            <span className="text-sm font-black text-gray-900 tracking-tighter uppercase italic">Client Portal</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 leading-none mb-1">{companyInfo?.name || "Client Portal"}</span>
+            <span className="text-sm font-black text-gray-900 tracking-tighter uppercase italic">Secure Statement</span>
          </div>
          <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -100,17 +100,19 @@ const PublicLedger = () => {
             </div>
             
             <div className="mt-8 pt-8 border-t border-gray-50 flex gap-4">
-               <a 
-                 href={upiLink}
-                 className="flex-1 bg-blue-600 text-white py-4 px-6 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 active:scale-95 transition-transform"
-               >
-                  <CreditCard className="w-4 h-4" /> Pay via UPI
-               </a>
+               {type === 'customer' && (
+                  <a 
+                    href={upiLink}
+                    className="flex-1 bg-blue-600 text-white py-4 px-6 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 active:scale-95 transition-transform"
+                  >
+                     <CreditCard className="w-4 h-4" /> Pay via UPI
+                  </a>
+               )}
                <button 
                  onClick={() => window.print()}
-                 className="w-14 h-14 bg-white border border-gray-100 text-gray-400 rounded-2xl flex items-center justify-center hover:bg-gray-50 transition-colors active:scale-90"
+                 className={`${type === 'customer' ? 'w-14' : 'flex-1'} h-14 bg-white border border-gray-100 text-gray-400 rounded-2xl flex items-center justify-center hover:bg-gray-50 transition-colors active:scale-90`}
                >
-                  <Download className="w-5 h-5" />
+                  <Download className="w-5 h-5 mr-2" /> {type === 'supplier' && "Download Statement"}
                </button>
             </div>
          </div>
@@ -137,32 +139,29 @@ const PublicLedger = () => {
          <div className="space-y-4">
             <div className="flex justify-between items-center px-2">
                <h3 className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] italic">Transaction Timeline</h3>
-               <button className="text-[8px] font-black uppercase text-blue-500 tracking-widest flex items-center gap-1">
-                  View All <ChevronRight className="w-2.5 h-2.5" />
-               </button>
             </div>
             
             <div className="space-y-3">
-               {timeline.slice(-5).reverse().map((item, idx) => (
-                  <div key={idx} className="bg-white p-5 rounded-3xl border border-gray-100 flex justify-between items-center group hover:border-gray-200 transition-colors">
-                     <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-2xl ${item.type === 'payment' ? 'bg-green-50 text-green-500' : 'bg-blue-50 text-blue-500'}`}>
-                           <Wallet className="w-4 h-4" />
-                        </div>
-                        <div className="flex flex-col">
-                           <span className="text-[8px] font-black text-gray-300 uppercase tracking-widest">{new Date(item.date).toLocaleDateString()}</span>
-                           <span className="text-xs font-black text-gray-800 uppercase tracking-tight line-clamp-1">{item.description}</span>
-                        </div>
-                     </div>
-                     <div className="text-right">
-                        <p className={`text-xs font-black italic tracking-tight ${item.credit > 0 ? "text-green-500" : "text-red-500"}`}>
-                           ₹{(item.debit || item.credit).toLocaleString()}
-                        </p>
-                        <p className="text-[8px] font-bold text-gray-300 uppercase tracking-widest">
-                           {item.credit > 0 ? "IN" : "OUT"}
-                        </p>
-                     </div>
-                  </div>
+               {timeline.slice().reverse().map((item, idx) => (
+                    <div key={idx} className="bg-white p-5 rounded-3xl border border-gray-100 flex justify-between items-center group hover:border-gray-200 transition-colors">
+                       <div className="flex items-center gap-4">
+                          <div className={`p-3 rounded-2xl ${item.type === 'payment' ? 'bg-green-50 text-green-500' : 'bg-red-50 text-red-500'}`}>
+                             <Wallet className="w-4 h-4" />
+                          </div>
+                          <div className="flex flex-col">
+                             <span className="text-[8px] font-black text-gray-300 uppercase tracking-widest">{new Date(item.date).toLocaleDateString()}</span>
+                             <span className="text-xs font-black text-gray-800 uppercase tracking-tight line-clamp-1">{item.description}</span>
+                          </div>
+                       </div>
+                       <div className="text-right">
+                          <p className={`text-xs font-black italic tracking-tight ${item.type === 'payment' ? 'text-green-500' : 'text-red-500'}`}>
+                             ₹{(item.debit || item.credit).toLocaleString()}
+                          </p>
+                          <p className="text-[8px] font-bold text-gray-300 uppercase tracking-widest">
+                             {item.type === 'payment' ? (type === 'customer' ? 'REC' : 'PAID') : (type === 'customer' ? 'INV' : 'BILL')}
+                          </p>
+                       </div>
+                    </div>
                ))}
             </div>
          </div>
@@ -171,11 +170,12 @@ const PublicLedger = () => {
          <div className="pt-10 flex flex-col items-center gap-4 border-t border-gray-100">
             <div className="flex items-center gap-2 text-gray-400">
                <ShieldCheck className="w-3 h-3" />
-               <span className="text-[8px] font-bold uppercase tracking-widest">Secured by Nexus Connect Encryption</span>
+               <span className="text-[8px] font-bold uppercase tracking-widest">Secured & Encrypted</span>
             </div>
             <p className="text-[8px] text-gray-300 font-bold uppercase text-center leading-loose">
-               Confidential Statement. Do not share this URL with unauthorized parties.<br/>
-               &copy; 2026 Nexus ERP Solutions
+               Confidential Statement for {party.company || party.name}.<br/>
+               Issued by: {companyInfo?.name} — {companyInfo?.address}<br/>
+               &copy; {new Date().getFullYear()} {companyInfo?.name}
             </p>
          </div>
       </div>

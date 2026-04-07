@@ -4,6 +4,7 @@ import Ledger from "../models/Ledger.js";
 import Product from "../models/Product.js";
 import Customer from "../models/Customer.js";
 import Supplier from "../models/Supplier.js";
+import User from "../models/User.js";
 import mongoose from "mongoose";
 
 // GSTR-1 Summary (Sales categorization)
@@ -12,6 +13,9 @@ export const getGSTR1 = async (req, res) => {
     const { month, year } = req.query;
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0, 23, 59, 59);
+
+    // Disable Caching for fresh financial data
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
 
     const orders = await Order.find({
       createdAt: { $gte: startDate, $lte: endDate },
@@ -49,6 +53,9 @@ export const getGSTR3B = async (req, res) => {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0, 23, 59, 59);
 
+    // Disable Caching for fresh financial data
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
     // Outward Liability (Sales)
     const orders = await Order.find({
       createdAt: { $gte: startDate, $lte: endDate },
@@ -80,6 +87,9 @@ export const getGSTR3B = async (req, res) => {
 // Balance Sheet (Assets vs Liabilities)
 export const getBalanceSheet = async (req, res) => {
   try {
+    // Disable Caching for fresh financial data
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
     // ASSETS
     // 1. Inventory Value (At cost price)
     const products = await Product.find();
@@ -186,6 +196,9 @@ export const getPartyStatement = async (req, res) => {
        return { ...item, balance: Number(Number(runningBalance).toFixed(2)) };
     });
 
+    // Disable Caching for fresh financial data
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
     res.json({
       partyId: id,
       type,
@@ -214,6 +227,15 @@ export const getPublicStatement = async (req, res) => {
     if (!partyDoc) {
       return res.status(404).json({ error: "Invalid or expired ledger link." });
     }
+
+    // Fetch the company/admin details for branding on public portal
+    const adminUser = await User.findOne({ role: "super_admin" }).lean();
+    const companyInfo = {
+      name: adminUser?.companyName || "Our Company",
+      address: adminUser?.address || "Available on request",
+      gstin: adminUser?.gstin || "N/A",
+      tagline: adminUser?.footerText || "Official Ledger Portal"
+    };
 
     const id = partyDoc._id;
     let transactions = [];
@@ -263,6 +285,9 @@ export const getPublicStatement = async (req, res) => {
        return { ...item, balance: Number(Number(runningBalance).toFixed(2)) };
     });
 
+    // Disable Caching for fresh financial data
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
     res.json({
        party: {
         name: partyDoc.name,
@@ -270,6 +295,7 @@ export const getPublicStatement = async (req, res) => {
         address: partyDoc.address,
         gstin: partyDoc.gstin
       },
+      companyInfo,
       type,
       timeline,
       totalOutstanding: Number(runningBalance.toFixed(2))
@@ -284,6 +310,10 @@ export const getCompanyStatement = async (req, res) => {
     const orders = await Order.find({ status: { $nin: ["cancelled", "refunded"] } }).populate("customer").lean();
     const purchases = await Purchase.find({ status: { $ne: "cancelled" } }).populate("supplier").lean();
     const ledgerEntries = await Ledger.find().populate("customer supplier").lean();
+
+    // Fetch the actual company details from the database
+    const adminUser = await User.findOne({ role: "super_admin" }).lean();
+    const companyName = adminUser?.companyName || "Our Company Statement";
 
     const combined = [
       ...orders.map(o => ({
@@ -324,8 +354,13 @@ export const getCompanyStatement = async (req, res) => {
       return { ...item, balance: Number(runningBalance.toFixed(2)) };
     });
 
+    // Disable Caching for fresh financial data
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
     res.json({
-      companyName: "Nexus ERP Master Record",
+      companyName,
+      companyAddress: adminUser?.address,
+      companyGstin: adminUser?.gstin,
       timeline,
       totalBalance: Number(runningBalance.toFixed(2))
     });

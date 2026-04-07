@@ -85,8 +85,10 @@ const CompanyStatement = () => {
       <div className="printable-document font-serif">
         <div className="flex justify-between items-start border-b-2 border-black pb-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold uppercase">Nexus ERP</h1>
-            <p className="text-xs font-bold uppercase tracking-widest">Master Financial Statement</p>
+            <h1 className="text-2xl font-bold uppercase">{statement?.companyName}</h1>
+            <p className="text-[10px] font-bold uppercase tracking-widest">{statement?.companyAddress}</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest">GSTIN: {statement?.companyGstin}</p>
+            <p className="mt-2 text-[8px] font-bold uppercase tracking-widest text-gray-500">Master Financial Statement</p>
           </div>
           <div className="text-right text-xs">
             <p>Generated: {new Date().toLocaleString()}</p>
@@ -147,7 +149,7 @@ const CompanyStatement = () => {
             </h2>
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2 ml-16 flex items-center gap-2">
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                Official Unified Audit Ledger
+                Official Record for {statement?.companyName}
             </p>
           </div>
           <div className="flex items-center gap-3">
