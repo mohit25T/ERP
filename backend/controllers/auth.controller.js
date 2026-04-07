@@ -3,6 +3,24 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { sendOtpEmail } from "../utils/sendOtpEmail.js";
 
+// Helper to merge individual user with Global Company Details
+const getMergedUser = (user, masterAdmin) => {
+  return {
+    id: user._id,
+    name: user.name,
+    role: user.role,
+    email: user.email,
+    mobile: user.mobile,
+    // GLOBAL OVERRIDE: Always use masterAdmin details for the entire organization
+    gstin: masterAdmin?.gstin || user.gstin,
+    companyName: masterAdmin?.companyName || user.companyName,
+    address: masterAdmin?.address || user.address,
+    state: masterAdmin?.state || user.state,
+    pincode: masterAdmin?.pincode || user.pincode,
+    invoiceSettings: masterAdmin?.invoiceSettings || user.invoiceSettings
+  };
+};
+
 // Register (Updated to require mobile)
 export const register = async (req, res) => {
   try {
@@ -102,7 +120,13 @@ export const loginStep2 = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.json({ token, user: { id: user._id, name: user.name, role: user.role, email: user.email, mobile: user.mobile, gstin: user.gstin, state: user.state, companyName: user.companyName, address: user.address, invoiceSettings: user.invoiceSettings } });
+    // Fetch Master Record for Global Identity Merge
+    const masterAdmin = await User.findOne({ role: "super_admin" });
+
+    res.json({ 
+       token, 
+       user: getMergedUser(user, masterAdmin) 
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -141,7 +165,6 @@ export const updateProfile = async (req, res) => {
     await currentUser.save();
 
     // 2. Global Company Profile Update (Admin Only)
-    // If these fields are present and the user has permission, update the Master Record (Super Admin)
     if (["super_admin", "admin"].includes(currentUser.role)) {
        const masterAdmin = await User.findOne({ role: "super_admin" });
        if (masterAdmin) {
@@ -157,7 +180,11 @@ export const updateProfile = async (req, res) => {
        }
     }
 
-    res.json(currentUser);
+    // Refresh Master for return response
+    const masterAdmin = await User.findOne({ role: "super_admin" });
+
+    // 3. Return the merged result to update frontend state immediately
+    res.json(getMergedUser(currentUser, masterAdmin));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -1,5 +1,8 @@
+import React, { useState, useEffect } from "react";
+import AppLayout from "../components/layout/AppLayout";
+import { User, Shield, Bell, Globe, Save, Lock, Building2, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 import { authApi } from "../api/erpApi";
-import { useEffect } from "react";
 
 const Settings = () => {
   const { user, logout, setUser } = useAuth();
