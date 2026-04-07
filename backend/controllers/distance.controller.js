@@ -34,6 +34,22 @@ export const getDistance = async (req, res) => {
     // --- ENHANCED REGION MAPPING ---
     const getRegion = (addr) => {
       const a = addr.toLowerCase();
+
+      // Indian Pincode Extraction (6 digits)
+      const pinMatch = a.match(/\b\d{6}\b/);
+      if (pinMatch) {
+         const pin = pinMatch[0];
+         // Basic India Pincode Regions
+         if (pin.startsWith('1')) return 2; // North (Delhi/NCR area)
+         if (pin.startsWith('2')) return 2; // UP
+         if (pin.startsWith('3')) return 6; // West (Gujarat/Rajasthan)
+         if (pin.startsWith('4')) return 1; // West (Maharashtra/MP)
+         if (pin.startsWith('5')) return 7; // South (Telangana/AP)
+         if (pin.startsWith('6')) return 4; // South (Tamil Nadu/Kerala)
+         if (pin.startsWith('7')) return 5; // East (West Bengal)
+         if (pin.startsWith('8')) return 5; // East (Bihar/Jharkhand)
+      }
+
       // Major Metros (1-7)
       if (a.includes("mumbai") || a.includes("maharashtra")) return 1;
       if (a.includes("delhi") || a.includes("ncr")) return 2;
@@ -42,6 +58,7 @@ export const getDistance = async (req, res) => {
       if (a.includes("kolkata") || a.includes("west bengal")) return 5;
       if (a.includes("ahmedabad") || a.includes("gujarat")) return 6;
       if (a.includes("hyderabad") || a.includes("telangana")) return 7;
+      
       // Local Business Hubs (8+)
       if (a.includes("rajkot")) return 8;
       if (a.includes("surat")) return 9;

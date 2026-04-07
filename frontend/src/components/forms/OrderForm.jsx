@@ -71,11 +71,25 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
 
   const handleFetchDistance = async () => {
     const customer = customers.find(c => c._id === formData.customer);
-    const fromAddr = user?.address;
-    const toAddr = customer?.address;
+    
+    // Resilient address extraction: Prefer full address, fallback to Pincode/State
+    const getBestAddress = (entity, label) => {
+      if (entity?.address?.trim()) return entity.address;
+      if (entity?.pincode && entity?.state) return `${entity.pincode}, ${entity.state}`;
+      if (entity?.pincode) return entity.pincode;
+      if (entity?.state) return entity.state;
+      return null;
+    };
+
+    const fromAddr = getBestAddress(user, "Company");
+    const toAddr = getBestAddress(customer, "Customer");
 
     if (!fromAddr || !toAddr) {
-      alert("Both Company Address (in Settings) and Customer Address must be set for exact location calculation.");
+      let missing = [];
+      if (!fromAddr) missing.push("Company Address (Settings > Company Details)");
+      if (!toAddr) missing.push("Customer Address (Customers > Edit Customer)");
+      
+      alert(`Cannot calculate distance. Missing: \n- ${missing.join("\n- ")} \n\nPlease provide at least a Pincode or State.`);
       return;
     }
 
