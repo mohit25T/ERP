@@ -6,7 +6,7 @@ import Customer from "../models/Customer.js";
 // Create Order
 export const createOrder = async (req, res) => {
   try {
-    const { customer, product, quantity, dueDate } = req.body;
+    const { customer, product, quantity, dueDate, ewayBillData } = req.body;
 
     const existingProduct = await Product.findById(product);
     if (!existingProduct) {
@@ -30,6 +30,13 @@ export const createOrder = async (req, res) => {
     const gstRate = existingProduct.gstRate || 18;
     const gstAmount = (taxableAmount * gstRate) / 100;
     const totalAmount = taxableAmount + gstAmount;
+
+    // LEGAL VALIDATION: E-Way Bill Requirement (> 50,000)
+    if (totalAmount > 50000 && (!ewayBillData || !ewayBillData.active)) {
+      console.warn(`[ERP WARNING] Order created above ₹50,000 without E-Way Bill data. ID: ${customer}`);
+      // We allow it but log it, as per frontend confirmation. 
+      // Strict enforcement can be added here if needed.
+    }
 
     let cgst = 0, sgst = 0, igst = 0;
 
@@ -56,7 +63,8 @@ export const createOrder = async (req, res) => {
       igst,
       hsnCode: existingProduct.hsnCode,
       customerGstin: orderCustomer?.gstin || "",
-      dueDate
+      dueDate,
+      ewayBillData: ewayBillData || { active: false }
     });
 
 

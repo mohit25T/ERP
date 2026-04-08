@@ -26,6 +26,24 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
 
   const [selectedProduct, setSelectedProduct] = useState(null);
 
+  // Logic to auto-equip E-Way Bill if amount > 50,000 (Mandatory Legal Requirement)
+  useEffect(() => {
+    if (selectedProduct) {
+      const price = selectedProduct.price || 0;
+      const qty = formData.quantity || 1;
+      const gst = selectedProduct.gstRate || 18;
+      const total = (price * qty) * (1 + gst / 100);
+
+      // Auto-enable e-way bill if threshold exceeds 50k
+      if (total > 50000 && !formData.ewayBillData.active) {
+        setFormData(prev => ({
+          ...prev,
+          ewayBillData: { ...prev.ewayBillData, active: true }
+        }));
+      }
+    }
+  }, [selectedProduct, formData.quantity]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -116,6 +134,19 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
       alert("Please select a customer and product");
       return;
     }
+
+    // Validation for Mandatory E-Way Bill (Consignment Value > 50,000)
+    const price = selectedProduct?.price || 0;
+    const qty = formData.quantity || 1;
+    const gst = selectedProduct?.gstRate || 18;
+    const total = (price * qty) * (1 + gst / 100);
+
+    if (total > 50000 && !formData.ewayBillData.active) {
+      if (!window.confirm(`LEGAL ALERT: Order value (₹${total.toLocaleString('en-IN')}) exceeds the ₹50,000 threshold for E-Way Bills. Consignments above this value require an E-Way Bill by law. \n\nDo you want to proceed without enabling E-Way Bill details?`)) {
+        return;
+      }
+    }
+
     onSubmit(formData);
   };
 
@@ -187,7 +218,14 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                  <Truck className="w-5 h-5 text-blue-600" />
-                 <span className="text-sm font-black text-gray-900 uppercase italic">E-Way Bill Details</span>
+                 <div>
+                    <span className="text-sm font-black text-gray-900 uppercase italic">E-Way Bill Details</span>
+                    {(selectedProduct && ((selectedProduct.price * formData.quantity) * (1 + (selectedProduct.gstRate || 18)/100)) > 50000) && (
+                      <span className="block text-[8px] font-black text-red-500 uppercase tracking-tighter animate-pulse mt-0.5">
+                        ⚠️ MANDATORY: Consignment &gt; ₹50,000
+                      </span>
+                    )}
+                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input 
