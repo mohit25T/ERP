@@ -5,11 +5,13 @@ import {
   getInvoices, 
   downloadInvoicePdf 
 } from "../controllers/invoice.controller.js";
-import { verifyToken } from "../middleware/auth.middleware.js";
+import { authMiddleware } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.use(verifyToken);
+router.use(authMiddleware);
+
+
 
 router.post("/", createInvoice);
 router.get("/", getInvoices);
