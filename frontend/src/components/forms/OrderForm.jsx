@@ -171,7 +171,7 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
             onChange={handleChange}
           >
             <option value="">-- Choose Customer --</option>
-            {customers.map(c => (
+            {Array.isArray(customers) && customers.map(c => (
               <option key={c._id} value={c._id}>{c.name} ({c.company || "Individual"})</option>
             ))}
           </select>
@@ -187,7 +187,7 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
               onChange={handleChange}
             >
               <option value="">-- Choose Product --</option>
-              {products
+              {Array.isArray(products) && products
                 .filter(p => p.type !== 'raw_material')
                 .map(p => (
                   <option key={p._id} value={p._id}>{p.name} - ₹{p.price} / {p.unit || 'unit'} (Stock: {p.stock} | GST: {p.gstRate}%)</option>
