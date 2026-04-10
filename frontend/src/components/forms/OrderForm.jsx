@@ -179,17 +179,19 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Select Product</label>
-          <select
-            name="product"
-            required
-            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition appearance-none"
-            value={formData.product}
-            onChange={handleChange}
-          >
-            <option value="">-- Choose Product --</option>
-              {products.map(p => (
-                <option key={p._id} value={p._id}>{p.name} - ₹{p.price} / {p.unit || 'unit'} (Stock: {p.stock} | GST: {p.gstRate}%)</option>
-              ))}
+            <select
+              name="product"
+              required
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition appearance-none"
+              value={formData.product}
+              onChange={handleChange}
+            >
+              <option value="">-- Choose Product --</option>
+              {products
+                .filter(p => p.type !== 'raw_material')
+                .map(p => (
+                  <option key={p._id} value={p._id}>{p.name} - ₹{p.price} / {p.unit || 'unit'} (Stock: {p.stock} | GST: {p.gstRate}%)</option>
+                ))}
             </select>
           </div>
   
