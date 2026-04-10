@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import AppLayout from "../components/layout/AppLayout";
 import Modal from "../components/common/Modal";
 import OrderForm from "../components/forms/OrderForm";
-import { orderApi, paymentApi } from "../api/erpApi";
+import { orderApi, paymentApi, invoiceApi } from "../api/erpApi";
 import { useAuth } from "../context/AuthContext";
-import { Plus, Clock, Search, CheckCircle, PackageSearch, ShoppingCart, TrendingUp, X, Wallet, CreditCard, AlertCircle, History, Trash2 } from "lucide-react";
+import { Plus, Clock, Search, CheckCircle, PackageSearch, ShoppingCart, TrendingUp, X, Wallet, CreditCard, AlertCircle, History, Trash2, FileText } from "lucide-react";
 
 // 🏦 NUMBER TO WORDS UTILITY (Indian Number System)
 const numberToWords = (num) => {
@@ -39,7 +39,7 @@ const numberToWords = (num) => {
 
   const whole = Math.floor(num);
   const fraction = Math.round((num - whole) * 100);
-  
+
   let result = formatAmount(whole) + "Rupees ";
   if (fraction > 0) {
     result += "and " + formatAmount(fraction) + "Paise ";
@@ -63,13 +63,16 @@ const Orders = () => {
   const [paymentHistory, setPaymentHistory] = useState([]);
   const [formLoading, setFormLoading] = useState(false);
 
+  const [searchTerm, setSearchTerm] = useState("");
+
   const fetchOrders = async () => {
     try {
       setLoading(true);
       const res = await orderApi.getAll();
-      setOrders(res.data);
+      setOrders(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -78,6 +81,12 @@ const Orders = () => {
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  const filteredOrders = Array.isArray(orders) ? orders.filter(o =>
+    o._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    o.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    o.customer?.company?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) : [];
 
   const handleSubmit = async (data) => {
     try {
@@ -91,6 +100,7 @@ const Orders = () => {
       setFormLoading(false);
     }
   };
+
 
   const handleRecordPayment = async () => {
     try {
@@ -123,6 +133,11 @@ const Orders = () => {
       const res = await paymentApi.getHistory("order", orderId);
       const order = orders.find(o => o._id === orderId);
 
+      if (!order) {
+        alert("Order details not found in cache.");
+        return;
+      }
+
       // Build Unified Journey Timeline
       const events = [
         // 1. Birth: Order Placed
@@ -134,7 +149,7 @@ const Orders = () => {
           description: "Order Placed - Commercial Journey Initialized"
         },
         // 2. Pulse: Payments
-        ...res.data.map(p => ({ ...p, type: 'payment' }))
+        ...(Array.isArray(res.data) ? res.data.map(p => ({ ...p, type: 'payment' })) : [])
       ];
 
       // 3. Seal: Fulfillment (if complete)
@@ -175,18 +190,18 @@ const Orders = () => {
   const handleStatusUpdate = async (id, newStatus) => {
     try {
       await orderApi.updateStatus(id, newStatus);
-      
+
       // Miracle-Level Integration: Auto-generate Draft Invoice when status is "invoiced"
       if (newStatus === 'invoiced') {
-         try {
-            await invoiceApi.create({ orderId: id });
-            alert("Draft Invoice generated in Billing Hub!");
-         } catch (invErr) {
-            console.error("Invoice generation failed", invErr);
-            alert("Order status updated, but Invoice generation failed: " + (invErr.response?.data?.error || invErr.message));
-         }
+        try {
+          await invoiceApi.create({ orderId: id });
+          alert("Draft Invoice generated in Billing Hub!");
+        } catch (invErr) {
+          console.error("Invoice generation failed", invErr);
+          alert("Order status updated, but Invoice generation failed: " + (invErr.response?.data?.error || invErr.message));
+        }
       }
-      
+
       fetchOrders();
     } catch (err) {
       alert("Status update failed: " + (err.response?.data?.msg || err.message));
@@ -213,7 +228,7 @@ const Orders = () => {
       // For now, we fetch all invoices and find the matching one
       const res = await invoiceApi.getAll();
       const invoice = res.data.find(inv => inv.order?.toString() === order._id.toString());
-      
+
       if (!invoice) {
         alert("Invoice not found. Please mark the order as 'Invoiced' first.");
         return;
@@ -285,11 +300,12 @@ const Orders = () => {
         <div className="p-6 border-b border-gray-50 flex justify-between items-center w-full">
           <div className="relative w-full max-w-sm">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
+            <input  
               type="text"
               placeholder="Search order ID or customer..."
-
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border-transparent rounded-2xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
@@ -297,7 +313,7 @@ const Orders = () => {
         <div className="overflow-x-auto w-full max-w-full">
           {loading ? (
             <div className="p-12 text-center text-gray-400 italic">Processing orders...</div>
-          ) : orders.length === 0 ? (
+          ) : filteredOrders.length === 0 ? (
             <div className="p-16 flex flex-col items-center justify-center text-gray-400">
               <ShoppingCart className="w-16 h-16 opacity-20 mb-4" />
               <p className="font-medium">No system orders found.</p>
@@ -316,7 +332,7 @@ const Orders = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {orders.map((o) => {
+                {filteredOrders.map((o) => {
                   const statusOpts = getStatusBadgeOptions(o.status);
                   return (
                     <tr key={o._id} className="hover:bg-gray-50/80 transition-all group">
@@ -341,14 +357,14 @@ const Orders = () => {
                         <div className="flex flex-col">
                           <span className="text-sm font-black text-gray-900 tracking-tight">₹{o.totalAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                           <div className="flex justify-between items-center mt-1">
-                             <span className="text-[10px] text-gray-400 font-bold uppercase">Paid: ₹{o.amountPaid?.toLocaleString('en-IN')}</span>
-                             <span className="text-[9px] text-blue-500 font-black uppercase ml-2 tracking-tighter">GST: ₹{o.gstAmount?.toLocaleString('en-IN')}</span>
+                            <span className="text-[10px] text-gray-400 font-bold uppercase">Paid: ₹{o.amountPaid?.toLocaleString('en-IN')}</span>
+                            <span className="text-[9px] text-blue-500 font-black uppercase ml-2 tracking-tighter">GST: ₹{o.gstAmount?.toLocaleString('en-IN')}</span>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-4 text-center">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter ${o.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' :
-                            o.paymentStatus === 'partial' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'
+                          o.paymentStatus === 'partial' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'
                           }`}>
                           {o.paymentStatus}
                         </span>
