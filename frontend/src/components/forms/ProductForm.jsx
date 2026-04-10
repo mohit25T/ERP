@@ -11,9 +11,9 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
     hsnCode: initialData?.hsnCode || "",
     gstRate: initialData?.gstRate || 18,
     price: initialData?.price || 0,
-    stock: initialData?.stock || 0,
+    stock: initialData?.unit === 'dagina' ? (initialData.stock / 50) : (initialData?.stock || 0),
     unit: initialData?.unit || "kg",
-    bom: initialData?.bom || [] 
+    bom: initialData?.bom || []
   });
 
   const [availableComponents, setAvailableComponents] = useState([]);
@@ -33,6 +33,24 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    if (name === 'unit') {
+      const prevUnit = formData.unit;
+      const nextUnit = value;
+      let newStock = formData.stock;
+
+      // Logic: Convert current view quantity back to KG (base), then to new unit
+      const baseStock = prevUnit === 'dagina' ? newStock * 50 : newStock;
+      const convertedStock = nextUnit === 'dagina' ? baseStock / 50 : baseStock;
+
+      setFormData(prev => ({
+        ...prev,
+        unit: nextUnit,
+        stock: convertedStock
+      }));
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: (name === 'price' || name === 'stock' || name === 'gstRate') ? parseFloat(value) : value
@@ -61,7 +79,12 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    // CRITICAL: Always convert back to KG (base unit) before submitting to database
+    const submissionData = {
+      ...formData,
+      stock: formData.unit === 'dagina' ? formData.stock * 50 : formData.stock
+    };
+    onSubmit(submissionData);
   };
 
   return (
@@ -78,7 +101,7 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
             onChange={handleChange}
           />
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">SKU</label>
           <input
@@ -116,15 +139,15 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
         </div>
 
         <div>
-           <label className="block text-sm font-medium text-gray-700 mb-1">HSN Code</label>
-           <input
-             name="hsnCode"
-             required
-             className="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition uppercase"
-             placeholder="HSN-XXXX"
-             value={formData.hsnCode}
-             onChange={handleChange}
-           />
+          <label className="block text-sm font-medium text-gray-700 mb-1">HSN Code</label>
+          <input
+            name="hsnCode"
+            required
+            className="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition uppercase"
+            placeholder="HSN-XXXX"
+            value={formData.hsnCode}
+            onChange={handleChange}
+          />
         </div>
 
         <div>
@@ -184,73 +207,87 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
       </div>
 
       {formData.type === "finished_good" && (
-        <div className="mt-8 space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
-           <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-              <div className="flex items-center gap-2">
-                 <div className="p-2 bg-blue-50 rounded-lg">
-                    <Layers className="w-5 h-5 text-blue-600" />
-                 </div>
-                 <div>
-                    <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">Bill of Materials (BOM)</h4>
-                    <p className="text-[10px] text-gray-500 font-medium">Define raw materials required to produce 1 unit.</p>
-                 </div>
+        <div className="mt-8 p-6 bg-blue-50/30 rounded-3xl border border-blue-100/50 space-y-5 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="flex items-center justify-between border-b border-blue-100/50 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200">
+                <Layers className="w-5 h-5" />
               </div>
-              <button 
-                type="button"
-                onClick={handleAddIngredient}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase hover:bg-blue-100 transition-colors"
-              >
-                 <Plus className="w-3.5 h-3.5" /> Add Ingredient
-              </button>
-           </div>
+              <div>
+                <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">Production Recipe <span className="text-blue-600">(Per 1 Piece)</span></h4>
+                <p className="text-[10px] text-gray-500 font-medium italic">Define exact raw material weights/usage required to manufacture one unit.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleAddIngredient}
+              className="flex items-center gap-2 px-4 py-2 bg-white text-blue-600 border border-blue-100 rounded-xl text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Material
+            </button>
+          </div>
 
-           {formData.bom.length === 0 ? (
-              <div className="bg-gray-50 rounded-2xl p-6 text-center border border-dashed border-gray-200">
-                 <Info className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                 <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">No composition defined</p>
-                 <p className="text-[10px] text-gray-400 mt-1 max-w-xs mx-auto">Skip this if product is ready-made or has no component tracking.</p>
-              </div>
-           ) : (
-              <div className="space-y-3">
-                 {formData.bom.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm animate-in slide-in-from-left duration-300">
-                       <div className="flex-1">
-                          <select 
-                             required
-                             className="w-full px-4 py-2 bg-gray-50 border-none rounded-xl text-xs font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-500/10"
-                             value={item.material?._id || item.material}
-                             onChange={(e) => handleIngredientChange(idx, "material", e.target.value)}
-                          >
-                             <option value="">Choose Component...</option>
-                             {availableComponents.map(m => (
-                                <option key={m._id} value={m._id}>
-                                   {m.name} [{m.sku}] - {m.type === 'raw_material' ? 'Raw' : 'Sub-assembly'}
-                                </option>
-                             ))}
-                          </select>
-                       </div>
-                       <div className="w-32 flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-xl">
-                          <input 
-                             type="number"
-                             min="0.001"
-                             step="0.001"
-                             className="w-full bg-transparent border-none text-xs font-black text-gray-900 outline-none text-right"
-                             value={item.quantity}
-                             onChange={(e) => handleIngredientChange(idx, "quantity", e.target.value)}
-                          />
-                          <span className="text-[10px] font-black text-gray-400 uppercase">Qty</span>
-                       </div>
-                       <button 
-                          type="button"
-                          onClick={() => handleRemoveIngredient(idx)}
-                          className="p-2 text-gray-300 hover:text-red-500 transition-colors"
-                       >
-                          <Trash2 className="w-4 h-4" />
-                       </button>
+          {formData.bom.length === 0 ? (
+            <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-8 text-center border border-dashed border-blue-200/50">
+              <Info className="w-8 h-8 text-blue-200 mx-auto mb-2" />
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">No components defined</p>
+              <p className="text-[10px] text-gray-400 mt-1 max-w-xs mx-auto">Skip this if the product is ready-made or has no manufacturing process.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {formData.bom.map((item, idx) => {
+                return (
+                  <div key={idx} className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm animate-in slide-in-from-left duration-300 group hover:shadow-md transition-shadow">
+                    <div className="flex-1">
+                      <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Select Raw Material</label>
+                      <select
+                        required
+                        className="w-full px-4 py-2.5 bg-gray-50 border-none rounded-xl text-xs font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-500/10 transition-all font-mono"
+                        value={item.material?._id || item.material}
+                        onChange={(e) => handleIngredientChange(idx, "material", e.target.value)}
+                      >
+                        <option value="">-- Choose Ingredient --</option>
+                        {availableComponents.map(m => (
+                          <option key={m._id} value={m._id}>
+                            {m.name} ({m.unit})
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                 ))}
-              </div>
-           )}
+                    <div className="w-48">
+                      <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Usage / Piece</label>
+                      <div className="flex items-stretch bg-gray-50 rounded-xl border border-gray-200 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all overflow-hidden h-11">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.001"
+                          placeholder="0.000"
+                          className="w-24 bg-transparent px-3 border-none text-sm font-black text-gray-900 outline-none text-right"
+                          value={item.quantity}
+                          onChange={(e) => handleIngredientChange(idx, "quantity", e.target.value)}
+                        />
+                        <select
+                          className="flex-1 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest px-2 outline-none cursor-pointer hover:bg-blue-700 transition-colors border-none min-w-[60px]"
+                          value={item.unit || "kg"}
+                          onChange={(e) => handleIngredientChange(idx, "unit", e.target.value)}
+                        >
+                          <option className="text-gray-900 bg-white" value="kg">kg</option>
+                          <option className="text-gray-900 bg-white" value="gram">gram</option>
+                        </select>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveIngredient(idx)}
+                      className="mt-5 p-2.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

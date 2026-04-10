@@ -11,6 +11,7 @@ const getMergedUser = (user, masterAdmin) => {
     role: user.role,
     email: user.email,
     mobile: user.mobile,
+    passwordLength: user.passwordLength || 8,
     // GLOBAL OVERRIDE: Always use masterAdmin details for the entire organization
     gstin: masterAdmin?.gstin || user.gstin,
     pan: masterAdmin?.pan || ( (masterAdmin?.gstin || user.gstin)?.length >= 12 ? (masterAdmin?.gstin || user.gstin).substring(2, 12) : "" ),
@@ -18,7 +19,8 @@ const getMergedUser = (user, masterAdmin) => {
     address: masterAdmin?.address || user.address,
     state: masterAdmin?.state || user.state,
     pincode: masterAdmin?.pincode || user.pincode,
-    invoiceSettings: masterAdmin?.invoiceSettings || user.invoiceSettings
+    invoiceSettings: masterAdmin?.invoiceSettings || user.invoiceSettings,
+    notificationSettings: user.notificationSettings
   };
 };
 
@@ -42,10 +44,20 @@ export const register = async (req, res) => {
       email,
       mobile,
       password: hashedPassword,
+      passwordLength: password.length,
       role: roleToSet,
     });
 
-    res.json({ msg: "User registered successfully", user: { id: user._id, name: user.name, mobile: user.mobile } });
+    // 🏆 NOTIFICATION: Welcome Alert
+    await Notification.create({
+      user: user._id,
+      title: "Welcome to Apex ERP! 🚀",
+      message: "Your enterprise account is ready. Start by setting up your business profile.",
+      type: "success",
+      link: "/settings"
+    });
+
+    res.status(201).json({ msg: "User registered successfully", user: { id: user._id, name: user.name, mobile: user.mobile } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -67,6 +79,13 @@ export const loginStep1 = async (req, res) => {
     if (!isMatch) {
       console.warn(`[AUTH FAILED]: Password mismatch for mobile ${mobile}.`);
       return res.status(400).json({ msg: "Invalid mobile or password" });
+    }
+
+    // [SELF-HEALING]: Sync password character count for UI visuals during login
+    if (user.passwordLength !== password.length) {
+       user.passwordLength = password.length;
+       await user.save();
+       console.log(`[AUTH SYNC]: Password character count updated to ${password.length} for ${user.name}`);
     }
 
     // Generate 6-digit OTP
@@ -145,7 +164,19 @@ export const changePassword = async (req, res) => {
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
+    user.passwordLength = newPassword.length;
     await user.save();
+
+    // 🏆 NOTIFICATION: Security Alert
+    if (user.notificationSettings?.securityAlerts) {
+       await Notification.create({
+         user: user._id,
+         title: "Security Update 🛡️",
+         message: "Your system password was recently updated successfully.",
+         type: "warning",
+         link: "/settings"
+       });
+    }
 
     res.json({ msg: "Password updated successfully" });
   } catch (err) {
@@ -156,13 +187,14 @@ export const changePassword = async (req, res) => {
 // Update Profile (With Global Company Sync)
 export const updateProfile = async (req, res) => {
   try {
-    const { name, gstin, companyName, address, state, pincode, invoiceSettings } = req.body;
+    const { name, gstin, companyName, address, state, pincode, invoiceSettings, notificationSettings } = req.body;
     
     // 1. Personal Profile Update (Current User)
     const currentUser = await User.findById(req.user.id);
     if (!currentUser) return res.status(404).json({ msg: "User not found" });
 
     if (name !== undefined) currentUser.name = name;
+    if (notificationSettings !== undefined) currentUser.notificationSettings = notificationSettings;
     await currentUser.save();
 
     // 2. Global Company Profile Update (Admin Only)

@@ -42,6 +42,7 @@ const PublicLedger = () => {
 
   if (error) return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-white p-8 text-center">
+       <title>Apex ERP</title>
        <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-6">
           <ShieldCheck className="w-10 h-10" />
        </div>
@@ -77,7 +78,7 @@ const PublicLedger = () => {
             <div className="w-12 h-12 bg-gray-900 text-white rounded-2xl flex items-center justify-center mx-auto shadow-xl shadow-gray-200">
                <Building className="w-6 h-6" />
             </div>
-            <h1 className="text-xl font-black text-gray-900 uppercase tracking-tight pt-2">Welcome, {party.name}</h1>
+            <h1 className="text-3xl font-black text-blue-600 mb-1 uppercase italic">{companyInfo?.name || 'APEX ERP SYSTEMS'}</h1>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest leading-relaxed">
                {party.company}<br/>
                <span className="text-[9px] text-gray-300">Statement for your reference</span>
@@ -86,6 +87,7 @@ const PublicLedger = () => {
 
          {/* Outstanding Card */}
          <div className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
+            <title>Account Ledger - Apex ERP</title>
             <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.1] transition-all">
                <TrendingUp className="w-24 h-24 rotate-12" />
             </div>

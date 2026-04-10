@@ -21,6 +21,10 @@ const productSchema = new mongoose.Schema(
       required: true,
       default: 0,
     },
+    minStock: {
+      type: Number,
+      default: 10, // Re-order point
+    },
     unit: {
        type: String,
        default: "kg", // Options: kg, dagina, meters, unit, amount
@@ -52,6 +56,10 @@ const productSchema = new mongoose.Schema(
           required: true,
           default: 1,
         },
+        unit: {
+          type: String,
+          default: "kg"
+        }
       },
     ],
     batchNumber: {

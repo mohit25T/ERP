@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 
@@ -11,6 +11,17 @@ export const AuthProvider = ({ children }) => {
     return null;
   });
   const [loading, setLoading] = useState(false);
+  
+  // Sync state across tabs
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === "user") {
+        setInternalUser(e.newValue ? JSON.parse(e.newValue) : null);
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   const setUser = (userData) => {
     if (userData) {

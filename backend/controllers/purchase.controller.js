@@ -1,24 +1,61 @@
+import mongoose from "mongoose";
 import Purchase from "../models/Purchase.js";
 import Product from "../models/Product.js";
 import Supplier from "../models/Supplier.js";
 import User from "../models/User.js";
+import Notification from "../models/Notification.js";
 
 // Create Purchase (Inward Stock)
 export const createPurchase = async (req, res) => {
   try {
-    const { supplier, material, quantity, taxableAmount, unit = "kg" } = req.body;
+    const { supplier, material, quantity, taxableAmount, unit = "kg", category = "Uncategorized" } = req.body;
 
-    const existingProduct = await Product.findById(material);
+    let productId = material;
+    let existingProduct;
+
+    // Smart Material Resolution: Handle both ID and Manual Name
+    if (mongoose.Types.ObjectId.isValid(material)) {
+      existingProduct = await Product.findById(material);
+    }
+
     if (!existingProduct) {
-      return res.status(404).json({ msg: "Material not found" });
+      // Try to find by name (case-insensitive)
+      existingProduct = await Product.findOne({ name: { $regex: new RegExp(`^${material}$`, 'i') } });
+
+      if (!existingProduct) {
+        // On-the-fly creation of Raw Material
+        existingProduct = await Product.create({
+          name: material,
+          sku: `MAT-${Math.random().toString(36).substring(7).toUpperCase()}-${Date.now().toString().slice(-4)}`,
+          price: (taxableAmount / quantity) || 0,
+          type: "raw_material",
+          category: category, // Apply the selected category
+          unit: unit || "kg",
+          gstRate: 18 // Default GST for new materials
+        });
+        console.log(`[ERP SMART PROCURE] New Material Registered: ${material} in Category: ${category}`);
+      }
+      productId = existingProduct._id;
     }
 
     const adminUser = await User.findById(req.user.id);
     const purchaseSupplier = await Supplier.findById(supplier);
 
     const gstRate = existingProduct.gstRate || 18;
-    const gstAmount = (taxableAmount * gstRate) / 100;
-    const totalAmount = taxableAmount + gstAmount;
+    
+    // Unit Price Normalization: If unit is 'gram', we assume 'taxableAmount' is Price per KG
+    const unitConversion = {
+      "kg": 1,
+      "gram": 0.001,
+      "dagina": 1, // Price is per Dagina/Bag
+      "unit": 1,
+      "amount": 1
+    };
+
+    const factor = unitConversion[unit.toLowerCase()] || 1;
+    const totalTaxable = Number(taxableAmount) * Number(quantity) * factor;
+    const gstAmount = (totalTaxable * gstRate) / 100;
+    const totalAmount = totalTaxable + gstAmount;
 
     let cgst = 0, sgst = 0, igst = 0;
 
@@ -34,10 +71,10 @@ export const createPurchase = async (req, res) => {
 
     const purchase = await Purchase.create({
       supplier,
-      material,
+      material: productId,
       quantity,
-      unit, // Store the unit used during purchase
-      taxableAmount,
+      unit,
+      taxableAmount: totalTaxable,
       gstAmount,
       totalAmount,
       cgst,
@@ -45,6 +82,17 @@ export const createPurchase = async (req, res) => {
       igst,
       status: "pending"
     });
+
+    // 🏆 NOTIFICATION: New Purchase Registered
+    if (adminUser?.notificationSettings?.newOrder) { // Re-using notification preference for business flow
+       await Notification.create({
+         user: adminUser._id,
+         title: "Stock Inward Pending",
+         message: `New purchase from ${purchaseSupplier?.name || 'Supplier'} is registered and pending verification.`,
+         type: "info",
+         link: "/purchases"
+       });
+    }
 
     res.status(201).json(purchase);
   } catch (err) {
@@ -57,7 +105,7 @@ export const getPurchases = async (req, res) => {
   try {
     const purchases = await Purchase.find()
       .populate("supplier", "name company state gstin")
-      .populate("material", "name sku type")
+      .populate("material", "name sku type unit")
       .sort({ createdAt: -1 });
     res.json(purchases);
   } catch (err) {
@@ -77,10 +125,16 @@ export const updatePurchaseStatus = async (req, res) => {
     if (status === "received" && purchase.status !== "received") {
       const product = await Product.findById(purchase.material);
       if (product) {
-        // Multi-Unit Conversion Logic
-        // 1 Dagina = 50 kg
-        const addedStock = purchase.unit === 'dagina' ? (purchase.quantity * 50) : purchase.quantity;
-        product.stock += addedStock;
+        // Multi-Unit Storage Conversion Logic
+        const conversions = {
+          "dagina": 50, // 1 Bag = 50kg
+          "kg": 1,
+          "gram": 0.001,
+          "unit": 1,
+          "amount": 1
+        };
+        const stockFactor = conversions[purchase.unit.toLowerCase()] || 1;
+        product.stock += (purchase.quantity * stockFactor);
         await product.save();
       }
       purchase.receivedAt = new Date();
@@ -109,10 +163,16 @@ export const deletePurchase = async (req, res) => {
     if (purchase.status === "received") {
       const product = await Product.findById(purchase.material);
       if (product) {
-        const removedStock = purchase.unit === 'dagina' ? (purchase.quantity * 50) : purchase.quantity;
-        product.stock -= removedStock;
+        const conversions = {
+          "dagina": 50,
+          "kg": 1,
+          "gram": 0.001,
+          "unit": 1,
+          "amount": 1
+        };
+        const stockFactor = conversions[purchase.unit.toLowerCase()] || 1;
+        product.stock -= (purchase.quantity * stockFactor);
         await product.save();
-        console.log(`[ERP LOG] Purchase deleted: ${purchaseId}. Stock reverted for ${product.name} (-${removedStock})`);
       }
     }
 

@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { Package, Users, ShoppingCart, LayoutDashboard, X, Settings, Building2, Download, Wallet, Banknote, BarChart3, FileText, FileBarChart } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 const navItems = [
   { name: "Dashboard", path: "/", icon: LayoutDashboard },
   { name: "Inventory", path: "/products", icon: Package },
@@ -8,7 +9,9 @@ const navItems = [
   { name: "Accounting", path: "/accounting", icon: Wallet },
   { name: "Payroll", path: "/payroll", icon: Banknote },
   { name: "Customers", path: "/customers", icon: Users },
+  { name: "Manufacturing", path: "/production", icon: Building2 },
   { name: "Sales Orders", path: "/orders", icon: ShoppingCart },
+  { name: "Billing (Invoices)", path: "/billing", icon: FileText },
   { name: "Party Ledger", path: "/statements", icon: FileText },
   { name: "Full Statement", path: "/financial-statement", icon: FileBarChart },
   { name: "Tax Reports", path: "/reports", icon: BarChart3 },
@@ -16,6 +19,7 @@ const navItems = [
 ];
 
 const Sidebar = ({ open, setOpen }) => {
+  const { user } = useAuth();
   return (
     <>
       {/* Mobile Backdrop */}
@@ -33,8 +37,8 @@ const Sidebar = ({ open, setOpen }) => {
       >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-            <span className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-              NexusERP
+            <span className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 uppercase tracking-tighter">
+              {user?.companyName || "ApexERP"}
             </span>
             <button
               onClick={() => setOpen(false)}

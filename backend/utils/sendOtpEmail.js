@@ -13,7 +13,7 @@ export const sendOtpEmail = async (toEmail, otp) => {
       "https://api.brevo.com/v3/smtp/email",
       {
         sender: {
-          name: "NexusERP Verification",
+          name: "ApexERP Verification",
           email: process.env.EMAIL_USER || "no-reply@erp.com"
         },
         to: [
@@ -21,12 +21,10 @@ export const sendOtpEmail = async (toEmail, otp) => {
             email: toEmail
           }
         ],
-        subject: "Your OTP Code",
+        subject: `[Apex ERP] Your Verification Code: ${otp}`,
         htmlContent: `
-          <div style="font-family: Arial; padding: 20px;">
-            <h2>OTP Verification</h2>
-            <p>Your OTP is:</p>
-            <h1 style="letter-spacing: 3px;">${otp}</h1>
+        <div style="font-family: sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+          <h2 style="color: #2563eb; text-align: center; margin-bottom: 30px; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; font-style: italic;">APEX ERP SYSTEMS</h2>
             <p>This OTP is valid for <b>10 minutes</b>.</p>
             <p>If you did not request this, please ignore.</p>
           </div>

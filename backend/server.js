@@ -18,6 +18,9 @@ import payrollRoutes from "./routes/payroll.route.js";
 import reportRoutes from "./routes/reports.route.js";
 import publicRoutes from "./routes/public.route.js";
 import distanceRoutes from "./routes/distance.route.js";
+import productionRoutes from "./routes/production.route.js";
+import notificationRoutes from "./routes/notification.route.js";
+import invoiceRoutes from "./routes/invoice.route.js";
 
 dotenv.config();
 connectDB();
@@ -55,6 +58,10 @@ app.use("/api/payroll", payrollRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api/distance", distanceRoutes);
+app.use("/api/productions", productionRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/invoices", invoiceRoutes);
+
 
 // REAL GST LOOKUP API (gstincheck.co.in)
 app.get("/api/gst/lookup/:gstin", async (req, res) => {

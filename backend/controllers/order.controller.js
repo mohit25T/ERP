@@ -2,40 +2,30 @@ import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import User from "../models/User.js";
 import Customer from "../models/Customer.js";
+import Notification from "../models/Notification.js";
 
 // Create Order
 export const createOrder = async (req, res) => {
   try {
-    const { customer, product, quantity, dueDate, ewayBillData } = req.body;
-
-    const existingProduct = await Product.findById(product);
-    if (!existingProduct) {
-      return res.status(404).json({ msg: "Product not found" });
-    }
-
-    if (existingProduct.stock < quantity) {
-      return res.status(400).json({ msg: `Insufficient finished good stock. Available: ${existingProduct.stock}, Needed: ${quantity}` });
-    }
-
-    // Order fulfillment logic: Always deduct from finished good stock (allow negative)
-    existingProduct.stock -= quantity;
-    await existingProduct.save();
-    console.log(`[ERP LOG] Finished good stock deducted: ${existingProduct.name} (-${quantity})`);
+    const { customer, product, quantity, unit, dueDate, ewayBillData } = req.body;
 
     // TAX CALCULATION (GST)
     const adminUser = await User.findById(req.user.id);
     const orderCustomer = await Customer.findById(customer);
+    const existingProduct = await Product.findById(product);
     
+    if (!existingProduct) {
+      return res.status(404).json({ msg: "Product not found" });
+    }
+
     const taxableAmount = existingProduct.price * quantity;
     const gstRate = existingProduct.gstRate || 18;
     const gstAmount = (taxableAmount * gstRate) / 100;
     const totalAmount = taxableAmount + gstAmount;
 
-    // LEGAL VALIDATION: E-Way Bill Requirement (> 50,000)
+    // E-Way Bill Requirement Alert (> 50,000)
     if (totalAmount > 50000 && (!ewayBillData || !ewayBillData.active)) {
       console.warn(`[ERP WARNING] Order created above ₹50,000 without E-Way Bill data. ID: ${customer}`);
-      // We allow it but log it, as per frontend confirmation. 
-      // Strict enforcement can be added here if needed.
     }
 
     let cgst = 0, sgst = 0, igst = 0;
@@ -55,6 +45,7 @@ export const createOrder = async (req, res) => {
       customer,
       product,
       quantity,
+      unit,
       taxableAmount,
       gstAmount,
       totalAmount,
@@ -67,6 +58,16 @@ export const createOrder = async (req, res) => {
       ewayBillData: ewayBillData || { active: false }
     });
 
+    // NOTIFICATION TRIGGERS
+    if (adminUser?.notificationSettings?.newOrder) {
+      await Notification.create({
+        user: adminUser._id,
+        title: "New Sales Order",
+        message: `Order #${order._id.toString().substring(18)} generated for ${orderCustomer?.name} (₹${totalAmount.toLocaleString()})`,
+        type: "info",
+        link: "/orders"
+      });
+    }
 
     res.status(201).json(order);
   } catch (err) {
@@ -99,36 +100,6 @@ export const updateOrderStatus = async (req, res) => {
       return res.status(404).json({ msg: "Order not found" });
     }
 
-    // Handle Stock Restoration if transitioning to 'cancelled' or 'refunded'
-    // and ONLY if the order was not already cancelled/refunded
-    const isReturningToStock = ["cancelled", "refunded"].includes(status);
-    const wasAlreadyReturned = ["cancelled", "refunded"].includes(existingOrder.status);
-    const isMovingToActive = !["cancelled", "refunded"].includes(status);
-
-    if (isReturningToStock && !wasAlreadyReturned) {
-      const product = await Product.findById(existingOrder.product);
-      if (product) {
-        // Restore Finished Good to Stock
-        product.stock += existingOrder.quantity;
-        await product.save();
-        console.log(`[ERP LOG] Finished good stock restored for product ${product.name} (+${existingOrder.quantity})`);
-      }
-    }
-    
-    if (wasAlreadyReturned && isMovingToActive) {
-      const product = await Product.findById(existingOrder.product);
-      if (product) {
-        const qty = existingOrder.quantity;
-        if (product.stock < qty) {
-           return res.status(400).json({ msg: `Insufficient finished good stock to reactivate. Available: ${product.stock}, Needed: ${qty}` });
-        }
-        // Always deduct from finished good stock when reactivating (allow negative)
-        product.stock -= qty;
-        await product.save();
-        console.log(`[ERP LOG] Reactivation: Finished good stock deducted for ${product.name} (-${qty})`);
-      }
-    }
-
     existingOrder.status = status;
     await existingOrder.save();
 
@@ -142,23 +113,6 @@ export const updateOrderStatus = async (req, res) => {
 export const deleteOrder = async (req, res) => {
   try {
     const orderId = req.params.id;
-    const order = await Order.findById(orderId);
-
-    if (!order) {
-      return res.status(404).json({ msg: "Order not found" });
-    }
-
-    // Restore Stock if the order is NOT already cancelled or refunded
-    const isActiveStatus = !["cancelled", "refunded"].includes(order.status);
-    if (isActiveStatus) {
-      const product = await Product.findById(order.product);
-      if (product) {
-        product.stock += order.quantity;
-        await product.save();
-        console.log(`[ERP LOG] Order deleted: ${orderId}. Stock restored for ${product.name} (+${order.quantity})`);
-      }
-    }
-
     await Order.findByIdAndDelete(orderId);
     res.json({ msg: "Order deleted successfully" });
   } catch (err) {

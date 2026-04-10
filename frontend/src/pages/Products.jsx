@@ -3,12 +3,13 @@ import AppLayout from "../components/layout/AppLayout";
 import Modal from "../components/common/Modal";
 import ProductForm from "../components/forms/ProductForm";
 import { productApi } from "../api/erpApi";
-import { Plus, Edit2, Trash2, Search, PackageOpen, Layers } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, PackageOpen, Layers, Package } from "lucide-react";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("all"); 
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -74,25 +75,58 @@ const Products = () => {
     }
   };
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const counts = {
+    all: products.length,
+    finished: products.filter(p => p.type === 'finished_good').length,
+    raw: products.filter(p => p.type === 'raw_material').length
+  };
+
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         p.sku.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTab = activeTab === 'all' || 
+                      (activeTab === 'finished' && p.type === 'finished_good') ||
+                      (activeTab === 'raw' && p.type === 'raw_material');
+    return matchesSearch && matchesTab;
+  });
 
   return (
     <AppLayout>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Products & Inventory</h2>
           <p className="text-sm text-gray-500 mt-1">Manage your catalog, stock levels, and pricing.</p>
         </div>
-        <button 
-          onClick={handleOpenAdd}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm font-medium"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Product
-        </button>
+        {/* Manual Add Disabled - Stock/Catalog should be managed via Purchases/Production */}
+      </div>
+
+      {/* Tabs UI */}
+      <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl w-fit mb-6 shadow-inner border border-gray-200/50">
+        {[
+          { id: 'all', label: 'All Items', icon: PackageOpen },
+          { id: 'finished', label: 'Finished Goods', icon: Layers },
+          { id: 'raw', label: 'Raw Materials', icon: Package }
+        ].map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-tighter transition-all duration-300 ${
+                isActive 
+                  ? 'bg-white text-blue-600 shadow-sm scale-100' 
+                  : 'text-gray-500 hover:bg-gray-200/50 hover:text-gray-700'
+              }`}
+            >
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+              {tab.label}
+              <span className={`ml-1 px-1.5 py-0.5 rounded-md text-[9px] ${isActive ? 'bg-blue-50 text-blue-600' : 'bg-gray-200 text-gray-600'}`}>
+                {counts[tab.id]}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <Modal 
@@ -194,8 +228,7 @@ const Products = () => {
                   <th className="px-8 py-4 text-left">Category</th>
                   <th className="px-8 py-4 text-center">In Stock</th>
                   <th className="px-8 py-4 text-center">GST Rate</th>
-                  <th className="px-8 py-4 text-right">Unit Price</th>
-                  <th className="px-8 py-4 text-right pr-12">Actions</th>
+                  <th className="px-8 py-4 text-right pr-12">BOM Planner</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -213,25 +246,20 @@ const Products = () => {
                        </div>
                     </td>
                     <td className="px-8 py-6 font-bold text-gray-900 border-l-2 border-transparent group-hover:border-blue-500 transition-all">
-                       <div className="flex items-center gap-2">
-                          {p.name}
-                          {p.bom && p.bom.length > 0 && (
-                             <button
-                                onClick={() => handleOpenBOM(p)}
-                                className="group/bom relative p-1 hover:bg-blue-50 rounded transition-colors"
-                                title="Check BOM Availability"
-                             >
-                                <Layers className="w-3.5 h-3.5 text-blue-500 animate-pulse" />
-                                <span className="absolute -top-7 left-1/2 -translate-x-1/2 bg-blue-600 text-[8px] text-white font-black px-1.5 py-0.5 rounded opacity-0 group-hover/bom:opacity-100 transition-opacity uppercase tracking-widest whitespace-nowrap z-50">Check Availability</span>
-                             </button>
-                          )}
-                       </div>
+                       {p.name}
                     </td>
                     <td className="px-8 py-6 text-sm text-gray-500 font-medium uppercase italic">{p.category}</td>
                     <td className="px-8 py-6 text-center">
-                      <span className={`px-4 py-1 rounded-full text-xs font-black ${p.stock < 10 ? 'bg-red-50 text-red-600 shadow-sm' : 'bg-green-50 text-green-700 underline decoration-green-200 decoration-4 underline-offset-4'}`}>
-                        {p.stock} <span className="text-[10px] uppercase opacity-70 ml-1">{p.unit || 'units'}</span>
-                      </span>
+                      <div className="flex flex-col items-center">
+                        <span className={`px-4 py-1 rounded-full text-xs font-black ${p.stock < (p.minStock || 10) ? 'bg-red-50 text-red-600 shadow-sm' : 'bg-green-50 text-green-700 underline decoration-green-200 decoration-4 underline-offset-4'}`}>
+                          {p.unit === 'dagina' ? (p.stock / 50).toLocaleString() : p.stock.toLocaleString()} <span className="text-[10px] uppercase opacity-70 ml-1">{p.unit || 'kg'}</span>
+                        </span>
+                        {p.unit === 'dagina' && p.stock > 0 && (
+                          <span className="text-[9px] font-black text-blue-500 uppercase tracking-tighter mt-1 bg-blue-50 px-2 py-0.5 rounded">
+                            ≈ {p.stock.toLocaleString()} KG TOTAL
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-8 py-6 text-center font-black text-blue-600 text-xs">
                        {p.gstRate || 18}%
@@ -239,20 +267,19 @@ const Products = () => {
                     <td className="px-8 py-6 text-right font-black text-gray-900 tracking-tight">
                        ₹{p.price?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </td>
-                    <td className="px-8 py-6 text-right pr-8">
+                    <td className="px-8 py-6 text-right pr-12">
                       <div className="flex justify-end gap-2">
-                        <button 
-                          onClick={() => handleOpenEdit(p)}
-                          className="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-blue-50 transition"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(p._id)}
-                          className="p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-50 transition"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {p.bom && p.bom.length > 0 ? (
+                           <button
+                              onClick={() => handleOpenBOM(p)}
+                              className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-100 transition shadow-sm flex items-center gap-2"
+                           >
+                              <Layers className="w-3.5 h-3.5" />
+                              Check BOM
+                           </button>
+                        ) : (
+                           <span className="text-[10px] font-bold text-gray-300 uppercase italic">No BOM Set</span>
+                        )}
                       </div>
                     </td>
                   </tr>

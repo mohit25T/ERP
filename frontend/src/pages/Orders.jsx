@@ -6,6 +6,47 @@ import { orderApi, paymentApi } from "../api/erpApi";
 import { useAuth } from "../context/AuthContext";
 import { Plus, Clock, Search, CheckCircle, PackageSearch, ShoppingCart, TrendingUp, X, Wallet, CreditCard, AlertCircle, History, Trash2 } from "lucide-react";
 
+// 🏦 NUMBER TO WORDS UTILITY (Indian Number System)
+const numberToWords = (num) => {
+  if (num === 0) return "Zero Only";
+  const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+  const convert = (n) => {
+    if (n < 20) return a[n];
+    if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + a[n % 10] : "");
+    if (n < 1000) return a[Math.floor(n / 100)] + "Hundred " + (n % 100 !== 0 ? "and " + convert(n % 100) : "");
+    return "";
+  };
+
+  const formatAmount = (n) => {
+    let str = "";
+    if (n >= 10000000) {
+      str += convert(Math.floor(n / 10000000)) + "Crore ";
+      n %= 10000000;
+    }
+    if (n >= 100000) {
+      str += convert(Math.floor(n / 100000)) + "Lakh ";
+      n %= 100000;
+    }
+    if (n >= 1000) {
+      str += convert(Math.floor(n / 1000)) + "Thousand ";
+      n %= 1000;
+    }
+    str += convert(n);
+    return str;
+  };
+
+  const whole = Math.floor(num);
+  const fraction = Math.round((num - whole) * 100);
+  
+  let result = formatAmount(whole) + "Rupees ";
+  if (fraction > 0) {
+    result += "and " + formatAmount(fraction) + "Paise ";
+  }
+  return result + "Only";
+};
+
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -155,145 +196,234 @@ const Orders = () => {
     const printWindow = window.open("", "_blank");
     const date = new Date(order.createdAt).toLocaleDateString();
 
-    const settings = user?.invoiceSettings?.columns || {};
-    const legacy = user?.invoiceSettings?.headers || {};
-
-    // Helper to safely get visibility and label
-    const getCol = (key, legacyHeader, defaultLabel) => ({
-      show: settings[key]?.show ?? true,
-      label: settings[key]?.label || legacy[key] || defaultLabel
-    });
-
-    const cProduct = getCol('product', legacy.product, 'Product Details / HSN');
-    const cPrice = getCol('price', legacy.price, 'Unit Price');
-    const cQty = getCol('quantity', legacy.quantity, 'Qty');
-    const cTaxable = getCol('taxable', legacy.taxable, 'Taxable Val.');
-    const cAmount = getCol('amount', legacy.amount, 'Net Amount');
-
     const gstPercent = order.taxableAmount > 0 ? Math.round((order.gstAmount / order.taxableAmount) * 100) : 18;
+    const totalInWords = numberToWords(order.totalAmount);
+    const gstInWords = numberToWords(order.gstAmount);
 
     const html = `
       <html>
         <head>
           <title>Tax Invoice - ${order._id}</title>
           <script src="https://cdn.tailwindcss.com"></script>
+          <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;700;900&display=swap" rel="stylesheet">
           <style>
-            @page { size: auto;  margin: 0mm; }
+            @page { size: A4; margin: 10mm; }
             @media print {
               .no-print { display: none !important; }
-              html, body { height: 100%; margin: 0 !important; padding: 0 !important; overflow: hidden; }
-              body { padding: 1cm !important; }
+              body { -webkit-print-color-adjust: exact; }
             }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #000; background: #fff; }
+            .miracle-font { font-family: 'Crimson Pro', serif; }
+            .bordered { border: 1px solid #000; }
+            .border-b { border-bottom: 1px solid #000; }
+            .border-t { border-top: 1px solid #000; }
+            .border-r { border-right: 1px solid #000; }
+            .border-l { border-left: 1px solid #000; }
+            .bg-grey { background-color: #f2f2f2 !important; }
+            table { border-collapse: collapse; }
+            th, td { border: 1px solid #000; }
           </style>
         </head>
-        <body class="p-6 font-sans tracking-tight">
-          <div class="max-w-4xl mx-auto border-2 border-gray-100 p-8 rounded-3xl shadow-sm bg-white" style="page-break-inside: avoid;">
-            <div class="flex justify-between items-start mb-6 border-b border-gray-50 pb-6">
-              <div>
-                <h1 class="text-3xl font-black text-blue-600 mb-1 uppercase italic">${user?.companyName || 'NEXUS ERP SYSTEMS'}</h1>
-                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Registered Address:</p>
-                <p class="text-[10px] font-bold text-gray-600 max-w-xs uppercase leading-normal">${user?.address || 'Corporate Park, Phase II, New Delhi'}</p>
-                <div class="mt-2 inline-block px-2 py-0.5 bg-blue-50 rounded-lg">
-                   <p class="text-[9px] font-black text-blue-600 uppercase tracking-tighter">GSTIN: ${user?.gstin || 'NOT REGISTERED'}</p>
-                </div>
-              </div>
-              <div class="text-right">
-                <h2 class="text-2xl font-black text-gray-900 mb-1 underline decoration-blue-600 underline-offset-4 decoration-4">TAX INVOICE</h2>
-                <div class="space-y-0.5">
-                   <p class="text-gray-400 text-[9px] font-black uppercase">Invoice Reference</p>
-                   <p class="text-gray-900 font-black text-base">#ORD-${order._id.substring(order._id.length - 6).toUpperCase()}</p>
-                </div>
-                <p class="text-gray-500 font-bold text-xs mt-1">${date}</p>
-              </div>
+        <body class="p-2">
+          <div class="max-w-[800px] mx-auto bordered">
+            
+            <!-- HEADER -->
+            <div class="text-center p-2 border-b">
+               <h1 class="text-3xl font-black miracle-font uppercase tracking-tight">${user?.companyName || 'BAJRANG INDUSTRIES'}</h1>
+               <p class="text-[11px] font-bold leading-tight miracle-font">
+                 ${user?.address || 'Kabirvan Society Main Road, Sadguru Society, Nr. Manek Para, Rajkot 360 003'}<br/>
+                 PH: ${user?.phone || '0281 2706086'}, MO. ${user?.mobile || '+91 94262 47805'} Email ID: ${user?.email || 'bajrangindustries1805@gmail.com'}
+               </p>
             </div>
 
-            <div class="grid grid-cols-2 gap-8 mb-6 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-              <div>
-                <p class="text-[9px] font-black uppercase text-blue-400 mb-2 tracking-widest">Billed To</p>
-                <p class="font-black text-gray-900 text-lg">${order.customer?.name}</p>
-                <p class="text-gray-500 font-semibold text-xs mb-0.5">${order.customer?.company || 'Personal Account'}</p>
-                <p class="text-gray-400 text-[10px] font-bold uppercase">${order.customer?.state || 'Unknown State'}</p>
-                ${order.customerGstin ? `<p class="text-[9px] font-black text-blue-600 mt-1 uppercase">GSTIN: ${order.customerGstin}</p>` : ''}
-              </div>
-              <div class="text-right">
-                   <p class="text-[9px] font-black uppercase text-blue-400 mb-2 tracking-widest">Fulfillment Status</p>
-                   <p class="font-black text-blue-600 uppercase text-xs italic tracking-widest">${order.status.toUpperCase()}</p>
-              </div>
-            </div>
-
-            <table class="w-full mb-6 relative">
-              <thead>
-                <tr class="border-b-2 border-gray-900 text-left text-[9px] font-black uppercase text-gray-900 tracking-widest">
-                  ${cProduct.show ? `<th class="pb-3">${cProduct.label}</th>` : ''}
-                  ${cPrice.show ? `<th class="pb-3 text-center">${cPrice.label}</th>` : ''}
-                  ${cQty.show ? `<th class="pb-3 text-center">${cQty.label}</th>` : ''}
-                  ${cTaxable.show ? `<th class="pb-3 text-center">${cTaxable.label}</th>` : ''}
-                  <th class="pb-3 text-center">GST (%)</th>
-                  <th class="pb-3 text-center">GST AMT</th>
-                  ${cAmount.show ? `<th class="pb-3 text-right">${cAmount.label}</th>` : ''}
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100 italic font-medium">
-                <tr>
-                  ${cProduct.show ? `
-                  <td class="py-4">
-                     <p class="font-black text-gray-900 text-sm">${order.product?.name}</p>
-                     <p class="text-[9px] text-gray-400 font-bold uppercase mt-0.5">HSN: ${order.hsnCode || 'N/A'}</p>
-                  </td>` : ''}
-                  ${cPrice.show ? `<td class="py-4 text-center text-gray-600 font-bold text-xs">₹${order.product?.price?.toFixed(2)}</td>` : ''}
-                  ${cQty.show ? `<td class="py-4 text-center text-gray-900 font-black text-xs">${order.quantity}</td>` : ''}
-                  ${cTaxable.show ? `<td class="py-4 text-center text-gray-600 font-bold text-xs">₹${order.taxableAmount?.toFixed(2)}</td>` : ''}
-                  <td class="py-4 text-center text-gray-900 font-black text-xs">${gstPercent}%</td>
-                  <td class="py-4 text-center text-gray-600 font-bold text-xs">₹${order.gstAmount?.toFixed(2)}</td>
-                  ${cAmount.show ? `<td class="py-4 text-right font-black text-gray-900 text-base">₹${order.totalAmount?.toFixed(2)}</td>` : ''}
-                </tr>
-              </tbody>
-            </table>
-
-            <div class="flex flex-col items-end border-t-2 border-gray-900 pt-4">
-              <div class="w-full max-w-[240px] space-y-2">
-                <div class="flex justify-between text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                  <span>Gross Taxable Value</span>
-                  <span>₹${order.taxableAmount?.toFixed(2)}</span>
-                </div>
-                
-                ${order.cgst > 0 ? `
-                <div class="flex justify-between text-[10px] font-bold text-blue-600 uppercase tracking-widest">
-                  <span>CGST Output (${gstPercent / 2}%)</span>
-                  <span>₹${order.cgst?.toFixed(2)}</span>
-                </div>
-                <div class="flex justify-between text-[10px] font-bold text-blue-600 uppercase tracking-widest">
-                  <span>SGST Output (${gstPercent / 2}%)</span>
-                  <span>₹${order.sgst?.toFixed(2)}</span>
-                </div>
-                ` : `
-                <div class="flex justify-between text-[10px] font-bold text-indigo-600 uppercase tracking-widest">
-                  <span>IGST Output (${gstPercent}%)</span>
-                  <span>₹${order.igst?.toFixed(2)}</span>
-                </div>
-                `}
-
-                <div class="flex justify-between text-xl font-black pt-4 border-t-2 border-gray-100 mt-2">
-                  <span class="text-gray-900 uppercase italic text-2xl tracking-tighter">Grand Total</span>
-                  <span class="text-blue-700 text-2xl">₹${order.totalAmount?.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="mt-12 pt-6 border-t border-gray-100 flex justify-between items-end">
-               <div class="text-left space-y-2 max-w-sm">
-                  <p class="text-[8px] font-black text-gray-300 uppercase leading-tight tracking-tighter">${user?.invoiceSettings?.footerText || 'Certified that the particulars given above are true and correct. Taxes shown above are extra as applicable.'}</p>
-                  <p class="text-[10px] font-bold text-gray-800 uppercase italic">Authorized Tax Invoice (Computer Generated)</p>
+            <!-- IRN INFORMATION GRID -->
+            <div class="grid grid-cols-12 border-b text-[10px] min-h-[50px]">
+               <div class="col-span-10 border-r">
+                  <div class="grid grid-rows-3 h-full">
+                     <div class="p-1 border-b flex items-center gap-2">
+                        <span class="font-bold w-20">IRN No.:</span>
+                        <span class="font-medium"></span>
+                     </div>
+                     <div class="p-1 border-b flex items-center gap-2">
+                        <span class="font-bold w-20">Ack No.:</span>
+                        <span class="font-medium"></span>
+                     </div>
+                     <div class="p-1 flex items-center gap-2">
+                        <span class="font-bold w-20">Ack Date:</span>
+                        <span class="font-medium">/ / &nbsp;&nbsp;&nbsp;&nbsp; : &nbsp;&nbsp; AM</span>
+                     </div>
+                  </div>
                </div>
-               <div class="text-right">
-                  <p class="text-[9px] font-black text-blue-600 uppercase mb-6">For ${user?.companyName || 'NEXUS ERP'}</p>
-                  <p class="text-[8px] font-black uppercase text-gray-400">Authorized Signatory</p>
+               <div class="col-span-2"></div>
+            </div>
+
+            <!-- DOCUMENT TITLE -->
+            <div class="grid grid-cols-12 border-b text-[11px] font-bold text-center bg-grey uppercase py-0.5">
+               <div class="col-span-3 text-left pl-2 italic">Debit Memo</div>
+               <div class="col-span-6 text-base font-black miracle-font tracking-widest">TAX INVOICE</div>
+               <div class="col-span-3 text-right pr-2 italic">Original</div>
+            </div>
+
+            <!-- PARTY & INVOICE DETAILS SPLIT -->
+            <div class="grid grid-cols-2 border-b min-h-[160px]">
+               <!-- LEFT: RECIPIENT -->
+               <div class="p-2 border-r space-y-1">
+                  <div class="flex items-start gap-1">
+                     <span class="text-[11px] font-bold miracle-font">M/s. :</span>
+                     <div class="flex-1">
+                        <h2 class="text-sm font-black miracle-font uppercase leading-tight">${order.customer?.company || order.customer?.name}</h2>
+                        <p class="text-[10px] font-bold uppercase leading-tight mt-1">
+                           ${order.customer?.address || ''}<br/>
+                           ${order.customer?.city || ''} ${order.customer?.state || ''}
+                        </p>
+                     </div>
+                  </div>
+                  <div class="pt-4 space-y-1 text-[11px] uppercase">
+                     <div class="flex font-black italic"><span class="w-32">RAJKOT - ${order.customer?.pincode || '360021'}</span></div>
+                     <div class="flex font-bold"><span class="w-32">Place of Supply :</span><span>${order.customer?.state || '24-Gujarat'}</span></div>
+                     <div class="flex font-black"><span class="w-32">GSTIN No. :</span><span>${order.customerGstin || '----------------'}</span></div>
+                  </div>
+               </div>
+               <!-- RIGHT: INVOICE META -->
+               <div class="grid grid-cols-1 divide-y">
+                  <div class="grid grid-cols-2 divide-x">
+                     <div class="p-2">
+                        <p class="text-[9px] font-bold text-gray-500 uppercase">Invoice No. :</p>
+                        <p class="text-xs font-black miracle-font tracking-wider">BT/${order._id.substring(order._id.length - 4).toUpperCase()}</p>
+                     </div>
+                     <div class="p-2">
+                        <p class="text-[9px] font-bold text-gray-500 uppercase">Date :</p>
+                        <p class="text-xs font-black miracle-font tracking-wider">${new Date(order.createdAt).toLocaleDateString('en-GB')}</p>
+                     </div>
+                  </div>
+                  <div class="p-2 text-[10px] font-bold uppercase space-y-1 italic">
+                     <div class="grid grid-cols-[80px,1fr]"><span>Transport</span><span>: ${order.ewayBillData?.transport || '.'}</span></div>
+                     <div class="grid grid-cols-[80px,1fr]"><span>L.R. No.</span><span>: ${order.ewayBillData?.lrNo || '.'}</span></div>
+                     <div class="grid grid-cols-[80px,1fr]"><span>L.R. Date</span><span>: ${order.ewayBillData?.lrDate || '/ /'}</span></div>
+                     <div class="grid grid-cols-[80px,1fr]"><span>Vehicle No.</span><span>: ${order.ewayBillData?.vehicleNo || ''}</span></div>
+                  </div>
+               </div>
+            </div>
+
+            <!-- PRODUCT GRID -->
+            <div class="min-h-[480px]">
+               <table class="w-full text-center border-none">
+                  <thead class="bg-grey text-[10px] font-black uppercase">
+                     <tr>
+                        <th class="py-1.5 w-10">SrNo</th>
+                        <th class="py-1.5 text-left px-4">Description</th>
+                        <th class="py-1.5 w-16">HSN/SAC</th>
+                        <th class="py-1.5 w-20">Qty</th>
+                        <th class="py-1.5 w-12">Unit</th>
+                        <th class="py-1.5 w-20">Rate</th>
+                        <th class="py-1.5 w-14">GST %</th>
+                        <th class="py-1.5 w-24">Amount</th>
+                     </tr>
+                  </thead>
+                  <tbody class="text-[11px] font-black uppercase miracle-font">
+                     <tr class="align-top h-[450px]">
+                        <td class="pt-2 italic">1</td>
+                        <td class="pt-2 text-left px-4 border-l-0">
+                           <div class="font-black italic text-sm mb-1">${order.product?.name}</div>
+                        </td>
+                        <td class="pt-2">${order.hsnCode || '7204'}</td>
+                        <td class="pt-2">${order.quantity?.toFixed(3)}</td>
+                        <td class="pt-2 italic">${order.unit || order.product?.unit || 'kg'}</td>
+                        <td class="pt-2">${order.product?.price?.toFixed(2)}</td>
+                        <td class="pt-2">${gstPercent?.toFixed(2)}</td>
+                        <td class="pt-2 text-right pr-2">${order.taxableAmount?.toFixed(2)}</td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+
+            <!-- TOTAL SUMMARY BAR -->
+            <div class="grid grid-cols-[1fr,240px] border-t bg-grey text-[11px] font-black uppercase py-0.5">
+               <div class="flex justify-between px-4 border-r">
+                  <span>GSTIN No.: ${user?.gstin || '24AEMPT6309K1Z1'}</span>
+                  <span class="italic">${order.quantity?.toFixed(3)}</span>
+               </div>
+               <div class="flex justify-between px-4">
+                  <span class="italic">Sub Total</span>
+                  <span class="text-right">${order.taxableAmount?.toFixed(2)}</span>
+               </div>
+            </div>
+
+            <!-- FOOTER: BANK & FINANCIALS -->
+            <div class="grid grid-cols-[1.2fr,1fr] text-[10px] border-t">
+               <!-- LEFT SECTION -->
+               <div class="p-2 border-r space-y-4">
+                  <div class="grid grid-cols-[100px,1fr] font-bold uppercase gap-y-0.5">
+                     <span class="text-gray-500">Bank Name</span><span class="font-black">: ${user?.bankDetails?.bankName || 'ICICI BANK'}</span>
+                     <span class="text-gray-500">Branch Name</span><span class="font-black">: ${user?.bankDetails?.branchName || 'PEDAK ROAD NR.PANI NO GHODO'}</span>
+                     <span class="text-gray-500">Bank A/c. No.</span><span class="font-black">: ${user?.bankDetails?.accountNumber || '239605501476'}</span>
+                     <span class="text-gray-500">RTGS/IFSC Code</span><span class="font-black">: ${user?.bankDetails?.ifscCode || 'ICIC0002396'}</span>
+                  </div>
+
+                  <div class="space-y-2 border-t pt-2">
+                     <div class="flex items-start gap-2 italic">
+                        <span class="font-black min-w-[100px] uppercase">Total GST :</span>
+                        <span class="font-black uppercase tracking-tighter">${gstInWords}</span>
+                     </div>
+                     <div class="flex items-start gap-2 italic">
+                        <span class="font-black min-w-[100px] uppercase">Bill Amount :</span>
+                        <span class="font-black uppercase tracking-tighter">${totalInWords}</span>
+                     </div>
+                  </div>
+
+                  <div class="space-y-1 text-[9px] font-bold uppercase italic mt-4">
+                     <p class="font-black border-b w-fit mb-1">Note :</p>
+                     <p class="font-black border-b w-fit mb-4">Terms & Condition :</p>
+                     <ol class="list-decimal pl-4 space-y-0.5">
+                        <li>Goods once sold will not be taken back.</li>
+                        <li>Interest @18% p.a. will be charged if payment is not made within due date.</li>
+                        <li>Our risk and responsibility ceases as soon as the goods leave our premises.</li>
+                        <li>"Subject to Rajkot" Jurisdiction only. E.&O.E.</li>
+                     </ol>
+                  </div>
+               </div>
+
+               <!-- RIGHT SECTION -->
+               <div class="p-2 flex flex-col justify-between">
+                  <div class="space-y-1 border-b pb-2">
+                     <div class="flex justify-between text-[11px] font-black miracle-font italic">
+                        <span>Taxable Amount</span>
+                        <span>${order.taxableAmount?.toFixed(2)}</span>
+                     </div>
+                     ${order.cgst > 0 ? `
+                        <div class="flex justify-between text-gray-500 font-bold">
+                           <span>CGST (${(gstPercent / 2).toFixed(2)}%)</span>
+                           <span>${order.cgst?.toFixed(2)}</span>
+                        </div>
+                        <div class="flex justify-between text-gray-500 font-bold">
+                           <span>SGST (${(gstPercent / 2).toFixed(2)}%)</span>
+                           <span>${order.sgst?.toFixed(2)}</span>
+                        </div>
+                     ` : `
+                        <div class="flex justify-between text-gray-500 font-bold">
+                           <span>IGST (${gstPercent?.toFixed(2)}%)</span>
+                           <span>${order.igst?.toFixed(2)}</span>
+                        </div>
+                     `}
+                  </div>
+
+                  <div class="flex justify-between items-center bg-grey p-2 border border-black mt-2">
+                     <span class="text-sm font-black italic uppercase miracle-font">Grand Total</span>
+                     <span class="text-xl font-black miracle-font">${order.totalAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  </div>
+
+                  <div class="mt-8 text-center space-y-6">
+                     <p class="text-[10px] font-black uppercase italic miracle-font">For, ${user?.companyName || 'BAJRANG INDUSTRIES'}</p>
+                     <div class="h-10"></div>
+                     <p class="text-[9px] font-bold uppercase tracking-widest">(Authorised Signatory)</p>
+                  </div>
                </div>
             </div>
           </div>
-          <div class="fixed bottom-10 right-10 no-print flex gap-4">
-            <button onclick="window.print()" class="bg-blue-600 text-white px-10 py-3.5 rounded-2xl font-black shadow-2xl shadow-blue-600/30 hover:scale-105 active:scale-95 transition-all uppercase text-xs tracking-widest">
-              Print GST Bill (₹)
+
+          <div class="fixed bottom-10 right-10 no-print">
+            <button onclick="window.print()" class="bg-black text-white px-10 py-3.5 rounded-2xl font-black shadow-2xl hover:scale-105 active:scale-95 transition-all uppercase text-xs tracking-widest">
+              Generated System Invoice
             </button>
           </div>
         </body>
@@ -309,6 +439,8 @@ const Orders = () => {
         return { color: "bg-yellow-100 text-yellow-800", label: "Pending", icon: <Clock className="w-3 h-3 mr-1" /> };
       case "in_progress":
         return { color: "bg-blue-100 text-blue-800", label: "In Progress", icon: <PackageSearch className="w-3 h-3 mr-1" /> };
+      case "invoiced":
+        return { color: "bg-purple-100 text-purple-800", label: "Invoiced", icon: <FileText className="w-3 h-3 mr-1" /> };
       case "shipped":
         return { color: "bg-indigo-100 text-indigo-800", label: "Shipped", icon: <TrendingUp className="w-3 h-3 mr-1" /> };
       case "completed":
@@ -458,11 +590,16 @@ const Orders = () => {
                             </button>
                           )}
                           {o.status === 'in_progress' && (
+                            <button onClick={() => handleStatusUpdate(o._id, 'invoiced')} className="p-2 text-purple-600 hover:bg-purple-50 rounded-xl transition" title="Generate Invoice">
+                              <FileText className="w-4 h-4" />
+                            </button>
+                          )}
+                          {o.status === 'invoiced' && (
                             <button onClick={() => handleStatusUpdate(o._id, 'shipped')} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition" title="Mark Shipped">
                               <TrendingUp className="w-4 h-4" />
                             </button>
                           )}
-                          {(o.status === 'in_progress' || o.status === 'shipped') && (
+                          {(o.status === 'in_progress' || o.status === 'invoiced' || o.status === 'shipped') && (
                             <button onClick={() => handleStatusUpdate(o._id, 'completed')} className="p-2 text-green-600 hover:bg-green-50 rounded-xl transition" title="Mark Completed">
                               <CheckCircle className="w-4 h-4" />
                             </button>

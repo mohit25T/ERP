@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { customerApi, productApi, distanceApi } from "../../api/erpApi";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { Truck, MapPin, Loader2, IndianRupee } from "lucide-react";
+import { Truck, MapPin, Loader2, IndianRupee, Hammer, AlertTriangle } from "lucide-react";
 
 const OrderForm = ({ onSubmit, onCancel, loading }) => {
   const [customers, setCustomers] = useState([]);
@@ -12,12 +13,16 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
     customer: "",
     product: "",
     quantity: 1,
+    unit: "kg",
     ewayBillData: {
       active: false,
       distance: 0,
       transporterId: "",
       vehicleNo: "",
-      mode: "road"
+      mode: "road",
+      transport: "",
+      lrNo: "",
+      lrDate: ""
     }
   });
 
@@ -72,7 +77,8 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
 
     setFormData(prev => ({
       ...prev,
-      [name]: name === "quantity" ? parseInt(value) : value
+      [name]: name === "quantity" ? parseInt(value) : value,
+      unit: name === "product" ? (products.find(p => p._id === value)?.unit || prev.unit) : (name === "unit" ? value : prev.unit)
     }));
   };
 
@@ -181,27 +187,44 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
             onChange={handleChange}
           >
             <option value="">-- Choose Product --</option>
-            {products.map(p => (
-              <option key={p._id} value={p._id}>{p.name} - ₹{p.price} (Stock: {p.stock} | GST: {p.gstRate}%)</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5 ">Quantity</label>
-            <input
-              name="quantity"
-              type="number"
-              min="1"
-              required
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition font-bold"
-              value={formData.quantity}
-              onChange={handleChange}
-            />
+              {products.map(p => (
+                <option key={p._id} value={p._id}>{p.name} - ₹{p.price} / {p.unit || 'unit'} (Stock: {p.stock} | GST: {p.gstRate}%)</option>
+              ))}
+            </select>
           </div>
-          
-        </div>
+  
+          <div className="grid grid-cols-2 gap-4">
+            <div className="relative group">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5 ">Quantity</label>
+              <input
+                name="quantity"
+                type="number"
+                min="1"
+                required
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition font-bold"
+                value={formData.quantity}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="relative group">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5 ">Unit</label>
+              <select
+                name="unit"
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition font-bold appearance-none"
+                value={formData.unit}
+                onChange={handleChange}
+              >
+                <option value="kg">kg (Kilogram)</option>
+                <option value="mts">mts (Metric Tons)</option>
+                <option value="pcs">pcs (Pieces)</option>
+                <option value="tons">tons (Tons)</option>
+                <option value="mtr">mtr (Meters)</option>
+                <option value="nos">nos (Numbers)</option>
+                <option value="bags">bags (Bags)</option>
+                <option value="box">box (Boxes)</option>
+              </select>
+            </div>
+          </div>
 
         <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-4 shadow-xl shadow-blue-500/20 flex flex-col justify-center mt-4">
             <span className="text-[10px] uppercase font-black text-blue-100 tracking-widest opacity-70">Payable Amount</span>
@@ -280,17 +303,56 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
                    </div>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Transport / Agency</label>
+                <input
+                  type="text"
+                  name="transport"
+                  className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500/10 outline-none uppercase placeholder:text-gray-300"
+                  value={formData.ewayBillData.transport}
+                  onChange={handleEwayChange}
+                  placeholder="e.g. VRL Logistics"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Vehicle Number</label>
+                <input
+                  type="text"
+                  name="vehicleNo"
+                  className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500/10 outline-none uppercase"
+                  value={formData.ewayBillData.vehicleNo}
+                  onChange={handleEwayChange}
+                  placeholder="GJ-03-XX-0000"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">L.R. Number</label>
+                <input
+                  type="text"
+                  name="lrNo"
+                  className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500/10 outline-none uppercase"
+                  value={formData.ewayBillData.lrNo}
+                  onChange={handleEwayChange}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">L.R. Date</label>
+                <input
+                  type="text"
+                  name="lrDate"
+                  className="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500/10 outline-none"
+                  value={formData.ewayBillData.lrDate}
+                  onChange={handleEwayChange}
+                  placeholder="DD/MM/YYYY"
+                />
+              </div>
+            </div>
+
                 <div className="grid grid-cols-2 gap-4 text-left">
-                   <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none ml-1">Vehicle Number</label>
-                      <input 
-                        name="vehicleNo"
-                        className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-gray-900 focus:ring-2 focus:ring-blue-500/10 outline-none uppercase placeholder:text-gray-300"
-                        value={formData.ewayBillData.vehicleNo}
-                        onChange={handleEwayChange}
-                        placeholder="GJ-01-XX-0000"
-                      />
-                   </div>
                    <div className="space-y-1.5">
                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none ml-1">Transporter ID</label>
                       <input 
@@ -305,6 +367,23 @@ const OrderForm = ({ onSubmit, onCancel, loading }) => {
              </div>
            )}
         </div>
+        
+        {selectedProduct && selectedProduct.type === 'finished_good' && selectedProduct.stock < formData.quantity && (
+          <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-1">
+             <AlertTriangle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+             <div className="flex-1">
+                <p className="text-sm font-black text-orange-950 uppercase italic tracking-tighter">Insufficient Finished Stock</p>
+                <p className="text-xs text-orange-700 font-medium mt-1">You need to manufacture more units to fulfill this order.</p>
+                <Link 
+                  to="/production" 
+                  className="inline-flex items-center gap-1.5 mt-3 text-[10px] font-black bg-orange-600 text-white px-3 py-1.5 rounded-lg uppercase tracking-widest hover:bg-orange-700 transition-all shadow-lg shadow-orange-500/20"
+                >
+                  <Hammer className="w-3 h-3" />
+                  Go to Production
+                </Link>
+             </div>
+          </div>
+        )}
 
       </div>
 

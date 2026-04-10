@@ -13,6 +13,8 @@ import PartyLedger from "../pages/PartyLedger";
 import CompanyStatement from "../pages/CompanyStatement";
 import Login from "../pages/Login";
 import PublicLedger from "../pages/PublicLedger";
+import Production from "../pages/Production";
+import Billing from "../pages/Billing";
 import ProtectedRoute from "./ProtectedRoute";
 
 import { useParams } from "react-router-dom";
@@ -33,6 +35,7 @@ const AppRouter = () => {
         {/* Protected ERP Routing */}
         <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
+        
         <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
         <Route path="/purchases" element={<ProtectedRoute><Purchases /></ProtectedRoute>} />
         <Route path="/accounting" element={<ProtectedRoute><Accounting /></ProtectedRoute>} />
@@ -48,9 +51,17 @@ const AppRouter = () => {
         <Route path="/reports/ledger" element={<Navigate to="/statements" replace />} />
         <Route path="/reports/party/:id" element={<RedirectWithId base="/statements" />} />
 
+        {/* Core ERP Modules */}
         <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
         <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+        <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+        <Route path="/production" element={<ProtectedRoute><Production /></ProtectedRoute>} />
+        
+        {/* Support & Configuration */}
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+
+        {/* Catch-all Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

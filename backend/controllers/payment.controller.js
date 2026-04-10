@@ -1,71 +1,82 @@
+import Invoice from "../models/Invoice.js";
 import Order from "../models/Order.js";
 import Purchase from "../models/Purchase.js";
 import Ledger from "../models/Ledger.js";
-
-// Helper: Calculate Global Account Outstanding for a Party
-const getAccountOutstanding = async (partyId, type) => {
-  if (type === "customer") {
-    const orders = await Order.find({ customer: partyId, status: { $ne: "cancelled" } });
-    const totalInvoiced = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-    const payments = await Ledger.find({ customer: partyId, type: "income" });
-    const totalReceived = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
-    return totalInvoiced - totalReceived;
-  } else {
-    const purchases = await Purchase.find({ supplier: partyId, status: { $ne: "cancelled" } });
-    const totalPurchased = purchases.reduce((sum, p) => sum + (p.totalAmount || 0), 0);
-    const payments = await Ledger.find({ supplier: partyId, type: "expense" });
-    const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
-    return totalPurchased - totalPaid;
-  }
-};
+import AccountingService from "../services/AccountingService.js";
 
 
-// Record Payment for Order (Receivable)
+// Record Payment for Order/Invoice (Receivable)
 export const recordOrderPayment = async (req, res) => {
   try {
-    const { amount, date, description } = req.body;
-    const { id } = req.params;
+    const { amount, date, description, invoiceId } = req.body;
+    const { id } = req.params; // Order ID (backward compatibility) or Invoice ID
 
-    const order = await Order.findById(id).populate("customer");
-    if (!order) return res.status(404).json({ msg: "Order not found" });
+    let order, invoice;
+    
+    if (invoiceId || req.url.includes("invoice")) {
+      invoice = await Invoice.findById(invoiceId || id).populate("customer");
+      if (!invoice) return res.status(404).json({ msg: "Invoice not found" });
+      order = await Order.findById(invoice.order);
+    } else {
+      order = await Order.findById(id).populate("customer");
+      invoice = await Invoice.findOne({ order: id });
+    }
 
-    const currentBillPaid = Number(order.amountPaid || 0);
-    const billOutstanding = Number(order.totalAmount) - currentBillPaid;
+    if (!order && !invoice) return res.status(404).json({ msg: "Transaction target not found" });
 
-    // Step 2: Global Account Outstanding
-    const accountOutstanding = await getAccountOutstanding(order.customer?._id, "customer");
+    const target = invoice || order;
+    const currentPaid = Number(target.amountPaid || 0);
+    const outstanding = Number(target.totalAmount) - currentPaid;
 
-    if (Number(amount) > billOutstanding) {
+    if (Number(amount) > outstanding) {
       return res.status(400).json({ 
-        error: `Cannot pay ₹${amount}. The remaining balance on this specific bill is only ₹${billOutstanding.toLocaleString()}.` 
+        error: `Cannot pay ₹${amount}. The remaining balance is only ₹${outstanding.toLocaleString()}.` 
       });
     }
 
-    order.amountPaid = currentBillPaid + Number(amount);
-
+    target.amountPaid = currentPaid + Number(amount);
     
-    // Status Logic
-    if (order.amountPaid >= order.totalAmount) {
-      order.paymentStatus = "paid";
-    } else if (order.amountPaid > 0) {
-      order.paymentStatus = "partial";
+    // Status Logic for Invoice/Order
+    if (target.amountPaid >= target.totalAmount) {
+      target.paymentStatus = "paid";
+      if (invoice) target.status = "paid";
+    } else if (target.amountPaid > 0) {
+      target.paymentStatus = "partial";
+      if (invoice) target.status = "partially_paid";
     }
 
-    await order.save();
+    await target.save();
 
-    // Create Ledger Entry for installment tracking
+    // If it's an order and has an invoice, update invoice too
+    if (!invoiceId && !invoice && order) {
+       // Just update order
+    } else if (invoice && !order.amountPaid) {
+       order.amountPaid = target.amountPaid;
+       order.paymentStatus = target.paymentStatus;
+       await order.save();
+    }
+
+    // Automated Accounting
+    await AccountingService.recordPaymentReceived({
+      amount: Number(amount),
+      customerName: target.customer?.name || "Customer",
+      referenceId: target._id,
+      referenceType: invoice ? "invoice" : "payment"
+    });
+
+    // Create Ledger Entry
     const ledgerEntry = new Ledger({
       type: "income",
       category: "Direct Sales",
       amount: Number(amount),
-      description: description || `Payment for Order #${id.substring(id.length - 6).toUpperCase()} — ${order.customer?.name}`,
-      customer: order.customer?._id,
-      order: id,
+      description: description || `Payment for ${invoice ? 'Invoice ' + invoice.invoiceNumber : 'Order #' + id.substring(id.length - 6).toUpperCase()}`,
+      customer: target.customer?._id,
+      order: order?._id,
       date: date || new Date()
     });
     await ledgerEntry.save();
 
-    res.json(order);
+    res.json(target);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

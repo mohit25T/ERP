@@ -14,9 +14,11 @@ const Purchases = () => {
   const [formData, setFormData] = useState({
     supplier: "",
     material: "",
+    category: "Raw Materials",
     quantity: 1,
     unit: "kg",
-    taxableAmount: 0
+    taxableAmount: 0,
+    gstRate: 18
   });
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -58,7 +60,7 @@ const Purchases = () => {
       await api.post("/purchases", formData);
       fetchData();
       setIsModalOpen(false);
-      setFormData({ supplier: "", material: "", quantity: 1, taxableAmount: 0, unit: "kg" });
+      setFormData({ supplier: "", material: "", category: "Raw Materials", quantity: 1, taxableAmount: 0, unit: "kg", gstRate: 18 });
     } catch (err) {
       console.error("Error creating purchase:", err);
       alert("Failed to create purchase. Check console.");
@@ -172,10 +174,15 @@ const Purchases = () => {
     }
   };
 
-  const selectedProduct = products.find(p => p._id === formData.material);
-  const gstRate = selectedProduct?.gstRate || 18;
-  const gstAmount = (formData.taxableAmount * gstRate) / 100;
-  const totalAmount = Number(formData.taxableAmount) + gstAmount;
+  const selectedProduct = products.find(p => 
+    p._id === formData.material || 
+    p.name.toLowerCase() === (formData.material?.toLowerCase() || "")
+  );
+
+  const gstRate = Number(formData.gstRate) || 18;
+  const totalTaxable = (Number(formData.taxableAmount) || 0) * (Number(formData.quantity) || 1);
+  const gstAmount = (totalTaxable * gstRate) / 100;
+  const totalAmount = totalTaxable + gstAmount;
 
   return (
     <AppLayout>
@@ -377,22 +384,49 @@ const Purchases = () => {
               </div>
 
               <div className="col-span-2">
-                <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2">Select Material / Product</label>
-                <select
-                  required
-                  className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                  value={formData.material}
-                  onChange={(e) => setFormData({ ...formData, material: e.target.value })}
-                >
-                  <option value="">Choose Item...</option>
-                  {products.map(p => <option key={p._id} value={p._id}>{p.name} (Stock: {p.stock})</option>)}
-                </select>
-                {selectedProduct && (
-                  <div className="mt-2 ml-4 flex items-center gap-2">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Available in Warehouse:</span>
-                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-lg ${selectedProduct.stock <= 5 ? "bg-red-50 text-red-600 border border-red-100" : "bg-gray-100 text-gray-600"}`}>
-                      {selectedProduct.stock} Units
+                <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 px-1 flex justify-between items-center">
+                  <span>Material / Product Details</span>
+                  <span className="text-[8px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded tracking-widest font-black uppercase italic">Type name manually for new items</span>
+                </label>
+                <div className="relative group">
+                   <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors pointer-events-none">
+                      <Search className="w-4 h-4" />
+                   </div>
+                   <input
+                     required
+                     list="material-list"
+                     className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-gray-900 outline-none focus:ring-2 focus:ring-orange-500/10 transition-all font-mono"
+                     placeholder="Type Material Name manually..."
+                     value={formData.material}
+                     onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                     onBlur={(e) => {
+                        // Try to find the product object if it's an existing one for the summary
+                        const found = products.find(p => p.name.toLowerCase() === e.target.value.toLowerCase());
+                        if (found) {
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            material: found.name, 
+                            gstRate: found.gstRate || 18 
+                          }));
+                        }
+                     }}
+                   />
+                </div>
+                <datalist id="material-list">
+                  {products.map(p => <option key={p._id} value={p.name} />)}
+                </datalist>
+                
+                {selectedProduct ? (
+                  <div className="mt-3 ml-4 flex items-center gap-2 animate-in fade-in duration-300">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">In Stock:</span>
+                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-lg border ${selectedProduct.stock <= 5 ? "bg-red-50 text-red-600 border-red-100" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
+                      {selectedProduct.stock} {selectedProduct.unit}
                     </span>
+                    <span className="text-[8px] font-black text-blue-500 uppercase px-2 py-0.5 bg-blue-50 border border-blue-100 rounded-lg">ID: {selectedProduct.sku}</span>
+                  </div>
+                ) : formData.material && (
+                  <div className="mt-3 ml-4 flex items-center gap-2 animate-pulse">
+                    <span className="text-[10px] font-black text-orange-600 bg-orange-50 px-3 py-1 rounded-xl border border-orange-100 uppercase tracking-widest">✨ Create New: "{formData.material}"</span>
                   </div>
                 )}
               </div>
@@ -413,21 +447,69 @@ const Purchases = () => {
                     onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
                   >
                     <option value="kg">kg</option>
+                    <option value="gram">gram</option>
                     <option value="dagina">dagina</option>
+                    <option value="unit">unit</option>
                     <option value="amount">amount</option>
                   </select>
                 </div>
+                {formData.unit === 'gram' && (
+                  <p className="mt-1 ml-4 text-[8px] font-bold text-orange-400 uppercase tracking-widest italic animate-pulse">
+                    Note: Grams are calculated at the Per-KG rate
+                  </p>
+                )}
               </div>
 
+              {!selectedProduct && formData.material && (
+                <div className="col-span-2 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <label className="block text-[10px] font-black uppercase text-orange-500 tracking-widest mb-1 ml-1 px-1 flex items-center justify-between">
+                    <span>New Material Category</span>
+                    <span className="text-[7px] bg-orange-500 text-white px-2 py-0.5 rounded tracking-normal">Mandatory for New Items</span>
+                  </label>
+                  <select
+                    className="w-full px-5 py-3.5 bg-orange-50/50 border-2 border-dashed border-orange-200 rounded-2xl text-sm font-black text-orange-900 outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  >
+                    <option value="Raw Materials">Raw Materials</option>
+                    <option value="Packing Materials">Packing Materials</option>
+                    <option value="Consumables">Consumables</option>
+                    <option value="Hardware">Hardware</option>
+                    <option value="Chemicals">Chemicals</option>
+                    <option value="Electronic Components">Electronic Components</option>
+                    <option value="Others">Others</option>
+                  </select>
+                </div>
+              )}
+
               <div className="col-span-2 md:col-span-1">
-                <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2">Unit Taxable Price (₹)</label>
+                <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 px-1 flex justify-between items-baseline">
+                  <span>Unit Price (₹)</span>
+                  <span className="text-[7px] text-gray-300 font-bold tracking-normal italic capitalize">per {formData.unit === 'gram' ? 'kg' : formData.unit}</span>
+                </label>
                 <input
                   required
                   type="number"
                   className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
                   value={formData.taxableAmount}
+                  placeholder={`Rate / ${formData.unit === 'gram' ? 'kg' : formData.unit}`}
                   onChange={(e) => setFormData({ ...formData, taxableAmount: e.target.value })}
                 />
+              </div>
+
+              <div className="col-span-2 md:col-span-1">
+                <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 px-1">GST Rate (%)</label>
+                <select
+                   className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-black text-gray-700 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+                   value={formData.gstRate}
+                   onChange={(e) => setFormData({ ...formData, gstRate: e.target.value })}
+                >
+                   <option value="18">18% (Standard+)</option>
+                   <option value="12">12% (Standard)</option>
+                   <option value="5">5% (Essential)</option>
+                   <option value="3">3% (Special)</option>
+                   <option value="0">Exempt (0%)</option>
+                </select>
               </div>
 
               {/* Real-time Summary Card */}

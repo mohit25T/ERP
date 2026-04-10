@@ -1,8 +1,13 @@
 import axios from "axios";
 
+// Automatic Environment Detection: Uses localhost for dev and Render for production
+const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const API_BASE_URL = isLocalhost 
+  ? "http://localhost:5000/api" 
+  : "https://erp-1i9o.onrender.com/api";
+
 export const api = axios.create({
-  // Backend URL MUST include the /api prefix
-  baseURL: "https://erp-1i9o.onrender.com/api",
+  baseURL: API_BASE_URL,
 });
 
 api.interceptors.request.use((config) => {
@@ -118,6 +123,12 @@ export const publicApi = {
 
 export const distanceApi = {
   fetch: (fromAddress, toAddress) => api.get(`/distance/fetch?fromAddress=${encodeURIComponent(fromAddress)}&toAddress=${encodeURIComponent(toAddress)}`)
+};
+
+export const productionApi = {
+  getAll: () => api.get("/productions"),
+  create: (data) => api.post("/productions", data),
+  delete: (id) => api.delete(`/productions/${id}`)
 };
 
 export default api;

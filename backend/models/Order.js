@@ -16,6 +16,10 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    unit: {
+      type: String,
+      default: "kg",
+    },
     totalAmount: {
       type: Number,
       required: true,
@@ -48,7 +52,7 @@ const orderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "in_progress", "shipped", "completed", "cancelled", "refunded"],
+      enum: ["pending", "in_progress", "invoiced", "shipped", "completed", "cancelled", "refunded"],
       default: "pending",
     },
     amountPaid: {
@@ -68,7 +72,10 @@ const orderSchema = new mongoose.Schema(
       transporterId: { type: String, default: "" },
       vehicleNo: { type: String, default: "" },
       mode: { type: String, enum: ["road", "rail", "air", "ship"], default: "road" },
-      active: { type: Boolean, default: false }
+      active: { type: Boolean, default: false },
+      transport: { type: String, default: "" },
+      lrNo: { type: String, default: "" },
+      lrDate: { type: String, default: "" }
     },
   },
   { timestamps: true }

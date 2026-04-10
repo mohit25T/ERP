@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Sidebar from "./Sidebar";
+import NotificationBell from "./NotificationBell";
 
 const AppLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -22,9 +23,12 @@ const AppLayout = ({ children }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <h1 className="ml-4 text-xl font-bold text-gray-800 hidden md:block uppercase tracking-tighter">Nexus ERP</h1>
+            <h1 className="ml-4 text-xl font-black text-gray-800 hidden md:block uppercase tracking-tighter italic">
+              {user?.companyName || "Apex ERP"}
+            </h1>
           </div>
           <div className="flex items-center space-x-4">
+             <NotificationBell />
              <Link 
                to="/settings"
                className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-sm shadow-lg shadow-blue-500/20 hover:scale-110 transition-transform active:scale-95"
