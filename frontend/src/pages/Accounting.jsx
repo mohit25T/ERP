@@ -118,56 +118,57 @@ const Accounting = () => {
         </div>
 
         {/* Financial KPI Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-           <div className={`p-8 rounded-[2.5rem] border transition-all duration-500 cursor-pointer ${activeTab === 'receivables' ? 'bg-blue-600 border-blue-500 shadow-2xl shadow-blue-500/20' : 'bg-white border-gray-100 hover:border-blue-200 shadow-sm'}`}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+           <div className={`p-6 rounded-[2rem] border transition-all duration-500 cursor-pointer ${activeTab === 'receivables' ? 'bg-blue-600 border-blue-500 shadow-2xl shadow-blue-500/20' : 'bg-white border-gray-100 hover:border-blue-200 shadow-sm'}`}
                 onClick={() => setActiveTab('receivables')}>
-              <div className="flex justify-between items-start mb-6">
-                 <div className={`p-4 rounded-2xl ${activeTab === 'receivables' ? 'bg-white/10 text-white' : 'bg-blue-50 text-blue-600'}`}>
-                    <ArrowUpCircle className="w-8 h-8" />
+              <div className="flex justify-between items-start mb-4">
+                 <div className={`p-3 rounded-2xl ${activeTab === 'receivables' ? 'bg-white/10 text-white' : 'bg-blue-50 text-blue-600'}`}>
+                    <ArrowUpCircle className="w-6 h-6" />
                  </div>
-                 {activeTab === 'receivables' && <div className="px-3 py-1 bg-white/20 rounded-full text-[10px] font-black text-white uppercase tracking-widest">A/R Active</div>}
               </div>
-              <p className={`text-[10px] font-black uppercase tracking-widest ${activeTab === 'receivables' ? 'text-blue-100' : 'text-gray-400'}`}>Accounts Receivable (A/R)</p>
-              <h3 className={`text-3xl font-black mt-2 ${activeTab === 'receivables' ? 'text-white' : 'text-gray-900'}`}>
+              <p className={`text-[9px] font-black uppercase tracking-widest ${activeTab === 'receivables' ? 'text-blue-100' : 'text-gray-400'}`}>Receivables</p>
+              <h3 className={`text-xl font-black mt-1 ${activeTab === 'receivables' ? 'text-white' : 'text-gray-900'}`}>
                  ₹{summary?.totalReceivable.toLocaleString('en-IN')}
               </h3>
-              <p className={`mt-2 text-xs font-medium ${activeTab === 'receivables' ? 'text-blue-100/70' : 'text-gray-500'}`}>
-                 Customer dues
-              </p>
            </div>
 
-           <div className={`p-8 rounded-[2.5rem] border transition-all duration-500 cursor-pointer ${activeTab === 'payables' ? 'bg-red-600 border-red-500 shadow-2xl shadow-red-500/20' : 'bg-white border-gray-100 hover:border-red-200 shadow-sm'}`}
+           <div className={`p-6 rounded-[2rem] border transition-all duration-500 cursor-pointer ${activeTab === 'payables' ? 'bg-red-600 border-red-500 shadow-2xl shadow-red-500/20' : 'bg-white border-gray-100 hover:border-red-200 shadow-sm'}`}
                 onClick={() => setActiveTab('payables')}>
-              <div className="flex justify-between items-start mb-6">
-                 <div className={`p-4 rounded-2xl ${activeTab === 'payables' ? 'bg-white/10 text-white' : 'bg-red-50 text-red-600'}`}>
-                    <ArrowDownCircle className="w-8 h-8" />
+              <div className="flex justify-between items-start mb-4">
+                 <div className={`p-3 rounded-2xl ${activeTab === 'payables' ? 'bg-white/10 text-white' : 'bg-red-50 text-red-600'}`}>
+                    <ArrowDownCircle className="w-6 h-6" />
                  </div>
-                 {activeTab === 'payables' && <div className="px-3 py-1 bg-white/20 rounded-full text-[10px] font-black text-white uppercase tracking-widest">A/P Active</div>}
               </div>
-              <p className={`text-[10px] font-black uppercase tracking-widest ${activeTab === 'payables' ? 'text-red-100' : 'text-gray-400'}`}>Accounts Payable (A/P)</p>
-              <h3 className={`text-3xl font-black mt-2 ${activeTab === 'payables' ? 'text-white' : 'text-gray-900'}`}>
+              <p className={`text-[9px] font-black uppercase tracking-widest ${activeTab === 'payables' ? 'text-red-100' : 'text-gray-400'}`}>Payables</p>
+              <h3 className={`text-xl font-black mt-1 ${activeTab === 'payables' ? 'text-white' : 'text-gray-900'}`}>
                  ₹{summary?.totalPayable.toLocaleString('en-IN')}
               </h3>
-              <p className={`mt-2 text-xs font-medium ${activeTab === 'payables' ? 'text-red-100/70' : 'text-gray-500'}`}>
-                 Supplier dues
-              </p>
            </div>
 
-           <div className={`p-8 rounded-[2.5rem] border transition-all duration-500 cursor-pointer ${activeTab === 'ledger' ? 'bg-gray-900 border-gray-800 shadow-2xl shadow-gray-900/20' : 'bg-white border-gray-100 hover:border-gray-300 shadow-sm'}`}
-                onClick={() => setActiveTab('ledger')}>
-              <div className="flex justify-between items-start mb-6">
-                 <div className={`p-4 rounded-2xl ${activeTab === 'ledger' ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-900'}`}>
-                    <ArrowRightLeft className="w-8 h-8" />
+           <div className={`p-6 rounded-[2rem] border transition-all duration-500 cursor-pointer ${activeTab === 'journal' ? 'bg-indigo-600 border-indigo-500 shadow-2xl shadow-indigo-500/20' : 'bg-white border-gray-100 hover:border-indigo-200 shadow-sm'}`}
+                onClick={() => setActiveTab('journal')}>
+              <div className="flex justify-between items-start mb-4">
+                 <div className={`p-3 rounded-2xl ${activeTab === 'journal' ? 'bg-white/10 text-white' : 'bg-indigo-50 text-indigo-600'}`}>
+                    <BookOpen className="w-6 h-6" />
                  </div>
-                 {activeTab === 'ledger' && <div className="px-3 py-1 bg-white/20 rounded-full text-[10px] font-black text-white uppercase tracking-widest">P&L Active</div>}
               </div>
-              <p className={`text-[10px] font-black uppercase tracking-widest ${activeTab === 'ledger' ? 'text-gray-400' : 'text-gray-400'}`}>Business Ledger (P&L)</p>
-              <h3 className={`text-3xl font-black mt-2 ${activeTab === 'ledger' ? 'text-white' : 'text-gray-900'}`}>
+              <p className={`text-[9px] font-black uppercase tracking-widest ${activeTab === 'journal' ? 'text-indigo-100' : 'text-gray-400'}`}>Double-Entry Journal</p>
+              <h3 className={`text-xl font-black mt-1 ${activeTab === 'journal' ? 'text-white' : 'text-gray-900'}`}>
+                 Accounting logs
+              </h3>
+           </div>
+
+           <div className={`p-6 rounded-[2rem] border transition-all duration-500 cursor-pointer ${activeTab === 'ledger' ? 'bg-gray-900 border-gray-800 shadow-2xl shadow-gray-900/20' : 'bg-white border-gray-100 hover:border-gray-300 shadow-sm'}`}
+                onClick={() => setActiveTab('ledger')}>
+              <div className="flex justify-between items-start mb-4">
+                 <div className={`p-3 rounded-2xl ${activeTab === 'ledger' ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-900'}`}>
+                    <ArrowRightLeft className="w-6 h-6" />
+                 </div>
+              </div>
+              <p className={`text-[9px] font-black uppercase tracking-widest ${activeTab === 'ledger' ? 'text-gray-400' : 'text-gray-400'}`}>Cash Ledger</p>
+              <h3 className={`text-xl font-black mt-1 ${activeTab === 'ledger' ? 'text-white' : 'text-gray-900'}`}>
                  Bookkeeping
               </h3>
-              <p className={`mt-2 text-xs font-medium ${activeTab === 'ledger' ? 'text-blue-100/70' : 'text-gray-500'}`}>
-                 Automated Audit
-              </p>
            </div>
         </div>
 
@@ -226,7 +227,15 @@ const Accounting = () => {
                 <table className="w-full text-left">
                    <thead>
                       <tr className="bg-gray-50/50 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
-                         {activeTab === "ledger" ? (
+                         {activeTab === "journal" ? (
+                           <>
+                             <th className="px-8 py-4">Ref / Date</th>
+                             <th className="px-8 py-4">Transaction Details</th>
+                             <th className="px-8 py-4">Ledger Accounts</th>
+                             <th className="px-8 py-4 text-right">Debit</th>
+                             <th className="px-8 py-4 text-right pr-12">Credit</th>
+                           </>
+                         ) : activeTab === "ledger" ? (
                            <>
                              <th className="px-8 py-4">Date</th>
                              <th className="px-8 py-4">Type / Category</th>
@@ -248,7 +257,44 @@ const Accounting = () => {
                    <tbody className="divide-y divide-gray-100">
                       {filteredDetails.map((item) => (
                         <tr key={item._id} className="group hover:bg-gray-50/80 transition-colors">
-                           {activeTab === "ledger" ? (
+                           {activeTab === "journal" ? (
+                             <>
+                               <td className="px-8 py-6">
+                                  <div className="flex flex-col">
+                                     <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded w-fit mb-1">
+                                        JV-{item._id.substring(item._id.length - 4).toUpperCase()}
+                                     </span>
+                                     <span className="text-[10px] font-bold text-gray-400">
+                                        {new Date(item.date).toLocaleDateString()}
+                                     </span>
+                                  </div>
+                               </td>
+                               <td className="px-8 py-6">
+                                  <div className="flex flex-col">
+                                     <span className="text-sm font-black text-gray-900 uppercase tracking-tight italic">{item.description}</span>
+                                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{item.referenceType} Ref: {item.referenceId?.substring(18)}</span>
+                                  </div>
+                               </td>
+                               <td className="px-8 py-6" colSpan={3}>
+                                  <div className="space-y-1">
+                                     {item.entries.map((entry, idx) => (
+                                       <div key={idx} className="grid grid-cols-12 gap-2 text-[11px] font-bold border-b border-gray-50 pb-1">
+                                          <div className="col-span-6 flex items-center gap-2">
+                                             <div className={`w-1.5 h-1.5 rounded-full ${entry.debit > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                             <span className="text-gray-700 uppercase tracking-tight">{entry.account}</span>
+                                          </div>
+                                          <div className="col-span-3 text-right tabular-nums text-gray-900">
+                                             {entry.debit > 0 ? `₹${entry.debit.toLocaleString()}` : '-'}
+                                          </div>
+                                          <div className="col-span-3 text-right tabular-nums text-gray-900 pr-4">
+                                             {entry.credit > 0 ? `₹${entry.credit.toLocaleString()}` : '-'}
+                                          </div>
+                                       </div>
+                                     ))}
+                                  </div>
+                               </td>
+                             </>
+                           ) : activeTab === "ledger" ? (
                              <>
                                <td className="px-8 py-6">
                                   <span className="text-[10px] font-black text-gray-400">
@@ -298,15 +344,15 @@ const Accounting = () => {
                                </td>
                                <td className="px-8 py-6 text-right">
                                   <span className="text-sm font-black text-gray-900">₹{item.totalAmount?.toLocaleString('en-IN')}</span>
-                               </td>
+                                </td>
                                <td className="px-8 py-6 text-right">
                                   <span className="text-sm font-bold text-green-600">₹{item.amountPaid?.toLocaleString('en-IN')}</span>
                                </td>
                                <td className="px-8 py-6 text-right pr-12">
                                   <div className="flex flex-col items-end">
-                                     <span className="text-base font-black text-red-600 tracking-tight italic">₹{(item.totalAmount - item.amountPaid).toLocaleString('en-IN')}</span>
+                                     <span className="text-base font-black text-red-600 tracking-tight italic">₹{(item.totalAmount - (item.amountPaid || 0)).toLocaleString('en-IN')}</span>
                                      <div className="w-20 h-1 bg-gray-100 rounded-full mt-2 overflow-hidden">
-                                         <div className="h-full bg-blue-500" style={{ width: `${(item.amountPaid / item.totalAmount) * 100}%` }}></div>
+                                         <div className="h-full bg-blue-500" style={{ width: `${((item.amountPaid || 0) / item.totalAmount) * 100}%` }}></div>
                                      </div>
                                   </div>
                                </td>
@@ -315,6 +361,7 @@ const Accounting = () => {
                         </tr>
                       ))}
                    </tbody>
+
                 </table>
               )}
            </div>

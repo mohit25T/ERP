@@ -131,4 +131,22 @@ export const productionApi = {
   delete: (id) => api.delete(`/productions/${id}`)
 };
 
+export const invoiceApi = {
+  getAll: () => api.get("/invoices"),
+  create: (data) => api.post("/invoices", data),
+  finalize: (id) => api.patch(`/invoices/${id}/finalize`),
+  downloadPdf: (id) => api.get(`/invoices/${id}/pdf`, { responseType: 'blob' }),
+  delete: (id) => api.delete(`/invoices/${id}`)
+};
+
+export const journalApi = {
+  getAll: () => api.get("/journal")
+};
+
+export const inventoryApi = {
+  getLogs: (productId) => api.get(`/inventory/logs/${productId}`),
+  getAllLogs: () => api.get("/inventory/logs")
+};
+
 export default api;
+

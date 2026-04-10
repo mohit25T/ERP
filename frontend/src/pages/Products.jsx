@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import AppLayout from "../components/layout/AppLayout";
 import Modal from "../components/common/Modal";
 import ProductForm from "../components/forms/ProductForm";
+import InventoryHistory from "../components/modals/InventoryHistory";
 import { productApi } from "../api/erpApi";
-import { Plus, Edit2, Trash2, Search, PackageOpen, Layers, Package } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, PackageOpen, Layers, Package, History } from "lucide-react";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -14,6 +15,8 @@ const Products = () => {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBOMModalOpen, setIsBOMModalOpen] = useState(false);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [viewingBOMProduct, setViewingBOMProduct] = useState(null);
   const [prodQuantity, setProdQuantity] = useState(1);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -269,6 +272,16 @@ const Products = () => {
                     </td>
                     <td className="px-8 py-6 text-right pr-12">
                       <div className="flex justify-end gap-2">
+                        <button
+                           onClick={() => {
+                             setSelectedProduct(p);
+                             setHistoryModalOpen(true);
+                           }}
+                           className="p-2 bg-gray-50 text-gray-400 rounded-lg hover:bg-gray-100 hover:text-gray-900 transition-all active:scale-95"
+                           title="Inventory History"
+                        >
+                           <History className="w-4 h-4" />
+                        </button>
                         {p.bom && p.bom.length > 0 ? (
                            <button
                               onClick={() => handleOpenBOM(p)}
@@ -278,7 +291,7 @@ const Products = () => {
                               Check BOM
                            </button>
                         ) : (
-                           <span className="text-[10px] font-bold text-gray-300 uppercase italic">No BOM Set</span>
+                           <span className="text-[10px] font-bold text-gray-300 uppercase italic flex items-center h-10">No BOM Set</span>
                         )}
                       </div>
                     </td>
@@ -289,8 +302,15 @@ const Products = () => {
           )}
         </div>
       </div>
+
+      <InventoryHistory 
+        isOpen={historyModalOpen} 
+        onClose={() => setHistoryModalOpen(false)} 
+        product={selectedProduct} 
+      />
     </AppLayout>
   );
 };
+
 
 export default Products;
