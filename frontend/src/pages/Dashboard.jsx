@@ -74,8 +74,8 @@ const Dashboard = () => {
           api.get("/suppliers")
        ]);
        const combined = [
-          ...cus.data.map(c => ({ ...c, type: 'customer' })),
-          ...sup.data.map(s => ({ ...s, type: 'supplier' }))
+          ...(Array.isArray(cus.data) ? cus.data.map(c => ({ ...c, type: 'customer' })) : []),
+          ...(Array.isArray(sup.data) ? sup.data.map(s => ({ ...s, type: 'supplier' })) : [])
        ];
        setParties(combined);
     } catch (err) {
@@ -100,10 +100,10 @@ const Dashboard = () => {
   );
 
   const statCards = [
-    { title: "Business Health", value: `₹${pnl?.netProfit.toLocaleString('en-IN')}`, trend: `${pnl?.margin}% Margin`, icon: pnl?.netProfit >= 0 ? TrendingUp : TrendingDown, color: pnl?.netProfit >= 0 ? "text-green-600" : "text-red-600", bg: pnl?.netProfit >= 0 ? "bg-green-100" : "bg-red-100" },
-    { title: "Net Receivable", value: `₹${financials?.totalReceivable.toLocaleString('en-IN')}`, trend: `${financials?.receivableCount} Pending`, icon: ArrowUpCircle, color: "text-blue-600", bg: "bg-blue-100" },
-    { title: "Net Payable", value: `₹${financials?.totalPayable.toLocaleString('en-IN')}`, trend: `${financials?.payableCount} Pending`, icon: ArrowDownCircle, color: "text-red-600", bg: "bg-red-100" },
-    { title: "Operating Revenue", value: `₹${pnl?.totalSales.toLocaleString('en-IN')}`, trend: "Gross Sales", icon: DollarSign, color: "text-purple-600", bg: "bg-purple-100" },
+    { title: "Business Health", value: `₹${pnl?.netProfit?.toLocaleString('en-IN') || "0"}`, trend: `${pnl?.margin || "0"}% Margin`, icon: pnl?.netProfit >= 0 ? TrendingUp : TrendingDown, color: pnl?.netProfit >= 0 ? "text-green-600" : "text-red-600", bg: pnl?.netProfit >= 0 ? "bg-green-100" : "bg-red-100" },
+    { title: "Net Receivable", value: `₹${financials?.totalReceivable?.toLocaleString('en-IN') || "0"}`, trend: `${financials?.receivableCount || "0"} Pending`, icon: ArrowUpCircle, color: "text-blue-600", bg: "bg-blue-100" },
+    { title: "Net Payable", value: `₹${financials?.totalPayable?.toLocaleString('en-IN') || "0"}`, trend: `${financials?.payableCount || "0"} Pending`, icon: ArrowDownCircle, color: "text-red-600", bg: "bg-red-100" },
+    { title: "Operating Revenue", value: `₹${pnl?.totalSales?.toLocaleString('en-IN') || "0"}`, trend: "Gross Sales", icon: DollarSign, color: "text-purple-600", bg: "bg-purple-100" },
   ];
 
   return (
