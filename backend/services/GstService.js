@@ -32,6 +32,13 @@ class GstService {
   static getRounding(amount) {
     return Math.round(amount * 100) / 100;
   }
+
+  /**
+   * Check if E-Way bill is required based on threshold (INR 50,000)
+   */
+  static requiresEWayBill(totalAmount) {
+    return totalAmount > 50000;
+  }
 }
 
 export default GstService;

@@ -16,9 +16,14 @@ const inventoryLogSchema = new mongoose.Schema(
       enum: ["IN", "OUT"],
       required: true,
     },
+    targetField: {
+      type: String,
+      enum: ["stock", "scrapStock"],
+      default: "stock",
+    },
     referenceType: {
       type: String,
-      enum: ["invoice", "purchase", "production", "manual_adjustment", "return"],
+      enum: ["invoice", "purchase", "production", "order", "manual_adjustment", "return"],
       required: true,
     },
     referenceId: {

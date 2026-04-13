@@ -13,7 +13,7 @@ export const createProduct = async (req, res) => {
 // Get all Products
 export const getProducts = async (req, res) => {
   try {
-    const products = await Product.find().populate("bom.material").sort({ createdAt: -1 });
+    const products = await Product.find().sort({ createdAt: -1 });
     res.json(products);
   } catch (err) {
     res.status(500).json({ error: err.message });

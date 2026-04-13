@@ -12,6 +12,11 @@ const orderSchema = new mongoose.Schema(
       ref: "Product",
       required: true,
     },
+    saleType: {
+      type: String,
+      enum: ["yield", "scrap"],
+      default: "yield",
+    },
     quantity: {
       type: Number,
       required: true,
@@ -19,6 +24,10 @@ const orderSchema = new mongoose.Schema(
     unit: {
       type: String,
       default: "kg",
+    },
+    unitPrice: {
+      type: Number,
+      default: 0,
     },
     totalAmount: {
       type: Number,

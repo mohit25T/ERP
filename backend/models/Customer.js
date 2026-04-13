@@ -8,6 +8,11 @@ const customerSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    type: {
+      type: String,
+      enum: ["regular", "scrap_buyer"],
+      default: "regular",
+    },
     email: {
       type: String,
       required: true,

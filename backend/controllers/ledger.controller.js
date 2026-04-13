@@ -96,9 +96,10 @@ export const getPnLSummary = async (req, res) => {
     const totalPurchases = purchaseInvoices.reduce((sum, p) => sum + p.totalAmount, 0);
 
     // 3. Manual Ledger Entries (Operating Expenses & Other Income)
+    // Deduplication: Only count entries NOT linked to specific Orders or Purchases to avoid double-counting
     const manualEntries = await Ledger.find();
-    const manualIncome = manualEntries.filter(e => e.type === "income").reduce((sum, e) => sum + e.amount, 0);
-    const manualExpense = manualEntries.filter(e => e.type === "expense").reduce((sum, e) => sum + e.amount, 0);
+    const manualIncome = manualEntries.filter(e => e.type === "income" && !e.order).reduce((sum, e) => sum + e.amount, 0);
+    const manualExpense = manualEntries.filter(e => e.type === "expense" && !e.purchase).reduce((sum, e) => sum + e.amount, 0);
 
     // 4. Calculations
     const grossIncome = totalSales + manualIncome;
@@ -113,7 +114,7 @@ export const getPnLSummary = async (req, res) => {
       totalRevenue: grossIncome,
       totalExpenses: grossExpense,
       netProfit,
-      margin: ((netProfit / grossIncome) * 100).toFixed(2)
+      margin: grossIncome > 0 ? ((netProfit / grossIncome) * 100).toFixed(2) : "0.00"
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

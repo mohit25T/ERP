@@ -1,23 +1,12 @@
 import React, { useState, useEffect } from "react";
 import AppLayout from "../components/layout/AppLayout";
-import { paymentApi, customerApi, supplierApi, orderApi, api, ledgerApi } from "../api/erpApi";
+import { paymentApi, api, ledgerApi } from "../api/erpApi";
 import { 
-  Wallet, 
-  ArrowUpCircle, 
-  ArrowDownCircle, 
-  Search, 
-  Filter, 
-  Building2, 
-  Users, 
-  ChevronRight,
-  TrendingUp,
-  FileBarChart,
-  History,
-  Plus,
-  ArrowRightLeft,
-  DollarSign
+  Wallet, ArrowUpCircle, ArrowDownCircle, Search, Filter, 
+  Building2, Users, ChevronRight, TrendingUp, History, 
+  Plus, ArrowRightLeft, BookOpen, ShieldCheck, Zap,
+  Activity, Database, ArrowUpRight, ArrowDownLeft, Clock
 } from "lucide-react";
-import Modal from "../components/common/Modal";
 
 const Accounting = () => {
   const [summary, setSummary] = useState(null);
@@ -25,12 +14,10 @@ const Accounting = () => {
   const [activeTab, setActiveTab] = useState("receivables"); 
   const [details, setDetails] = useState([]);
   
-  // Filter States
   const [searchTerm, setSearchTerm] = useState("");
   const [filterMonth, setFilterMonth] = useState("all");
   const [filterParty, setFilterParty] = useState("all");
 
-  // Reset filters when tab changes
   useEffect(() => {
     setSearchTerm("");
     setFilterMonth("all");
@@ -45,249 +32,223 @@ const Accounting = () => {
 
       if (activeTab === "receivables") {
           const res = await api.get("/orders");
-          setDetails(res.data.filter(o => o.paymentStatus !== "paid" && !["cancelled", "refunded"].includes(o.status)));
+          const data = Array.isArray(res.data) ? res.data : [];
+          setDetails(data.filter(o => o.paymentStatus !== "paid" && !["cancelled", "refunded"].includes(o.status)));
       } else if (activeTab === "payables") {
           const res = await api.get("/purchases");
-          setDetails(res.data.filter(p => p.paymentStatus !== "paid" && !["cancelled", "refunded"].includes(p.status)));
+          const data = Array.isArray(res.data) ? res.data : [];
+          setDetails(data.filter(p => p.paymentStatus !== "paid" && p.status !== "cancelled"));
       } else {
           const res = await ledgerApi.getAll();
-          setDetails(res.data);
+          const data = Array.isArray(res.data) ? res.data : [];
+          setDetails(data);
       }
     } catch (err) {
-      console.error("Accounting data fetch failed", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-
-
   useEffect(() => {
     fetchData();
   }, [activeTab]);
 
-  // Derived Data for Filters
   const getPartyName = (item) => {
     if (item.customer?.name) return item.customer.name;
     if (item.supplier?.company) return item.supplier.company;
     if (item.supplier?.name) return item.supplier.name;
-    return "Unknown/Other";
+    return "Private Transaction";
   };
 
   const getMonthStr = (item) => {
     const d = new Date(item.date || item.createdAt);
-    if (isNaN(d.valueOf())) return "Invalid Date";
+    if (isNaN(d.valueOf())) return "Invalid";
     return `${d.toLocaleString('default', { month: 'short' })} ${d.getFullYear()}`;
   };
 
-  const uniqueMonths = [...new Set(details.map(getMonthStr))].filter(m => m !== "Invalid Date");
+  const getVirtualEntries = (item) => {
+    if (item.entries && item.entries.length > 0) return item.entries;
+    const party = getPartyName(item);
+    const amount = item.amount || item.totalAmount || 0;
+    
+    if (item.type === "income") {
+      return [
+        { account: "Cash/Bank Account", debit: amount, credit: 0 },
+        { account: party, debit: 0, credit: amount }
+      ];
+    } else {
+      return [
+        { account: party, debit: amount, credit: 0 },
+        { account: "Cash/Bank Account", debit: 0, credit: amount }
+      ];
+    }
+  };
+
+  const uniqueMonths = [...new Set(details.map(getMonthStr))].filter(m => m !== "Invalid");
   const uniqueParties = [...new Set(details.map(getPartyName))];
 
-  // Apply all active filters
   const filteredDetails = details.filter(item => {
     const s = searchTerm.toLowerCase();
     const matchSearch = s === "" || 
       getPartyName(item).toLowerCase().includes(s) ||
       (item.description && item.description.toLowerCase().includes(s)) ||
-      (item.category && item.category.toLowerCase().includes(s)) ||
-      (item._id && item._id.toLowerCase().includes(s));
-      
+      (item._id?.toString() || "").toLowerCase().includes(s);
     const matchMonth = filterMonth === "all" || getMonthStr(item) === filterMonth;
     const matchParty = filterParty === "all" || getPartyName(item) === filterParty;
-    
     return matchSearch && matchMonth && matchParty;
   });
 
   return (
     <AppLayout>
-      <div className="space-y-8 animate-in fade-in duration-700">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="p-4 bg-gray-900 rounded-3xl shadow-xl shadow-gray-200 shadow-xl">
-               <Wallet className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h2 className="text-4xl font-black text-gray-900 tracking-tighter">Financial Ledger</h2>
-              <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest flex items-center gap-2">
-                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                Cash Flow & Dues Management
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Financial KPI Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-           <div className={`p-6 rounded-[2rem] border transition-all duration-500 cursor-pointer ${activeTab === 'receivables' ? 'bg-blue-600 border-blue-500 shadow-2xl shadow-blue-500/20' : 'bg-white border-gray-100 hover:border-blue-200 shadow-sm'}`}
-                onClick={() => setActiveTab('receivables')}>
-              <div className="flex justify-between items-start mb-4">
-                 <div className={`p-3 rounded-2xl ${activeTab === 'receivables' ? 'bg-white/10 text-white' : 'bg-blue-50 text-blue-600'}`}>
-                    <ArrowUpCircle className="w-6 h-6" />
+      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        
+        {/* Elite Treasury Header */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+           <div className="flex items-center gap-6">
+              <div className="w-20 h-20 bg-slate-900 rounded-[2.5rem] flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-xl border border-slate-800">
+                 <Wallet className="w-10 h-10 text-white" />
+              </div>
+              <div>
+                 <h2 className="text-5xl font-black text-slate-900 tracking-tightest leading-none mb-2 italic">Treasury <span className="text-slate-400 not-italic">Intelligence</span></h2>
+                 <div className="flex items-center gap-3">
+                    <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Global Cash Flow Orchestration & Balance Settlement</span>
                  </div>
               </div>
-              <p className={`text-[9px] font-black uppercase tracking-widest ${activeTab === 'receivables' ? 'text-blue-100' : 'text-gray-400'}`}>Receivables</p>
-              <h3 className={`text-xl font-black mt-1 ${activeTab === 'receivables' ? 'text-white' : 'text-gray-900'}`}>
-                 ₹{summary?.totalReceivable.toLocaleString('en-IN')}
-              </h3>
            </div>
 
-           <div className={`p-6 rounded-[2rem] border transition-all duration-500 cursor-pointer ${activeTab === 'payables' ? 'bg-red-600 border-red-500 shadow-2xl shadow-red-500/20' : 'bg-white border-gray-100 hover:border-red-200 shadow-sm'}`}
-                onClick={() => setActiveTab('payables')}>
-              <div className="flex justify-between items-start mb-4">
-                 <div className={`p-3 rounded-2xl ${activeTab === 'payables' ? 'bg-white/10 text-white' : 'bg-red-50 text-red-600'}`}>
-                    <ArrowDownCircle className="w-6 h-6" />
-                 </div>
+           <div className="flex items-center gap-4">
+              <div className="px-6 py-4 bg-white rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-3">
+                 <Clock className="w-4 h-4 text-slate-300" />
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Real-time Flux Monitoring</span>
               </div>
-              <p className={`text-[9px] font-black uppercase tracking-widest ${activeTab === 'payables' ? 'text-red-100' : 'text-gray-400'}`}>Payables</p>
-              <h3 className={`text-xl font-black mt-1 ${activeTab === 'payables' ? 'text-white' : 'text-gray-900'}`}>
-                 ₹{summary?.totalPayable.toLocaleString('en-IN')}
-              </h3>
-           </div>
-
-           <div className={`p-6 rounded-[2rem] border transition-all duration-500 cursor-pointer ${activeTab === 'journal' ? 'bg-indigo-600 border-indigo-500 shadow-2xl shadow-indigo-500/20' : 'bg-white border-gray-100 hover:border-indigo-200 shadow-sm'}`}
-                onClick={() => setActiveTab('journal')}>
-              <div className="flex justify-between items-start mb-4">
-                 <div className={`p-3 rounded-2xl ${activeTab === 'journal' ? 'bg-white/10 text-white' : 'bg-indigo-50 text-indigo-600'}`}>
-                    <BookOpen className="w-6 h-6" />
-                 </div>
-              </div>
-              <p className={`text-[9px] font-black uppercase tracking-widest ${activeTab === 'journal' ? 'text-indigo-100' : 'text-gray-400'}`}>Double-Entry Journal</p>
-              <h3 className={`text-xl font-black mt-1 ${activeTab === 'journal' ? 'text-white' : 'text-gray-900'}`}>
-                 Accounting logs
-              </h3>
-           </div>
-
-           <div className={`p-6 rounded-[2rem] border transition-all duration-500 cursor-pointer ${activeTab === 'ledger' ? 'bg-gray-900 border-gray-800 shadow-2xl shadow-gray-900/20' : 'bg-white border-gray-100 hover:border-gray-300 shadow-sm'}`}
-                onClick={() => setActiveTab('ledger')}>
-              <div className="flex justify-between items-start mb-4">
-                 <div className={`p-3 rounded-2xl ${activeTab === 'ledger' ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-900'}`}>
-                    <ArrowRightLeft className="w-6 h-6" />
-                 </div>
-              </div>
-              <p className={`text-[9px] font-black uppercase tracking-widest ${activeTab === 'ledger' ? 'text-gray-400' : 'text-gray-400'}`}>Cash Ledger</p>
-              <h3 className={`text-xl font-black mt-1 ${activeTab === 'ledger' ? 'text-white' : 'text-gray-900'}`}>
-                 Bookkeeping
-              </h3>
            </div>
         </div>
 
-        {/* Detailed List */}
-        <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-           <div className="p-8 border-b border-gray-50 flex items-center justify-between gap-4">
-              <h3 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-                 {activeTab === 'receivables' ? <Users className="w-5 h-5 text-blue-600" /> : <Building2 className="w-5 h-5 text-red-600" />}
-                 Detailed {activeTab === 'receivables' ? 'Receivables' : 'Payables'} Breakdown
-              </h3>
-              <div className="flex flex-wrap items-center gap-3">
-                 <select 
-                   className="px-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold text-gray-700 outline-none hover:bg-gray-100 focus:ring-2 focus:ring-blue-500/10 transition-colors cursor-pointer"
-                   value={filterMonth}
-                   onChange={(e) => setFilterMonth(e.target.value)}
-                 >
-                   <option value="all">All Months</option>
-                   {uniqueMonths.map(m => <option key={m} value={m}>{m}</option>)}
-                 </select>
+        {/* Global KPI Matrix */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+           {[
+              { id: 'receivables', label: 'Account Receivables', val: summary?.totalReceivable, icon: ArrowUpCircle, color: 'indigo' },
+              { id: 'payables', label: 'Operational Payables', val: summary?.totalPayable, icon: ArrowDownCircle, color: 'rose' },
+              { id: 'journal', label: 'Journal Protocol', val: 'Active Log', icon: BookOpen, color: 'slate' },
+              { id: 'ledger', label: 'Cash Dynamics', val: 'Archive', icon: ArrowRightLeft, color: 'emerald' },
+           ].map((tab) => (
+             <div 
+               key={tab.id}
+               onClick={() => setActiveTab(tab.id)}
+               className={`p-8 rounded-[3rem] border transition-all duration-500 cursor-pointer relative overflow-hidden group ${activeTab === tab.id ? 'bg-slate-900 border-slate-900 shadow-2xl shadow-slate-900/20 text-white scale-105 z-10' : 'bg-white border-slate-100 hover:border-slate-300 shadow-sm'}`}
+             >
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 ${activeTab === tab.id ? 'bg-white/10 text-white' : 'bg-slate-50 text-slate-400'}`}>
+                   <tab.icon className="w-6 h-6" />
+                </div>
+                <p className={`text-[10px] font-black uppercase tracking-widest mb-2 ${activeTab === tab.id ? 'text-white/40' : 'text-slate-400'}`}>{tab.label}</p>
+                <h3 className={`text-2xl font-black italic tracking-tightest tabular-nums ${activeTab === tab.id ? 'text-white' : 'text-slate-900'}`}>
+                   {typeof tab.val === 'number' ? `₹${tab.val.toLocaleString()}` : tab.val}
+                </h3>
+                {activeTab === tab.id && <div className="absolute top-0 right-0 p-4 opacity-10"><Zap className="w-12 h-12 text-white" /></div>}
+             </div>
+           ))}
+        </div>
 
-                 <select 
-                   className="px-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold text-gray-700 outline-none hover:bg-gray-100 focus:ring-2 focus:ring-blue-500/10 transition-colors cursor-pointer max-w-[180px]"
-                   value={filterParty}
-                   onChange={(e) => setFilterParty(e.target.value)}
-                 >
-                   <option value="all">All Parties</option>
-                   {uniqueParties.map(p => <option key={p} value={p}>{p}</option>)}
-                 </select>
-
-                 <div className="relative hidden md:block">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input 
-                      className="pl-12 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-xs font-bold focus:ring-2 focus:ring-blue-500/10 outline-none w-64 transition-all" 
-                      placeholder="Search entity, ref, or notes..." 
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+        {/* Unified Ledger Workspace */}
+        <div className="bg-white rounded-[4rem] border border-slate-100 shadow-sm overflow-hidden mb-20">
+           <div className="p-10 border-b border-slate-50 flex flex-col md:flex-row justify-between items-center gap-8">
+              <div className="flex items-center gap-4">
+                 <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white"><Activity className="w-6 h-6" /></div>
+                 <div>
+                    <h4 className="text-[10px] font-black uppercase text-slate-900 tracking-widest pl-1">Detailed Analysis</h4>
+                    <p className="text-xl font-black text-slate-900 uppercase italic tracking-tightest">
+                       {activeTab === 'receivables' ? 'Outstanding Inflow' : activeTab === 'payables' ? 'Pending Obligations' : activeTab === 'journal' ? 'Double-Entry Journal' : 'Bookkeeping Flux'}
+                    </p>
                  </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-4">
+                 <div className="relative group w-64">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Dataset Lookup..." className="pl-10 pr-6 py-3 bg-slate-50 border-none rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none focus:bg-white focus:ring-4 focus:ring-slate-900/5 transition-all w-full shadow-inner" />
+                 </div>
+                 <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} className="px-6 pr-10 py-3 bg-slate-50 border-none rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-slate-900/10 cursor-pointer shadow-inner">
+                    <option value="all">Global Temporal</option>
+                    {uniqueMonths.map(m => <option key={m} value={m}>{m}</option>)}
+                 </select>
+                 <select value={filterParty} onChange={(e) => setFilterParty(e.target.value)} className="px-6 pr-10 py-3 bg-slate-50 border-none rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-slate-900/10 cursor-pointer shadow-inner max-w-[180px]">
+                    <option value="all">Global Entities</option>
+                    {uniqueParties.map(p => <option key={p} value={p}>{p}</option>)}
+                 </select>
               </div>
            </div>
 
            <div className="overflow-x-auto">
               {loading ? (
-                <div className="p-20 text-center">
-                   <div className="inline-block w-10 h-10 border-4 border-gray-100 border-t-blue-600 rounded-full animate-spin"></div>
-                </div>
+                <div className="p-32 text-center text-slate-300 font-black uppercase tracking-[0.4em] animate-pulse text-[10px]">Accessing Repository...</div>
               ) : filteredDetails.length === 0 ? (
-                <div className="p-24 text-center">
-                   <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <History className="w-10 h-10 text-gray-200" />
-                   </div>
-                   <p className="text-gray-900 font-black text-xl mb-1 uppercase tracking-tighter italic">Ledger Clean</p>
-                   <p className="text-gray-400 font-medium text-sm">No pending payments found in this category.</p>
-                </div>
+                <div className="p-32 text-center text-slate-300 font-black uppercase tracking-[0.2em] italic text-[10px]">Zero Pending Fluctuations Found.</div>
               ) : (
                 <table className="w-full text-left">
                    <thead>
-                      <tr className="bg-gray-50/50 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
+                      <tr className="bg-slate-50/50 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] border-b border-slate-50">
                          {activeTab === "journal" ? (
                            <>
-                             <th className="px-8 py-4">Ref / Date</th>
-                             <th className="px-8 py-4">Transaction Details</th>
-                             <th className="px-8 py-4">Ledger Accounts</th>
-                             <th className="px-8 py-4 text-right">Debit</th>
-                             <th className="px-8 py-4 text-right pr-12">Credit</th>
+                             <th className="px-12 py-8">Timestamp</th>
+                             <th className="px-12 py-8">Narration</th>
+                             <th className="px-12 py-8">Account Matrix</th>
+                             <th className="px-12 py-8 text-right">Debit</th>
+                             <th className="px-12 py-8 text-right pr-20">Credit</th>
                            </>
                          ) : activeTab === "ledger" ? (
                            <>
-                             <th className="px-8 py-4">Date</th>
-                             <th className="px-8 py-4">Type / Category</th>
-                             <th className="px-8 py-4">Description</th>
-                             <th className="px-8 py-4">Related Entity</th>
-                             <th className="px-8 py-4 text-right pr-12">Amount</th>
+                             <th className="px-12 py-8">Timestamp</th>
+                             <th className="px-12 py-8">Protocol/Category</th>
+                             <th className="px-12 py-8">Narration Summary</th>
+                             <th className="px-12 py-8">Linked Node</th>
+                             <th className="px-12 py-8 text-right pr-20">Magnitude</th>
                            </>
                          ) : (
                            <>
-                             <th className="px-8 py-4">Reference</th>
-                             <th className="px-8 py-4">Entity Details</th>
-                             <th className="px-8 py-4 text-right">Total Invoice</th>
-                             <th className="px-8 py-4 text-right">Amount Paid</th>
-                             <th className="px-8 py-4 text-right pr-12">Balance Due</th>
+                             <th className="px-12 py-8">Reference</th>
+                             <th className="px-12 py-8">Entity Analysis</th>
+                             <th className="px-12 py-8 text-right">Invoice Yield</th>
+                             <th className="px-12 py-8 text-right">Settled Amount</th>
+                             <th className="px-12 py-8 text-right pr-20">Remaining Drift</th>
                            </>
                          )}
                       </tr>
                    </thead>
-                   <tbody className="divide-y divide-gray-100">
+                   <tbody className="divide-y divide-slate-50">
                       {filteredDetails.map((item) => (
-                        <tr key={item._id} className="group hover:bg-gray-50/80 transition-colors">
+                        <tr key={item._id} className="group hover:bg-slate-50/80 transition-all duration-500">
                            {activeTab === "journal" ? (
                              <>
-                               <td className="px-8 py-6">
+                               <td className="px-12 py-8">
                                   <div className="flex flex-col">
-                                     <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded w-fit mb-1">
-                                        JV-{item._id.substring(item._id.length - 4).toUpperCase()}
-                                     </span>
-                                     <span className="text-[10px] font-bold text-gray-400">
-                                        {new Date(item.date).toLocaleDateString()}
+                                     <span className="text-[11px] font-black text-slate-900 tracking-tightest italic">{new Date(item.date).toLocaleDateString()}</span>
+                                     <span className="text-[8px] font-black text-indigo-500 uppercase tracking-widest mt-1">JV-{item._id.slice(-4).toUpperCase()}</span>
+                                  </div>
+                               </td>
+                               <td className="px-12 py-8">
+                                  <div className="flex flex-col">
+                                     <span className="text-sm font-black text-slate-900 tracking-tightest uppercase italic">{item.description}</span>
+                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1.5 flex items-center gap-2">
+                                        <Database className="w-3 h-3" />
+                                        Ref: {(item.referenceId || item.order?._id || item.purchase?._id || item._id).slice(-6).toUpperCase()}
                                      </span>
                                   </div>
                                </td>
-                               <td className="px-8 py-6">
-                                  <div className="flex flex-col">
-                                     <span className="text-sm font-black text-gray-900 uppercase tracking-tight italic">{item.description}</span>
-                                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{item.referenceType} Ref: {item.referenceId?.substring(18)}</span>
-                                  </div>
-                               </td>
-                               <td className="px-8 py-6" colSpan={3}>
-                                  <div className="space-y-1">
-                                     {item.entries.map((entry, idx) => (
-                                       <div key={idx} className="grid grid-cols-12 gap-2 text-[11px] font-bold border-b border-gray-50 pb-1">
-                                          <div className="col-span-6 flex items-center gap-2">
-                                             <div className={`w-1.5 h-1.5 rounded-full ${entry.debit > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                                             <span className="text-gray-700 uppercase tracking-tight">{entry.account}</span>
+                               <td className="px-12 py-8" colSpan={3}>
+                                  <div className="space-y-2 py-4">
+                                     {getVirtualEntries(item).map((entry, idx) => (
+                                       <div key={idx} className="grid grid-cols-12 gap-6 items-center border-b border-slate-50 last:border-0 pb-2">
+                                          <div className="col-span-6 flex items-center gap-3">
+                                             <div className={`w-2 h-2 rounded-full ${entry.debit > 0 ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50 animate-pulse' : 'bg-rose-500 shadow-sm shadow-rose-500/50'}`}></div>
+                                             <span className="text-[11px] font-black text-slate-900 uppercase tracking-tight">{entry.account}</span>
                                           </div>
-                                          <div className="col-span-3 text-right tabular-nums text-gray-900">
-                                             {entry.debit > 0 ? `₹${entry.debit.toLocaleString()}` : '-'}
+                                          <div className="col-span-3 text-right tabular-nums text-sm font-black italic tracking-tighter text-slate-900">
+                                             {entry.debit > 0 ? `₹${entry.debit.toLocaleString()}` : '---'}
                                           </div>
-                                          <div className="col-span-3 text-right tabular-nums text-gray-900 pr-4">
-                                             {entry.credit > 0 ? `₹${entry.credit.toLocaleString()}` : '-'}
+                                          <div className="col-span-3 text-right tabular-nums text-sm font-black italic tracking-tighter text-slate-900 pr-8">
+                                             {entry.credit > 0 ? `₹${entry.credit.toLocaleString()}` : '---'}
                                           </div>
                                        </div>
                                      ))}
@@ -296,63 +257,62 @@ const Accounting = () => {
                              </>
                            ) : activeTab === "ledger" ? (
                              <>
-                               <td className="px-8 py-6">
-                                  <span className="text-[10px] font-black text-gray-400">
-                                     {new Date(item.date).toLocaleDateString()}
-                                  </span>
+                               <td className="px-12 py-8">
+                                  <span className="text-[11px] font-black text-slate-900 tracking-tightest italic">{new Date(item.date).toLocaleDateString()}</span>
                                </td>
-                               <td className="px-8 py-6">
-                                  <div className="flex items-center gap-2">
-                                     <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${item.type === 'income' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                               <td className="px-12 py-8">
+                                  <div className="flex items-center gap-3">
+                                     <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${item.type === 'income' ? 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-sm shadow-emerald-500/5' : 'bg-rose-50 text-rose-600 border-rose-100 shadow-sm shadow-rose-500/5'}`}>
                                         {item.type}
                                      </span>
-                                     <span className="text-xs font-bold text-gray-900">{item.category}</span>
+                                     <span className="text-[10px] font-black text-slate-900 uppercase italic tracking-tighter">{item.category}</span>
                                   </div>
                                </td>
-                               <td className="px-8 py-6">
-                                  <span className="text-xs text-gray-500 italic max-w-xs truncate block">{item.description || 'No notes provided'}</span>
+                               <td className="px-12 py-8 max-w-xs">
+                                  <span className="text-sm font-black text-slate-900 tracking-tightest uppercase italic truncate block">{item.description || 'Global Narrative Offset'}</span>
                                </td>
-                               <td className="px-8 py-6">
+                               <td className="px-12 py-8">
                                   {item.customer ? (
-                                    <span className="text-[10px] font-black text-blue-500 uppercase flex items-center gap-1"><Users className="w-3 h-3" /> {item.customer?.name}</span>
+                                    <div className="text-[10px] font-black text-indigo-600 uppercase flex items-center gap-2 italic bg-indigo-50 px-4 py-2 rounded-2xl border border-indigo-100 w-fit"><Users className="w-3.5 h-3.5" /> {item.customer?.name}</div>
                                   ) : item.supplier ? (
-                                    <span className="text-[10px] font-black text-red-500 uppercase flex items-center gap-1"><Building2 className="w-3 h-3" /> {item.supplier?.company || item.supplier?.name}</span>
+                                    <div className="text-[10px] font-black text-rose-600 uppercase flex items-center gap-2 italic bg-rose-50 px-4 py-2 rounded-2xl border border-rose-100 w-fit"><Building2 className="w-3.5 h-3.5" /> {item.supplier?.company || item.supplier?.name}</div>
                                   ) : (
-                                    <span className="text-[10px] font-black text-gray-300 uppercase italic">N/A</span>
+                                    <span className="text-[10px] font-black text-slate-200 uppercase tracking-widest italic opacity-40">System Node</span>
                                   )}
                                </td>
-                               <td className="px-8 py-6 text-right pr-12">
-                                  <span className={`text-lg font-black tracking-tight ${item.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                                     {item.type === 'income' ? '+' : '-'} ₹{item.amount?.toLocaleString() || '0'}
+                               <td className="px-12 py-8 text-right pr-20">
+                                  <span className={`text-xl font-black italic tracking-tightest tabular-nums ${item.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                     {item.type === 'income' ? '+' : '-'} ₹{item.amount?.toLocaleString()}
                                   </span>
                                </td>
                              </>
                            ) : (
                              <>
-                               <td className="px-8 py-6">
-                                  <span className="text-[10px] font-black text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg">
-                                     #{item._id.substring(item._id.length - 6).toUpperCase()}
-                                  </span>
-                               </td>
-                               <td className="px-8 py-6">
+                               <td className="px-12 py-8">
                                   <div className="flex flex-col">
-                                     <span className="text-sm font-black text-gray-900">
-                                        {activeTab === 'receivables' ? item.customer?.name : (item.supplier?.company || item.supplier?.name)}
-                                     </span>
-                                     <span className="text-[10px] font-bold text-gray-400 uppercase">{item.product?.name || item.material?.name}</span>
+                                     <span className="text-[11px] font-black text-slate-900 tracking-tightest italic mb-1">#{item._id.slice(-6).toUpperCase()}</span>
+                                     <div className="px-3 py-1 bg-slate-50 text-slate-400 rounded-lg text-[9px] font-black border border-slate-100 uppercase tracking-widest w-fit">Ref-Protocol</div>
                                   </div>
                                </td>
-                               <td className="px-8 py-6 text-right">
-                                  <span className="text-sm font-black text-gray-900">₹{item.totalAmount?.toLocaleString('en-IN')}</span>
-                                </td>
-                               <td className="px-8 py-6 text-right">
-                                  <span className="text-sm font-bold text-green-600">₹{item.amountPaid?.toLocaleString('en-IN')}</span>
+                               <td className="px-12 py-8">
+                                  <div className="flex flex-col">
+                                     <span className="text-sm font-black text-slate-900 tracking-tightest uppercase italic group-hover:text-slate-600 transition-colors">
+                                        {activeTab === 'receivables' ? item.customer?.name : (item.supplier?.company || item.supplier?.name || 'Partner')}
+                                     </span>
+                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1.5 opacity-40 flex items-center gap-2"><Clock className="w-3 h-3" /> Duration: {getMonthStr(item)}</span>
+                                  </div>
                                </td>
-                               <td className="px-8 py-6 text-right pr-12">
+                               <td className="px-12 py-8 text-right tabular-nums">
+                                  <span className="text-sm font-black italic tracking-tighter text-slate-900">₹{item.totalAmount?.toLocaleString()}</span>
+                                </td>
+                               <td className="px-12 py-8 text-right tabular-nums">
+                                  <span className="text-sm font-black italic tracking-tighter text-emerald-600">₹{item.amountPaid?.toLocaleString()}</span>
+                               </td>
+                               <td className="px-12 py-8 text-right pr-20">
                                   <div className="flex flex-col items-end">
-                                     <span className="text-base font-black text-red-600 tracking-tight italic">₹{(item.totalAmount - (item.amountPaid || 0)).toLocaleString('en-IN')}</span>
-                                     <div className="w-20 h-1 bg-gray-100 rounded-full mt-2 overflow-hidden">
-                                         <div className="h-full bg-blue-500" style={{ width: `${((item.amountPaid || 0) / item.totalAmount) * 100}%` }}></div>
+                                     <span className="text-xl font-black text-rose-600 tracking-tightest italic">₹{(item.totalAmount - (item.amountPaid || 0)).toLocaleString()}</span>
+                                     <div className="w-32 h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden shadow-inner flex">
+                                         <div className={`h-full bg-gradient-to-r ${activeTab === 'receivables' ? 'from-indigo-600 to-indigo-400' : 'from-rose-600 to-rose-400'}`} style={{ width: `${((item.amountPaid || 0) / item.totalAmount) * 100}%` }}></div>
                                      </div>
                                   </div>
                                </td>
@@ -361,12 +321,10 @@ const Accounting = () => {
                         </tr>
                       ))}
                    </tbody>
-
                 </table>
               )}
            </div>
         </div>
-
 
       </div>
     </AppLayout>

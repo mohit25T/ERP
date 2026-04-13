@@ -1,15 +1,15 @@
 import axios from "axios";
 
 // Automatic Environment Detection: Uses localhost for dev and Render for production
-const isLocalhost = 
-  window.location.hostname === "localhost" || 
-  window.location.hostname === "127.0.0.1" || 
-  window.location.hostname.startsWith("192.168.") || 
+const isLocalhost =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1" ||
+  window.location.hostname.startsWith("192.168.") ||
   window.location.hostname.startsWith("10.");
 
-const API_BASE_URL = isLocalhost 
-  ? "http://localhost:5000/api" 
-  : "https://erp-1-et0w.onrender.com/api";
+const API_BASE_URL = isLocalhost
+  ? "http://localhost:5000/api"
+  : "https://erp-1i9o.onrender.com/api";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -39,6 +39,13 @@ export const productApi = {
   delete: (id) => api.delete(`/products/${id}`)
 };
 
+export const bomApi = {
+  getAll: () => api.get("/boms"),
+  getByProduct: (productId) => api.get(`/boms/product/${productId}`),
+  upsert: (productId, data) => api.post(`/boms/product/${productId}`, data),
+  delete: (id) => api.delete(`/boms/${id}`)
+};
+
 export const customerApi = {
   getAll: () => api.get("/customers"),
   create: (data) => api.post("/customers", data),
@@ -65,6 +72,7 @@ export const purchaseApi = {
 export const orderApi = {
   getAll: () => api.get("/orders"),
   create: (data) => api.post("/orders", data),
+  update: (id, data) => api.put(`/orders/${id}`, data),
   updateStatus: (id, status) => api.put(`/orders/${id}/status`, { status }),
   delete: (id) => api.delete(`/orders/${id}`)
 };
@@ -133,7 +141,10 @@ export const distanceApi = {
 export const productionApi = {
   getAll: () => api.get("/productions"),
   create: (data) => api.post("/productions", data),
-  delete: (id) => api.delete(`/productions/${id}`)
+  start: (id) => api.patch(`/productions/${id}/start`),
+  complete: (id, data) => api.patch(`/productions/${id}/complete`, data),
+  delete: (id) => api.delete(`/productions/${id}`),
+  getInsights: () => api.get("/productions/insights")
 };
 
 export const invoiceApi = {
@@ -141,7 +152,12 @@ export const invoiceApi = {
   create: (data) => api.post("/invoices", data),
   finalize: (id) => api.patch(`/invoices/${id}/finalize`),
   downloadPdf: (id) => api.get(`/invoices/${id}/pdf`, { responseType: 'blob' }),
-  delete: (id) => api.delete(`/invoices/${id}`)
+  delete: (id) => api.delete(`/invoices/${id}`),
+  // New Offline Workflow Methods
+  downloadEinvoiceJson: (id) => api.get(`/invoices/${id}/json/einvoice`, { responseType: 'blob' }),
+  downloadEwayBillJson: (id) => api.get(`/invoices/${id}/json/ewaybill`, { responseType: 'blob' }),
+  updateEinvoiceDetails: (id, data) => api.patch(`/invoices/${id}/einvoice-details`, data),
+  updateEwayBillDetails: (id, data) => api.patch(`/invoices/${id}/ewaybill-details`, data)
 };
 
 export const journalApi = {
@@ -150,7 +166,8 @@ export const journalApi = {
 
 export const inventoryApi = {
   getLogs: (productId) => api.get(`/inventory/logs/${productId}`),
-  getAllLogs: () => api.get("/inventory/logs")
+  getAllLogs: () => api.get("/inventory/logs"),
+  getScrapLogs: () => api.get("/inventory/scrap")
 };
 
 export default api;

@@ -21,6 +21,8 @@ import distanceRoutes from "./routes/distance.route.js";
 import productionRoutes from "./routes/production.route.js";
 import notificationRoutes from "./routes/notification.route.js";
 import invoiceRoutes from "./routes/invoice.route.js";
+import bomRoutes from "./routes/bom.route.js";
+import inventoryRoutes from "./routes/inventory.route.js";
 
 dotenv.config();
 connectDB();
@@ -29,7 +31,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors({
-  origin: ["https://erp-1-et0w.onrender.com", "http://localhost:5173"],
+  origin: ["https://erp-1-et0w.onrender.com", "https://erp-1i9o.onrender.com", "http://localhost:5173"],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
@@ -61,6 +63,8 @@ app.use("/api/distance", distanceRoutes);
 app.use("/api/productions", productionRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/invoices", invoiceRoutes);
+app.use("/api/boms", bomRoutes);
+app.use("/api/inventory", inventoryRoutes);
 
 
 // REAL GST LOOKUP API (gstincheck.co.in)

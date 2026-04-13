@@ -3,95 +3,229 @@ import fs from "fs";
 
 class PdfService {
   /**
+   * Converts numbers to Indian English Words (Lakh/Crore system)
+   */
+  static numberToWords(num) {
+    const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
+    const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+    const inWords = (n) => {
+      if ((n = n.toString()).length > 9) return 'Overflow';
+      let n_arr = ('000000000' + n).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+      if (!n_arr) return ''; 
+      let str = '';
+      str += n_arr[1] != 0 ? (a[Number(n_arr[1])] || b[n_arr[1][0]] + ' ' + a[n_arr[1][1]]) + 'Crore ' : '';
+      str += n_arr[2] != 0 ? (a[Number(n_arr[2])] || b[n_arr[2][0]] + ' ' + a[n_arr[2][1]]) + 'Lakh ' : '';
+      str += n_arr[3] != 0 ? (a[Number(n_arr[3])] || b[n_arr[3][0]] + ' ' + a[n_arr[3][1]]) + 'Thousand ' : '';
+      str += n_arr[4] != 0 ? (a[Number(n_arr[4])] || b[n_arr[4][0]] + ' ' + a[n_arr[4][1]]) + 'Hundred ' : '';
+      str += n_arr[5] != 0 ? ((str != '') ? 'and ' : '') + (a[Number(n_arr[5])] || b[n_arr[5][0]] + ' ' + a[n_arr[5][1]]) : '';
+      return str.trim() + ' Rupees Only';
+    };
+
+    const parts = num.toFixed(2).split('.');
+    const amt = parseInt(parts[0]);
+    const paisa = parseInt(parts[1]);
+
+    let finalStr = inWords(amt);
+    if (paisa > 0) {
+      finalStr = finalStr.replace(' Only', '') + ' and ' + inWords(paisa).replace(' Only', '') + ' Paisa Only';
+    }
+    return finalStr;
+  }
+
+  /**
    * Generates a professional Tax Invoice PDF
    */
   static async generateInvoicePdf(invoice, user, customer, stream) {
-    const doc = new PDFDocument({ margin: 50 });
-
-    // Stream the PDF to the provided write stream (usually res)
+    const doc = new PDFDocument({ margin: 20, size: "A4" });
     doc.pipe(stream);
 
-    // --- Header ---
-    doc.fontSize(20).text("TAX INVOICE", { align: "center", underline: true });
-    doc.moveDown();
+    const margin = 20;
+    const pageWidth = 595.28; // Standard A4 width in points
+    const contentWidth = pageWidth - (margin * 2);
 
-    // --- Seller Details ---
-    doc.fontSize(12).font("Helvetica-Bold").text(user.companyName || user.name);
-    doc.font("Helvetica").fontSize(10).text(user.address);
-    doc.text(`State: ${user.state || ""}, Pincode: ${user.pincode || ""}`);
-    doc.text(`GSTIN: ${user.gstin || "N/A"}`);
-    doc.moveDown();
+    // Helpers for drawing grid
+    const drawBox = (x, y, w, h) => doc.rect(x, y, w, h).stroke();
+    const vLine = (x, y1, y2) => doc.moveTo(x, y1).lineTo(x, y2).stroke();
+    const hLine = (y, x1, x2) => doc.moveTo(x1, y).lineTo(x2, y).stroke();
 
-    // --- Invoice Info ---
-    const top = doc.y;
-    doc.text(`Invoice No: ${invoice.invoiceNumber}`, 400, top);
-    doc.text(`Date: ${new Date(invoice.createdAt).toLocaleDateString()}`, 400, top + 15);
-    doc.text(`Due Date: ${invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : "N/A"}`, 400, top + 30);
-    doc.moveDown();
+    doc.lineWidth(0.5);
 
-    // --- Bill To ---
-    doc.font("Helvetica-Bold").fontSize(11).text("Bill To:", 50, doc.y);
-    doc.font("Helvetica").fontSize(10).text(customer.company || customer.name);
-    doc.text(customer.address || "");
-    doc.text(`GSTIN: ${customer.gstin || "N/A"}`);
-    doc.text(`State: ${customer.state || ""}`);
-    doc.moveDown();
+    // --- Header Section ---
+    drawBox(margin, 20, contentWidth, 60);
+    doc.fontSize(16).font("Helvetica-Bold").text(user.companyName || user.name, margin, 32, { align: "center", width: contentWidth });
+    doc.fontSize(8).font("Helvetica").text(user.address || "", margin, 50, { align: "center", width: contentWidth });
+    doc.text(`PH: ${user.mobile || ""} EMAIL: ${user.email || ""}`, margin, 60, { align: "center", width: contentWidth });
 
-    // --- Table Headers ---
-    const tableTop = doc.y + 10;
-    doc.font("Helvetica-Bold");
-    doc.text("SN", 50, tableTop);
-    doc.text("Description", 80, tableTop);
-    doc.text("HSN", 250, tableTop);
-    doc.text("Qty", 300, tableTop);
-    doc.text("Rate", 350, tableTop);
-    doc.text("Tax%", 400, tableTop);
-    doc.text("Amount", 480, tableTop);
-
-    doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).stroke();
-
-    // --- Table Rows ---
-    let y = tableTop + 25;
+    // --- E-Invoice Info (IRN/Ack) ---
+    let currentY = 80;
+    drawBox(margin, currentY, contentWidth, 50);
+    doc.fontSize(8).font("Helvetica-Bold");
+    doc.text("IRN No.:", margin + 5, currentY + 5);
+    doc.text("Ack No.:", margin + 5, currentY + 20);
+    doc.text("Ack Date:", margin + 5, currentY + 35);
+    
     doc.font("Helvetica");
-    invoice.items.forEach((item, index) => {
-      doc.text(index + 1, 50, y);
-      doc.text(item.name.substring(0, 30), 80, y);
-      doc.text(item.hsnCode || "-", 250, y);
-      doc.text(`${item.quantity} ${item.unit || ""}`, 300, y);
-      doc.text(item.price.toLocaleString(), 350, y);
-      doc.text(`${item.gstRate}%`, 400, y);
-      doc.text(item.totalAmount.toLocaleString(), 480, y);
-      y += 20;
-    });
-
-    doc.moveTo(50, y).lineTo(550, y).stroke();
-    y += 15;
-
-    // --- Summary ---
-    doc.font("Helvetica-Bold");
-    doc.text("Taxable Value:", 350, y);
-    doc.font("Helvetica").text(invoice.taxableAmount.toLocaleString(), 480, y);
-    y += 15;
-
-    if (invoice.cgst > 0) {
-      doc.text(`CGST:`, 350, y);
-      doc.text(invoice.cgst.toLocaleString(), 480, y);
-      y += 15;
-      doc.text(`SGST:`, 350, y);
-      doc.text(invoice.sgst.toLocaleString(), 480, y);
-      y += 15;
-    } else {
-      doc.text(`IGST:`, 350, y);
-      doc.text(invoice.igst.toLocaleString(), 480, y);
-      y += 15;
+    const einvoice = invoice.einvoice || {};
+    doc.text(einvoice.irn || "Not Generated", margin + 60, currentY + 5);
+    doc.text(einvoice.ackNo || "Not Generated", margin + 60, currentY + 20);
+    doc.text(invoice.finalizedAt ? new Date(invoice.finalizedAt).toLocaleString("en-GB") : "Not Finalized", margin + 60, currentY + 35);
+    
+    // Optional QR Code
+    if (einvoice.qrCodeUrl) {
+      try {
+        // Drawing QR code on the right side of the IRN box
+        doc.image(einvoice.qrCodeUrl, margin + contentWidth - 45, currentY + 5, { width: 40 });
+      } catch (err) {
+        console.warn("QR Code image failed to load:", err.message);
+      }
     }
 
-    doc.font("Helvetica-Bold").fontSize(12);
-    doc.text("Total Amount:", 350, y);
-    doc.text(`₹ ${invoice.totalAmount.toLocaleString()}`, 480, y);
+    // --- Invoice Type Header ---
+    currentY += 50;
+    drawBox(margin, currentY, contentWidth, 15);
+    doc.fontSize(7).font("Helvetica-Bold");
+    doc.text("Debit Memo", margin + 5, currentY + 4);
+    doc.fontSize(10).text("TAX INVOICE", margin, currentY + 3, { align: "center", width: contentWidth });
+    doc.fontSize(7).text("Original", margin + contentWidth - 40, currentY + 4);
 
-    // --- Footer ---
-    doc.fontSize(10).font("Helvetica-Oblique").text(user.invoiceSettings?.footerText || "", 50, 700, { width: 500, align: "center" });
+    // --- Party Details & Specs Box ---
+    currentY += 15;
+    const splitX = margin + (contentWidth * 0.6);
+    drawBox(margin, currentY, contentWidth, 100);
+    vLine(splitX, currentY, currentY + 100);
+
+    // Bill To
+    doc.fontSize(8).font("Helvetica-Bold").text("M/s.:", margin + 5, currentY + 5);
+    doc.fontSize(10).text(customer.company || customer.name, margin + 45, currentY + 5, { width: (splitX - margin) - 50 });
+    doc.fontSize(8).font("Helvetica").text(customer.address || "", margin + 45, currentY + 20, { width: (splitX - margin) - 50 });
+    doc.fontSize(9).font("Helvetica-Bold").text(`${customer.state?.toUpperCase() || ""} - ${customer.pincode || ""}`, margin + 45, currentY + 65);
+    
+    doc.fontSize(8).text("Place of Supply:", margin + 5, currentY + 80);
+    doc.font("Helvetica").text(customer.state || "", margin + 75, currentY + 80);
+    doc.font("Helvetica-Bold").text("GSTIN No. :", margin + 5, currentY + 90);
+    doc.font("Helvetica").text(customer.gstin || "URD", margin + 75, currentY + 90);
+
+    // Invoice Meta
+    const rMargin = splitX + 5;
+    const rValPos = splitX + 70;
+    doc.fontSize(8).font("Helvetica-Bold");
+    doc.text("Invoice No. :", rMargin, currentY + 5);
+    doc.font("Helvetica").text(invoice.invoiceNumber, rValPos, currentY + 5);
+    
+    doc.font("Helvetica-Bold").text("Date :", rMargin, currentY + 18);
+    doc.font("Helvetica").text(new Date(invoice.createdAt).toLocaleDateString("en-IN"), rValPos, currentY + 18);
+    
+    hLine(currentY + 35, splitX, margin + contentWidth);
+    
+    const eway = invoice.ewayBill || {};
+    doc.fontSize(8).font("Helvetica-Bold");
+    doc.text("EWB No.", rMargin, currentY + 40);
+    doc.font("Helvetica").text(`: ${eway.ewayBillNo || "."}`, rValPos - 20, currentY + 40);
+    
+    doc.font("Helvetica-Bold").text("EWB Date", rMargin, currentY + 55);
+    doc.font("Helvetica").text(`: ${eway.ewbDate ? new Date(eway.ewbDate).toLocaleDateString("en-GB") : "/ /"}`, rValPos - 20, currentY + 55);
+    
+    doc.font("Helvetica-Bold").text("Valid Until", rMargin, currentY + 70);
+    doc.font("Helvetica").text(`: ${eway.validityDate ? new Date(eway.validityDate).toLocaleDateString("en-GB") : "/ /"}`, rValPos - 20, currentY + 70);
+    
+    doc.font("Helvetica-Bold").text("Vehicle No.", rMargin, currentY + 85);
+    doc.font("Helvetica").text(`: ${eway.vehicleNo || "."}`, rValPos - 20, currentY + 85);
+
+    // --- Items Grid ---
+    currentY += 100;
+    const tableHeaderY = currentY;
+    const tableHeight = 350;
+    drawBox(margin, currentY, contentWidth, tableHeight);
+    hLine(currentY + 20, margin, margin + contentWidth);
+
+    const cols = {
+      sn: { x: margin, w: 25, label: "SrNo" },
+      desc: { x: margin + 25, w: 215, label: "Description" },
+      hsn: { x: margin + 240, w: 45, label: "HSN/SAC" },
+      qty: { x: margin + 285, w: 50, label: "Qty" },
+      unit: { x: margin + 335, w: 35, label: "Unit" },
+      rate: { x: margin + 370, w: 60, label: "Rate" },
+      gst: { x: margin + 430, w: 40, label: "GST %" },
+      amt: { x: margin + 470, w: contentWidth - 470, label: "Amount" }
+    };
+
+    doc.fontSize(8).font("Helvetica-Bold");
+    Object.values(cols).forEach(c => {
+      doc.text(c.label, c.x, tableHeaderY + 6, { width: c.w, align: "center" });
+      if (c.x > margin) vLine(c.x, tableHeaderY, tableHeaderY + tableHeight);
+    });
+
+    let itemY = tableHeaderY + 25;
+    doc.font("Helvetica").fontSize(8);
+    invoice.items.forEach((item, i) => {
+      doc.text(i + 1, cols.sn.x, itemY, { width: cols.sn.w, align: "center" });
+      doc.text(item.name, cols.desc.x + 5, itemY, { width: cols.desc.w - 10 });
+      doc.text(item.hsnCode || "", cols.hsn.x, itemY, { width: cols.hsn.w, align: "center" });
+      doc.text(item.quantity.toFixed(3), cols.qty.x, itemY, { width: cols.qty.w, align: "center" });
+      doc.text((item.unit || "pcs").toUpperCase(), cols.unit.x, itemY, { width: cols.unit.w, align: "center" });
+      doc.text(item.price.toFixed(2), cols.rate.x, itemY, { width: cols.rate.w, align: "right" });
+      doc.text(`${item.gstRate}%`, cols.gst.x, itemY, { width: cols.gst.w, align: "center" });
+      doc.text(item.totalAmount.toFixed(2), cols.amt.x - 5, itemY, { width: cols.amt.w, align: "right" });
+      itemY += 15;
+    });
+
+    // --- Footer Grid ---
+    currentY = tableHeaderY + tableHeight;
+    const footerH = 100;
+    drawBox(margin, currentY, contentWidth, footerH);
+    vLine(splitX, currentY, currentY + 85);
+    
+    hLine(currentY + 15, margin, margin + contentWidth);
+    hLine(currentY + 45, margin, margin + contentWidth);
+    hLine(currentY + 70, margin, margin + contentWidth);
+    hLine(currentY + 85, margin, margin + contentWidth);
+
+    doc.fontSize(8).font("Helvetica-Bold");
+    doc.text(`GSTIN No.: ${user.gstin || ""}`, margin + 5, currentY + 4);
+    const totalQty = invoice.items.reduce((s, it) => s + (it.quantity || 0), 0);
+    doc.text(totalQty.toFixed(3), cols.qty.x, currentY + 4, { width: cols.qty.w, align: "center" });
+    doc.text("Sub Total", splitX + 5, currentY + 4);
+    doc.text(invoice.taxableAmount.toFixed(2), margin + contentWidth - 85, currentY + 4, { width: 80, align: "right" });
+
+    const bank = user.bankDetails || {};
+    doc.fontSize(7).font("Helvetica");
+    doc.text(`Bank Name      : ${bank.bankName}`, margin + 5, currentY + 18);
+    doc.text(`Branch Name    : ${bank.branchName}`, margin + 5, currentY + 25);
+    doc.text(`Bank A/c. No.  : ${bank.accountNumber}`, margin + 5, currentY + 32);
+    doc.text(`RTGS/IFSC Code : ${bank.ifscCode}`, margin + 5, currentY + 39);
+
+    doc.fontSize(8).font("Helvetica-Bold").text("Taxable Amount", splitX + 5, currentY + 18);
+    doc.font("Helvetica").text(invoice.taxableAmount.toFixed(2), margin + contentWidth - 85, currentY + 18, { width: 80, align: "right" });
+    
+    if (invoice.cgst > 0) {
+      doc.text("CGST", splitX + 5, currentY + 28);
+      doc.text("9%", splitX + 60, currentY + 28);
+      doc.text(invoice.cgst.toFixed(2), margin + contentWidth - 85, currentY + 28, { width: 80, align: "right" });
+      doc.text("SGST", splitX + 5, currentY + 38);
+      doc.text("9%", splitX + 60, currentY + 38);
+      doc.text(invoice.sgst.toFixed(2), margin + contentWidth - 85, currentY + 38, { width: 80, align: "right" });
+    } else {
+      doc.text("IGST", splitX + 5, currentY + 28);
+      doc.text("18%", splitX + 60, currentY + 28);
+      doc.text(invoice.igst.toFixed(2), margin + contentWidth - 85, currentY + 28, { width: 80, align: "right" });
+    }
+
+    doc.fontSize(7).font("Helvetica-Bold").text("Total GST :", margin + 5, currentY + 48);
+    doc.font("Helvetica-Oblique").text(this.numberToWords(invoice.gstAmount), margin + 55, currentY + 48);
+    
+    doc.font("Helvetica-Bold").text("Bill Amount :", margin + 5, currentY + 58);
+    doc.font("Helvetica-Oblique").text(this.numberToWords(invoice.totalAmount), margin + 55, currentY + 58);
+
+    doc.fontSize(10).font("Helvetica-Bold").text("Grand Total", splitX + 5, currentY + 87);
+    doc.fontSize(11).text(invoice.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 }), margin + contentWidth - 105, currentY + 87, { width: 100, align: "right" });
+
+    // --- Signature Area ---
+    currentY += 100;
+    drawBox(margin, currentY, contentWidth, 60);
+    vLine(splitX, currentY, currentY + 60);
+    doc.fontSize(8).font("Helvetica-Bold").text(`For, ${user.companyName?.toUpperCase() || user.name.toUpperCase()}`, splitX, currentY + 5, { align: "center", width: contentWidth - (splitX - margin) });
+    doc.fontSize(7).text("(Authorised Signatory)", splitX, currentY + 50, { align: "center", width: contentWidth - (splitX - margin) });
 
     doc.end();
   }

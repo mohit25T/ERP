@@ -4,6 +4,8 @@ import Product from "../models/Product.js";
 import Supplier from "../models/Supplier.js";
 import User from "../models/User.js";
 import Notification from "../models/Notification.js";
+import InventoryService from "../services/InventoryService.js";
+import AccountingService from "../services/AccountingService.js";
 
 // Create Purchase (Inward Stock)
 export const createPurchase = async (req, res) => {
@@ -49,6 +51,7 @@ export const createPurchase = async (req, res) => {
       "gram": 0.001,
       "dagina": 1, // Price is per Dagina/Bag
       "unit": 1,
+      "pcs": 1,
       "amount": 1
     };
 
@@ -121,21 +124,38 @@ export const updatePurchaseStatus = async (req, res) => {
 
     if (!purchase) return res.status(404).json({ msg: "Purchase not found" });
 
-    // If transitioning to received, increase product stock
+    // If transitioning to received, increase product stock and record accounting
     if (status === "received" && purchase.status !== "received") {
       const product = await Product.findById(purchase.material);
+      const supplier = await Supplier.findById(purchase.supplier);
+      
       if (product) {
         // Multi-Unit Storage Conversion Logic
         const conversions = {
           "dagina": 50, // 1 Bag = 50kg
           "kg": 1,
           "gram": 0.001,
+          "pcs": 1,
           "unit": 1,
           "amount": 1
         };
         const stockFactor = conversions[purchase.unit.toLowerCase()] || 1;
-        product.stock += (purchase.quantity * stockFactor);
-        await product.save();
+        const inwardQty = purchase.quantity * stockFactor;
+
+        // 1. Unified Inventory Log & Stock Update
+        await InventoryService.updateStock({
+          productId: product._id,
+          quantity: inwardQty,
+          type: "IN",
+          referenceType: "purchase",
+          referenceId: purchase._id,
+          reason: `Stock Inward from Purchase #${purchase._id.toString().slice(-6).toUpperCase()}`
+        });
+
+        // 2. Unified Accounting Log
+        if (supplier) {
+          await AccountingService.recordPurchase(purchase, supplier, product.name);
+        }
       }
       purchase.receivedAt = new Date();
     }
@@ -159,25 +179,38 @@ export const deletePurchase = async (req, res) => {
       return res.status(404).json({ msg: "Purchase not found" });
     }
 
-    // If purchase was received, remove it from stock
+    // If purchase was received, revert inventory stock
     if (purchase.status === "received") {
-      const product = await Product.findById(purchase.material);
-      if (product) {
+      try {
         const conversions = {
           "dagina": 50,
           "kg": 1,
           "gram": 0.001,
+          "pcs": 1,
           "unit": 1,
           "amount": 1
         };
-        const stockFactor = conversions[purchase.unit.toLowerCase()] || 1;
-        product.stock -= (purchase.quantity * stockFactor);
-        await product.save();
+        const stockFactor = conversions[purchase.unit?.toLowerCase()] || 1;
+        const revertQty = purchase.quantity * stockFactor;
+
+        await InventoryService.updateStock({
+          productId: purchase.material,
+          quantity: revertQty,
+          type: "OUT",
+          referenceType: "purchase",
+          referenceId: purchaseId,
+          reason: `Purchase Record Deleted: Reverting Stock Inward (#${purchaseId.toString().slice(-6).toUpperCase()})`
+        });
+      } catch (stockErr) {
+        console.error(`[ERP WARNING] Could not revert inventory for deleted purchase ${purchaseId}:`, stockErr.message);
       }
     }
 
+    // Clean up Accounting & Record
+    await AccountingService.deleteReferenceEntries(purchaseId);
     await Purchase.findByIdAndDelete(purchaseId);
-    res.json({ msg: "Purchase deleted successfully" });
+
+    res.json({ msg: "Purchase and associated logs deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

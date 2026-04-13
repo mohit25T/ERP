@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { validateGSTIN } from "../../utils/gstValidator";
-import { CheckCircle2, XCircle, AlertCircle, Search, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, AlertCircle, Search, Loader2, User, Mail, Phone, Building2, MapPin, Hash, ShieldCheck, Zap, Activity } from "lucide-react";
 import { gstApi } from "../../api/erpApi";
 
+/**
+ * CustomerForm: The Corporate Identity Node
+ * High-fidelity data entry for enterprise client relationship management.
+ */
 const CustomerForm = ({ initialData, onSubmit, onCancel, loading }) => {
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
@@ -13,6 +17,7 @@ const CustomerForm = ({ initialData, onSubmit, onCancel, loading }) => {
     gstin: initialData?.gstin || "",
     address: initialData?.address || "",
     pincode: initialData?.pincode || "",
+    type: initialData?.type || "regular",
   });
 
   const [gstValidation, setGstValidation] = useState({ isValid: true, message: "" });
@@ -42,7 +47,6 @@ const CustomerForm = ({ initialData, onSubmit, onCancel, loading }) => {
         state: data.state || prev.state,
         pincode: data.pincode || prev.pincode
       }));
-      alert("Customer details successfully fetched!");
     } catch (err) {
       console.error("Failed to fetch GST details", err);
     } finally {
@@ -67,129 +71,183 @@ const CustomerForm = ({ initialData, onSubmit, onCancel, loading }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-          <input
-            name="name"
-            required
-            className="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition font-bold text-gray-900"
-            placeholder="John Doe"
-            value={formData.name}
-            onChange={handleChange}
-          />
-        </div>
-        
-        <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-          <input
-            name="email"
-            type="email"
-            required
-            className="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition"
-            placeholder="john@example.com"
-            value={formData.email}
-            onChange={handleChange}
-          />
+    <form onSubmit={handleSubmit} className="space-y-10 animate-in fade-in zoom-in-95 duration-700">
+      
+      {/* Classification Protocol */}
+      <div className="space-y-4">
+         <div className="flex items-center gap-2 mb-2">
+            <Zap className="w-4 h-4 text-indigo-500" />
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Client Classification Protocol</label>
+         </div>
+         <div className="flex bg-slate-100/50 p-1.5 rounded-[1.5rem] border border-slate-200/50">
+           <button
+              type="button"
+              onClick={() => setFormData(p => ({ ...p, type: 'regular' }))}
+              className={`flex-1 py-4 px-6 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500 flex items-center justify-center gap-2 ${formData.type === 'regular' ? 'bg-white text-indigo-600 shadow-xl shadow-slate-200/50 scale-[1.02] z-10' : 'text-slate-400 hover:text-slate-600'}`}
+           >
+              <ShieldCheck className={`w-3.5 h-3.5 ${formData.type === 'regular' ? 'text-indigo-600' : 'text-slate-300'}`} />
+              Regular Enterprise
+           </button>
+           <button
+              type="button"
+              onClick={() => setFormData(p => ({ ...p, type: 'scrap_buyer' }))}
+              className={`flex-1 py-4 px-6 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500 flex items-center justify-center gap-2 ${formData.type === 'scrap_buyer' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/20 scale-[1.02] z-10' : 'text-slate-400 hover:text-slate-600'}`}
+           >
+              <Activity className={`w-3.5 h-3.5 ${formData.type === 'scrap_buyer' ? 'text-rose-400' : 'text-slate-300'}`} />
+              Scrap Material Salvager
+           </button>
+         </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* IDENTITY SECTION */}
+        <div className="space-y-6 md:col-span-2">
+           <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] pl-3 border-l-4 border-indigo-600">Identity Core</h4>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-2.5">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Legal Representative</label>
+                <div className="relative group">
+                  <User className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
+                  <input
+                    name="name"
+                    required
+                    className="erp-input !pl-14 !bg-slate-50/50 focus:!bg-white"
+                    placeholder="FULL LEGAL NAME"
+                    value={formData.name}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2.5">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Contact Relay (Email)</label>
+                <div className="relative group">
+                  <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    className="erp-input !pl-14 !bg-slate-50/50 focus:!bg-white"
+                    placeholder="SECURE@EMAIL.COM"
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+           </div>
         </div>
 
-        <div>
-           <label className="block text-sm font-medium text-gray-700 mb-1">Primary State (GST)</label>
-           <input
-             name="state"
-             required
-             className="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition uppercase text-blue-600 font-black"
-             placeholder="e.g. MAHARASHTRA"
-             value={formData.state}
-             onChange={handleChange}
-           />
-        </div>
+        {/* LOGISTICS & FISCAL SECTION */}
+        <div className="space-y-6 md:col-span-2">
+           <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] pl-3 border-l-4 border-emerald-500">Logistics & Fiscal Node</h4>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-2.5">
+                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Registered Business Name</label>
+                 <div className="relative group">
+                    <Building2 className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
+                    <input
+                      name="company"
+                      className="erp-input !pl-14 !bg-slate-50/50 focus:!bg-white uppercase"
+                      placeholder="ACME SOLUTIONS PVT LTD"
+                      value={formData.company}
+                      onChange={handleChange}
+                    />
+                 </div>
+              </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-          <input
-            name="phone"
-            className="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition"
-            placeholder="+91 XXXXX XXXXX"
-            value={formData.phone}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="col-span-1">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Business Name (Company)</label>
-          <input
-            name="company"
-            className="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition"
-            placeholder="Acme Systems Pvt Ltd"
-            value={formData.company}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="col-span-1">
-          <div className="flex items-center justify-between mb-1">
-             <label className="block text-sm font-medium text-gray-700">Customer GSTIN</label>
-          </div>
-          <div className="relative group">
-            <input
-              name="gstin"
-              className={`w-full pl-4 pr-14 py-2 border rounded-xl bg-gray-50 focus:ring-2 outline-none transition uppercase font-black tracking-tight ${
-                formData.gstin 
-                  ? (gstValidation.isValid ? 'border-green-200 focus:ring-green-500/20 text-green-700' : 'border-red-200 focus:ring-red-500/20 text-red-600')
-                  : 'border-gray-200 focus:ring-blue-500/20 text-blue-600'
-              }`}
-              placeholder="27XXXXX0000X1Z5"
-              value={formData.gstin}
-              onChange={handleChange}
-            />
-            <button
-               type="button"
-               onClick={handleFetchDetails}
-               disabled={fetchLoading || !gstValidation.isValid || !formData.gstin}
-               className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-blue-600 text-white rounded-lg shadow-lg shadow-blue-500/20 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
-               title="Auto-fetch from GST Network"
-            >
-               {fetchLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
-            </button>
-            {formData.gstin && (
-              <div className="absolute right-12 top-1/2 -translate-y-1/2">
-                {gstValidation.isValid ? (
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                ) : (
-                  <XCircle className="w-4 h-4 text-red-400" />
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between mb-0.5">
+                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">GSTIN Master UID</label>
+                </div>
+                <div className="relative group">
+                  <Hash className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
+                  <input
+                    name="gstin"
+                    className={`erp-input !pl-14 !pr-16 !font-mono !tracking-[0.2em] !bg-indigo-50/30 uppercase ${
+                      formData.gstin 
+                        ? (gstValidation.isValid ? 'border-emerald-200 !text-emerald-700' : 'border-rose-200 !text-rose-600')
+                        : 'border-slate-200 !text-indigo-600'
+                    }`}
+                    placeholder="27XXXXX0000X"
+                    value={formData.gstin}
+                    onChange={handleChange}
+                  />
+                  <button
+                     type="button"
+                     onClick={handleFetchDetails}
+                     disabled={fetchLoading || !gstValidation.isValid || !formData.gstin}
+                     className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
+                  >
+                     {fetchLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                  </button>
+                  {formData.gstin && (
+                    <div className="absolute right-14 top-1/2 -translate-y-1/2">
+                      {gstValidation.isValid ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                      ) : (
+                        <XCircle className="w-4 h-4 text-rose-400" />
+                      )}
+                    </div>
+                  )}
+                </div>
+                {formData.gstin && !gstValidation.isValid && (
+                   <p className="mt-2 flex items-center gap-1.5 text-[10px] font-black text-rose-500 uppercase tracking-tight italic">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      {gstValidation.message}
+                   </p>
                 )}
               </div>
-            )}
-          </div>
-          {formData.gstin && !gstValidation.isValid && (
-             <p className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-red-500 uppercase tracking-tight">
-                <AlertCircle className="w-3 h-3" />
-                {gstValidation.message}
-             </p>
-          )}
+           </div>
         </div>
 
-        <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Postal Address</label>
+        <div className="space-y-2.5">
+          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Telecom Protocol (Phone)</label>
+          <div className="relative group">
+            <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
+            <input
+              name="phone"
+              className="erp-input !pl-14 !bg-slate-50/50 focus:!bg-white"
+              placeholder="+91 XXXXX XXXXX"
+              value={formData.phone}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2.5">
+           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Primary Fiscal State</label>
+           <div className="relative group">
+              <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
+              <input
+                name="state"
+                required
+                className="erp-input !pl-14 !bg-slate-50/50 focus:!bg-white uppercase !font-black !tracking-widest"
+                placeholder="STATE REGION"
+                value={formData.state}
+                onChange={handleChange}
+              />
+           </div>
+        </div>
+
+        <div className="md:col-span-2 space-y-2.5">
+          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Physical Operational Hub (Full Address)</label>
           <textarea
             name="address"
-            rows="2"
-            className="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition resize-none"
-            placeholder="Plot No, Street, Landmark..."
+            rows="3"
+            className="erp-input !py-5 resize-none h-28 !bg-slate-50/50 focus:!bg-white"
+            placeholder="STREET, SECTOR, LANDMARK..."
             value={formData.address}
             onChange={handleChange}
           />
         </div>
 
-        <div className="col-span-1">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Customer Pincode</label>
+        <div className="md:col-span-1 space-y-2.5">
+          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Registry Pincode</label>
           <input
             name="pincode"
             required
-            className="w-full px-4 py-2 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition font-bold"
-            placeholder="400001"
+            className="erp-input !bg-slate-50/50 focus:!bg-white !font-black !tracking-[0.5em]"
+            placeholder="000000"
             maxLength="6"
             value={formData.pincode}
             onChange={handleChange}
@@ -197,20 +255,21 @@ const CustomerForm = ({ initialData, onSubmit, onCancel, loading }) => {
         </div>
       </div>
 
-      <div className="flex gap-3 pt-4 border-t border-gray-100">
+      <div className="flex gap-6 pt-10 border-t border-slate-50">
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 py-2.5 px-4 border border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition"
+          className="erp-button-secondary flex-1"
         >
-          Cancel
+          Abort Entry
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 py-2.5 px-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition disabled:opacity-50"
+          className="erp-button-primary flex-1 group shadow-indigo-500/10"
         >
-          {loading ? "Saving..." : initialData ? "Update Customer" : "Add Customer"}
+          {loading ? "Synchronizing..." : initialData ? "Commit Data Update" : "Authorize New Entry"}
+          <ShieldCheck className="w-5 h-5 group-hover:scale-110 transition-transform" />
         </button>
       </div>
     </form>

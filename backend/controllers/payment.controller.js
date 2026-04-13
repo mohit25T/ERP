@@ -4,6 +4,24 @@ import Purchase from "../models/Purchase.js";
 import Ledger from "../models/Ledger.js";
 import AccountingService from "../services/AccountingService.js";
 
+// Helper: Calculate total account balance for a party
+async function getAccountOutstanding(partyId, type) {
+  if (!partyId) return 0;
+  if (type === "customer") {
+    const orders = await Order.find({ customer: partyId, status: { $ne: "cancelled" } });
+    const totalInvoiced = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const previousPayments = await Ledger.find({ customer: partyId, type: "income" });
+    const totalPaid = previousPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    return Math.max(0, totalInvoiced - totalPaid);
+  } else {
+    const purchases = await Purchase.find({ supplier: partyId, status: { $ne: "cancelled" } });
+    const totalInvoiced = purchases.reduce((sum, p) => sum + (p.totalAmount || 0), 0);
+    const previousPayments = await Ledger.find({ supplier: partyId, type: "expense" });
+    const totalPaid = previousPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    return Math.max(0, totalInvoiced - totalPaid);
+  }
+}
+
 
 // Record Payment for Order/Invoice (Receivable)
 export const recordOrderPayment = async (req, res) => {
@@ -50,7 +68,7 @@ export const recordOrderPayment = async (req, res) => {
     // If it's an order and has an invoice, update invoice too
     if (!invoiceId && !invoice && order) {
        // Just update order
-    } else if (invoice && !order.amountPaid) {
+    } else if (invoice && order) {
        order.amountPaid = target.amountPaid;
        order.paymentStatus = target.paymentStatus;
        await order.save();
@@ -114,6 +132,14 @@ export const recordPurchasePayment = async (req, res) => {
     }
 
     await purchase.save();
+
+    // Automated Accounting
+    await AccountingService.recordPaymentMade({
+      amount: Number(amount),
+      supplierName: purchase.supplier?.company || purchase.supplier?.name || "Supplier",
+      referenceId: purchase._id,
+      referenceType: "purchase"
+    });
 
     // Create Ledger Entry for installment tracking
     const ledgerEntry = new Ledger({

@@ -203,6 +203,8 @@ export const getPartyStatement = async (req, res) => {
       partyId: id,
       type,
       timeline,
+      totalDebit: Number(combined.reduce((sum, i) => sum + i.debit, 0).toFixed(2)),
+      totalCredit: Number(combined.reduce((sum, i) => sum + i.credit, 0).toFixed(2)),
       totalOutstanding: Number(runningBalance.toFixed(2))
     });
   } catch (err) {
@@ -307,38 +309,20 @@ export const getPublicStatement = async (req, res) => {
 // Whole-Company Financial Statement (Master Ledger)
 export const getCompanyStatement = async (req, res) => {
   try {
-    const orders = await Order.find({ status: { $nin: ["cancelled", "refunded"] } }).populate("customer").lean();
-    const purchases = await Purchase.find({ status: { $ne: "cancelled" } }).populate("supplier").lean();
-    const ledgerEntries = await Ledger.find().populate("customer supplier").lean();
-
+    const ledgerEntries = await Ledger.find({ amount: { $gt: 0 } }).populate("customer supplier").lean();
+    
     // Fetch the actual company details from the database
     const adminUser = await User.findOne({ role: "super_admin" }).lean();
     const companyName = adminUser?.companyName || "Our Company Statement";
 
     const combined = [
-      ...orders.map(o => ({
-        date: o.createdAt || new Date(),
-        type: "sales",
-        ref: o._id,
-        debit: 0,
-        credit: Number(o.totalAmount || 0),
-        description: `Sales Invoice #${String(o._id).slice(-6)} — ${o.customer?.company || o.customer?.name || "B2C Customer"} (Inc. ₹${o.gstAmount?.toLocaleString()} GST)`
-      })),
-      ...purchases.map(p => ({
-        date: p.createdAt || new Date(),
-        type: "purchase",
-        ref: p._id,
-        debit: Number(p.totalAmount || 0),
-        credit: 0,
-        description: `Inward Stock #${String(p._id).slice(-6)} — ${p.supplier?.company || p.supplier?.name || "Vendor"}`
-      })),
       ...ledgerEntries.map(l => ({
         date: l.date || new Date(),
-        type: l.type === "income" ? "receipt" : "payment",
+        type: l.type === "income" ? "Credit" : "Debit",
         ref: l._id,
         debit: l.type === "expense" ? Number(l.amount || 0) : 0,
         credit: l.type === "income" ? Number(l.amount || 0) : 0,
-        description: l.description || `${l.type === "income" ? "Manual Receipt" : "Manual Payment"} — ${l.customer?.name || l.supplier?.company || "External"}`
+        description: l.description || `${l.type === "income" ? "Receipt" : "Payment"} — ${l.customer?.name || l.supplier?.company || "External"}`
       }))
     ];
 
@@ -362,6 +346,8 @@ export const getCompanyStatement = async (req, res) => {
       companyAddress: adminUser?.address,
       companyGstin: adminUser?.gstin,
       timeline,
+      totalDebit: Number(ledgerEntries.reduce((sum, i) => sum + (i.type === 'expense' ? i.amount : 0), 0).toFixed(2)),
+      totalCredit: Number(ledgerEntries.reduce((sum, i) => sum + (i.type === 'income' ? i.amount : 0), 0).toFixed(2)),
       totalBalance: Number(runningBalance.toFixed(2))
     });
   } catch (err) {

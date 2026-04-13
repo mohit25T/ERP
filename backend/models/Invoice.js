@@ -60,6 +60,16 @@ const invoiceSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "EWayBill",
     },
+    einvoice: {
+      irn: { type: String, default: "" },
+      ackNo: { type: String, default: "" },
+      qrCodeUrl: { type: String, default: "" },
+      status: { 
+        type: String, 
+        enum: ["pending", "generated"], 
+        default: "pending" 
+      }
+    },
     notes: { type: String },
     finalizedAt: { type: Date },
   },

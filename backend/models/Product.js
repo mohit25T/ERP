@@ -14,11 +14,15 @@ const productSchema = new mongoose.Schema(
     },
     price: {
       type: Number,
-      required: true,
+      default: 0,
     },
     stock: {
       type: Number,
       required: true,
+      default: 0,
+    },
+    scrapStock: {
+      type: Number,
       default: 0,
     },
     minStock: {
@@ -45,23 +49,10 @@ const productSchema = new mongoose.Schema(
       type: Number, // Example: 18 (for 18%)
       default: 18,
     },
-    bom: [
-      {
-        material: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Product",
-        },
-        quantity: {
-          type: Number,
-          required: true,
-          default: 1,
-        },
-        unit: {
-          type: String,
-          default: "kg"
-        }
-      },
-    ],
+    unitWeightGrams: {
+      type: Number,
+      default: 0,
+    },
     batchNumber: {
       type: String,
     },

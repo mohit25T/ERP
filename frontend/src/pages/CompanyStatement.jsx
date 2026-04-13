@@ -2,19 +2,16 @@ import React, { useState, useEffect } from "react";
 import AppLayout from "../components/layout/AppLayout";
 import { reportsApi } from "../api/erpApi";
 import { 
-  FileText, 
-  Download, 
-  Printer, 
-  TrendingUp, 
-  TrendingDown, 
-  Wallet,
-  ArrowRightLeft,
-  Calendar
+  FileText, Download, Printer, TrendingUp, TrendingDown, 
+  Wallet, ArrowRightLeft, Calendar, ShieldCheck, Zap,
+  Search, Filter, ChevronRight, Activity, ArrowUpRight, ArrowDownLeft, Database
 } from "lucide-react";
 
 const CompanyStatement = () => {
   const [statement, setStatement] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     fetchStatement();
@@ -26,29 +23,28 @@ const CompanyStatement = () => {
       const res = await reportsApi.getCompanyStatement();
       setStatement(res.data);
     } catch (err) {
-      console.error("Failed to fetch company statement", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleExport = () => {
-    if (!statement?.timeline) return;
+    if (!filteredTimeline.length) return;
     const headers = ["Date", "Description", "Debit", "Credit", "Balance"];
-    const rows = statement.timeline.map(item => [
+    const rows = filteredTimeline.map(item => [
       `"${new Date(item.date).toLocaleDateString()}"`,
       `"${item.description.replace(/"/g, '""')}"`,
       item.debit || 0,
       item.credit || 0,
       item.balance || 0
     ].join(","));
-
     const csvString = [headers.join(","), ...rows].join("\n");
     const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", `Company_Statement_${new Date().toLocaleDateString()}.csv`);
+    link.setAttribute("download", `Master_Statement_${new Date().toLocaleDateString()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -56,8 +52,9 @@ const CompanyStatement = () => {
 
   if (loading) return (
     <AppLayout>
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
+        <div className="w-16 h-16 border-4 border-slate-100 border-t-slate-900 rounded-full animate-spin"></div>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Synchronizing Fiscal Ledger...</p>
       </div>
     </AppLayout>
   );
@@ -65,165 +62,168 @@ const CompanyStatement = () => {
   const totalCredits = statement?.timeline.reduce((sum, i) => sum + i.credit, 0) || 0;
   const totalDebits = statement?.timeline.reduce((sum, i) => sum + i.debit, 0) || 0;
 
+  const filteredTimeline = statement?.timeline.filter(item => 
+    item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String(item.ref).toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
   return (
     <AppLayout>
       <style>{`
         @media print {
           @page { size: A4; margin: 0.5cm; }
-          html, body, #root { height: auto !important; overflow: visible !important; }
           .main-app-content, aside, header { display: none !important; }
           .printable-document { display: block !important; width: 100% !important; background: white !important; color: black !important; }
-          table { width: 100% !important; border-collapse: collapse !important; table-layout: auto !important; }
-          th, td { border: 1px solid #000 !important; padding: 6px !important; font-size: 8pt !important; word-wrap: break-word !important; }
-          th { background: #f3f4f6 !important; }
-          tr { page-break-inside: avoid !important; }
+          table { width: 100% !important; border-collapse: collapse !important; }
+          th, td { border: 1px solid #eee !important; padding: 10px !important; font-size: 9pt !important; }
+          th { background: #f8fafc !important; text-transform: uppercase; font-weight: 900; }
         }
         .printable-document { display: none; }
       `}</style>
 
-      {/* PRINT VERSION */}
-      <div className="printable-document font-serif">
-        <div className="flex justify-between items-start border-b-2 border-black pb-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold uppercase">{statement?.companyName}</h1>
-            <p className="text-[10px] font-bold uppercase tracking-widest">{statement?.companyAddress}</p>
-            <p className="text-[10px] font-bold uppercase tracking-widest">GSTIN: {statement?.companyGstin}</p>
-            <p className="mt-2 text-[8px] font-bold uppercase tracking-widest text-gray-500">Master Financial Statement</p>
-          </div>
-          <div className="text-right text-xs">
-            <p>Generated: {new Date().toLocaleString()}</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="border border-black p-3">
-                <p className="text-[8px] font-bold uppercase mb-1">Total Inflow (Credits)</p>
-                <p className="text-lg font-bold">₹{totalCredits.toLocaleString()}</p>
-            </div>
-            <div className="border border-black p-3">
-                <p className="text-[8px] font-bold uppercase mb-1">Total Outflow (Debits)</p>
-                <p className="text-lg font-bold">₹{totalDebits.toLocaleString()}</p>
-            </div>
-            <div className="border border-black p-3 bg-gray-50">
-                <p className="text-[8px] font-bold uppercase mb-1">Net Balance</p>
-                <p className="text-lg font-bold">₹{statement?.totalBalance.toLocaleString()}</p>
-            </div>
-        </div>
-
-        <table className="w-full">
-            <thead>
-                <tr className="text-[10px] uppercase font-bold">
-                    <th className="text-left">Date</th>
-                    <th className="text-left">Transaction Details</th>
-                    <th className="text-right">Debit (₹)</th>
-                    <th className="text-right">Credit (₹)</th>
-                    <th className="text-right">Balance (₹)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {statement?.timeline.map((item, idx) => (
-                    <tr key={idx} className="text-[10px]">
-                        <td>{new Date(item.date).toLocaleDateString()}</td>
-                        <td>
-                            <p className="font-bold uppercase">{item.description}</p>
-                            <p className="text-[8px] text-gray-500 italic">REF: {String(item.ref).slice(-8).toUpperCase()}</p>
-                        </td>
-                        <td className="text-right">{item.debit > 0 ? item.debit.toLocaleString() : "-"}</td>
-                        <td className="text-right">{item.credit > 0 ? item.credit.toLocaleString() : "-"}</td>
-                        <td className="text-right font-bold">{item.balance.toLocaleString()} {item.balance >= 0 ? "Cr" : "Dr"}</td>
-                    </tr>
-                ))}
-            </tbody>
-        </table>
-      </div>
-
       {/* WEB VERSION */}
-      <div className="main-app-content space-y-8 animate-in fade-in duration-700">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div>
-            <h2 className="text-4xl font-black text-gray-900 tracking-tight italic flex items-center gap-3">
-               <div className="p-3 bg-gray-900 text-white rounded-2xl shadow-xl shadow-gray-200">
-                  <ArrowRightLeft className="w-8 h-8" />
-               </div>
-               Full Company Statement
-            </h2>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2 ml-16 flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                Official Record for {statement?.companyName}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-             <button onClick={() => window.print()} className="px-6 py-3 bg-white border border-gray-100 rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-500 hover:bg-gray-50 transition-all shadow-sm">
-                <Printer className="w-4 h-4" /> Print Statement
-             </button>
-             <button onClick={handleExport} className="px-6 py-3 bg-gray-900 text-white rounded-2xl flex items-center gap-2 text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-gray-200">
-                <Download className="w-4 h-4" /> Export CSV
-             </button>
-          </div>
+      <div className="main-app-content space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        
+        {/* Elite Financial Header */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+           <div className="flex items-center gap-6">
+              <div className="w-20 h-20 bg-slate-900 rounded-[2.5rem] flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-xl border border-slate-800">
+                 <ArrowRightLeft className="w-10 h-10 text-white" />
+              </div>
+              <div>
+                 <h2 className="text-5xl font-black text-slate-900 tracking-tightest leading-none mb-2 italic">Capital <span className="text-slate-400 not-italic">Terminal</span></h2>
+                 <div className="flex items-center gap-3">
+                    <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Master Financial Audit & Aggregated Fiscal Ledger</span>
+                 </div>
+              </div>
+           </div>
+
+           <div className="flex items-center gap-4">
+              <button onClick={() => window.print()} className="erp-button-secondary !py-5 !px-8 border-slate-200">
+                 <Printer className="w-5 h-5" />
+                 Print Audit
+              </button>
+              <button onClick={handleExport} className="erp-button-primary !py-5 !bg-slate-900 !rounded-[2rem] hover:!bg-black">
+                 <Download className="w-5 h-5 shadow-sm" />
+                 Export Dataset
+              </button>
+           </div>
         </div>
 
-        {/* Master Summary Cards */}
+        {/* Global Fiscal Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-           <div className="p-8 bg-white border border-gray-100 rounded-[2.5rem] shadow-sm relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                 <TrendingUp className="w-16 h-16 text-green-600" />
+           <div className="p-10 bg-white rounded-[3rem] border border-slate-100 shadow-sm group hover:border-emerald-200 transition-all duration-500 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-5"><TrendingUp className="w-16 h-16 text-emerald-600" /></div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Aggregated Inflow</p>
+              <h3 className="text-4xl font-black text-emerald-600 tracking-tightest tabular-nums italic">₹{totalCredits.toLocaleString()}</h3>
+              <div className="flex items-center gap-2 mt-4 text-emerald-500 font-bold text-[10px] uppercase tracking-widest">
+                 <ArrowUpRight className="w-3.5 h-3.5" />
+                 <span>Primary Revenue Stream</span>
               </div>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Total Credit Inflow</p>
-              <h3 className="text-3xl font-black italic tracking-tighter text-green-600">₹{totalCredits.toLocaleString()}</h3>
            </div>
-           <div className="p-8 bg-white border border-gray-100 rounded-[2.5rem] shadow-sm relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                 <TrendingDown className="w-16 h-16 text-red-600" />
+           <div className="p-10 bg-white rounded-[3rem] border border-slate-100 shadow-sm group hover:border-rose-200 transition-all duration-500 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-5"><TrendingDown className="w-16 h-16 text-rose-600" /></div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Operational Outflow</p>
+              <h3 className="text-4xl font-black text-rose-600 tracking-tightest tabular-nums italic">₹{totalDebits.toLocaleString()}</h3>
+              <div className="flex items-center gap-2 mt-4 text-rose-500 font-bold text-[10px] uppercase tracking-widest">
+                 <ArrowDownLeft className="w-3.5 h-3.5" />
+                 <span>Strategic Expenditure Flux</span>
               </div>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Total Debit Outflow</p>
-              <h3 className="text-3xl font-black italic tracking-tighter text-red-600">₹{totalDebits.toLocaleString()}</h3>
            </div>
-           <div className={`p-8 rounded-[2.5rem] border shadow-sm relative overflow-hidden group transition-all ${statement?.totalBalance >= 0 ? "bg-blue-600 border-blue-500 shadow-blue-500/10" : "bg-red-600 border-red-500 shadow-red-500/10"}`}>
-              <div className="absolute top-0 right-0 p-8 opacity-20">
-                 <Wallet className="w-16 h-16 text-white" />
+           <div className={`p-10 rounded-[3rem] shadow-2xl relative overflow-hidden group transition-all ${statement?.totalBalance >= 0 ? "bg-slate-900 shadow-slate-900/20" : "bg-rose-900 shadow-rose-900/20"}`}>
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                 <Wallet className="w-16 h-16 text-white rotate-12" />
               </div>
-              <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Net Master Balance</p>
-              <h3 className="text-3xl font-black italic tracking-tighter text-white">₹{Math.abs(statement?.totalBalance).toLocaleString()} <span className="text-xs uppercase">{statement?.totalBalance >= 0 ? "Cr" : "Dr"}</span></h3>
+              <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-4">Net Fiscal Position</p>
+              <h3 className="text-4xl font-black text-white tracking-tightest tabular-nums italic">
+                 ₹{Math.abs(statement?.totalBalance).toLocaleString()} 
+                 <span className="text-[10px] uppercase not-italic ml-2 opacity-40">{statement?.totalBalance >= 0 ? "Credit Balance" : "Debit Exposure"}</span>
+              </h3>
+              <div className="flex items-center gap-2 mt-4 text-white/60 font-bold text-[10px] uppercase tracking-widest">
+                 <Zap className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                 <span>System Health Synchronized</span>
+              </div>
            </div>
         </div>
 
-        {/* Master Table */}
-        <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden">
+        {/* Unified Statement Container */}
+        <div className="bg-white rounded-[4rem] border border-slate-100 shadow-sm overflow-hidden mb-20">
+           <div className="p-10 border-b border-slate-50 flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="flex items-center gap-4">
+                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                    <Calendar className="w-5 h-5 text-slate-400" />
+                 </div>
+                 <div>
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Audit Period</h4>
+                    <p className="text-sm font-black text-slate-900 uppercase italic tracking-tighter">Lifetime Fiscal Duration</p>
+                 </div>
+              </div>
+              <div className="flex items-center gap-4">
+                  <div className="relative group">
+                    <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${searchTerm ? 'text-slate-900' : 'text-slate-400'}`} />
+                    <input 
+                      placeholder="Transaction Lookup..." 
+                      className="pl-10 pr-6 py-3 bg-slate-50 border-none rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none focus:bg-white focus:ring-4 focus:ring-slate-900/5 transition-all w-64" 
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <button 
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`p-3 rounded-2xl transition-all ${showFilters ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/40' : 'bg-slate-50 text-slate-400 hover:text-slate-900'}`}
+                  >
+                    <Filter className="w-5 h-5" />
+                  </button>
+              </div>
+           </div>
+
            <div className="overflow-x-auto">
               <table className="w-full text-left">
                  <thead>
-                    <tr className="bg-gray-50/50 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
-                       <th className="px-8 py-5">Posting Date</th>
-                       <th className="px-8 py-5">Transaction Summary</th>
-                       <th className="px-8 py-5 text-right">Debit (₹)</th>
-                       <th className="px-8 py-5 text-right">Credit (₹)</th>
-                       <th className="px-8 py-5 text-right pr-12">Running Balance</th>
+                    <tr className="bg-slate-50/50 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] border-b border-slate-50">
+                       <th className="px-12 py-8">Timestamp</th>
+                       <th className="px-12 py-8">Transaction Identity</th>
+                       <th className="px-12 py-8 text-right">Debit Magnitude</th>
+                       <th className="px-12 py-8 text-right">Credit Magnitude</th>
+                       <th className="px-12 py-8 text-right pr-20">Fiscal Velocity</th>
                     </tr>
                  </thead>
-                 <tbody className="divide-y divide-gray-50 uppercase tracking-tight">
-                    {statement?.timeline.map((item, idx) => (
-                       <tr key={idx} className="hover:bg-gray-50/30 transition-colors group">
-                          <td className="px-8 py-6">
-                             <div className="flex items-center gap-2">
-                                <Calendar className="w-3 h-3 text-gray-300" />
-                                <span className="text-xs font-black text-gray-900 italic tracking-tight">{new Date(item.date).toLocaleDateString()}</span>
+                 <tbody className="divide-y divide-slate-50">
+                    {filteredTimeline.map((item, idx) => (
+                       <tr key={idx} className="group hover:bg-slate-50/80 transition-all duration-500">
+                          <td className="px-12 py-8">
+                             <div className="flex flex-col">
+                                <span className="text-[11px] font-black text-slate-900 tracking-tightest italic">{new Date(item.date).toLocaleDateString()}</span>
+                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1 opacity-40">{new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                              </div>
                           </td>
-                          <td className="px-8 py-6 max-w-md">
-                             <p className="text-xs font-bold text-gray-700 truncate">{item.description}</p>
-                             <span className="text-[9px] font-black text-gray-300 tracking-widest">REF: {String(item.ref).slice(-8).toUpperCase()}</span>
+                          <td className="px-12 py-8 max-w-sm">
+                             <div className="flex flex-col">
+                                <span className="text-sm font-black text-slate-900 tracking-tightest group-hover:text-slate-600 transition-colors uppercase italic">{item.description}</span>
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1.5 flex items-center gap-2">
+                                   <Database className="w-3 h-3" />
+                                   REF: {String(item.ref).slice(-8).toUpperCase()}
+                                </span>
+                             </div>
                           </td>
-                          <td className="px-8 py-6 text-right tabular-nums text-red-600 font-bold">
-                             {item.debit > 0 ? `₹${item.debit.toLocaleString()}` : "-"}
-                          </td>
-                          <td className="px-8 py-6 text-right tabular-nums text-green-600 font-bold">
-                             {item.credit > 0 ? `₹${item.credit.toLocaleString()}` : "-"}
-                          </td>
-                          <td className="px-8 py-6 text-right pr-12">
-                             <span className={`text-sm font-black tabular-nums italic ${item.balance >= 0 ? "text-blue-600" : "text-red-900"}`}>
-                                ₹{Math.abs(item.balance).toLocaleString()}
-                                <span className="text-[10px] ml-1 uppercase">{item.balance >= 0 ? "Cr" : "Dr"}</span>
+                          <td className="px-12 py-8 text-right tabular-nums">
+                             <span className={`text-sm font-black italic tracking-tighter ${item.debit > 0 ? "text-rose-500" : "text-slate-200"}`}>
+                                {item.debit > 0 ? `₹${item.debit.toLocaleString()}` : "---"}
                              </span>
+                          </td>
+                          <td className="px-12 py-8 text-right tabular-nums">
+                             <span className={`text-sm font-black italic tracking-tighter ${item.credit > 0 ? "text-emerald-500" : "text-slate-200"}`}>
+                                {item.credit > 0 ? `₹${item.credit.toLocaleString()}` : "---"}
+                             </span>
+                          </td>
+                          <td className="px-12 py-8 text-right pr-20">
+                             <div className="flex flex-col items-end">
+                                <span className={`text-base font-black tabular-nums italic ${item.balance >= 0 ? "text-slate-900 text-glow" : "text-rose-900 underline decoration-rose-200 decoration-4"}`}>
+                                   ₹{Math.abs(item.balance).toLocaleString()}
+                                   <span className="text-[10px] ml-1 uppercase opacity-40 font-bold not-italic">{item.balance >= 0 ? "Cr" : "Dr"}</span>
+                                </span>
+                             </div>
                           </td>
                        </tr>
                     ))}
@@ -231,7 +231,62 @@ const CompanyStatement = () => {
               </table>
            </div>
         </div>
+
       </div>
+
+      {/* PRINT VERSION (Simplified for Matrix Printers) */}
+      <div className="printable-document font-sans">
+        <div className="text-center border-b-4 border-black pb-8 mb-10">
+           <h1 className="text-4xl font-black uppercase tracking-tightest mb-2">{statement?.companyName}</h1>
+           <p className="text-xs font-black uppercase tracking-widest text-gray-500">{statement?.companyAddress}</p>
+           <p className="text-xs font-black uppercase tracking-widest text-gray-500">GSTIN: {statement?.companyGstin}</p>
+           <div className="mt-6 py-2 bg-black text-white inline-block px-8 rounded-full text-[10px] font-black uppercase tracking-widest">Master Financial Audit Report</div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-10 mb-12">
+           <div className="space-y-4">
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                 <span className="text-[10px] font-black uppercase text-gray-400">Total Credits</span>
+                 <span className="text-sm font-black">₹{totalCredits.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                 <span className="text-[10px] font-black uppercase text-gray-400">Total Debits</span>
+                 <span className="text-sm font-black">₹{totalDebits.toLocaleString()}</span>
+              </div>
+           </div>
+           <div className="bg-gray-50 p-6 rounded-3xl border border-gray-200">
+              <p className="text-[10px] font-black uppercase text-gray-400 mb-2">Net Closing Position</p>
+              <h2 className="text-3xl font-black italic tracking-tightest">₹{Math.abs(statement?.totalBalance).toLocaleString()} <span className="text-xs uppercase font-bold not-italic">{statement?.totalBalance >= 0 ? "Cr" : "Dr"}</span></h2>
+           </div>
+        </div>
+
+        <table className="w-full">
+           <thead>
+              <tr>
+                 <th className="text-left">DATE</th>
+                 <th className="text-left">NARRATION</th>
+                 <th className="text-right">DEBIT</th>
+                 <th className="text-right">CREDIT</th>
+                 <th className="text-right">BALANCE</th>
+              </tr>
+           </thead>
+           <tbody>
+              {statement?.timeline.map((item, idx) => (
+                 <tr key={idx}>
+                    <td className="font-bold">{new Date(item.date).toLocaleDateString()}</td>
+                    <td>
+                       <p className="font-black uppercase italic tracking-tighter">{item.description}</p>
+                       <p className="text-[8px] text-gray-400">REF: {String(item.ref).slice(-10).toUpperCase()}</p>
+                    </td>
+                    <td className="text-right font-bold">{item.debit > 0 ? item.debit.toLocaleString() : "-"}</td>
+                    <td className="text-right font-bold">{item.credit > 0 ? item.credit.toLocaleString() : "-"}</td>
+                    <td className="text-right font-black italic">{item.balance.toLocaleString()}</td>
+                 </tr>
+              ))}
+           </tbody>
+        </table>
+      </div>
+
     </AppLayout>
   );
 };

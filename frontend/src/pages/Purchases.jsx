@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from "react";
 import AppLayout from "../components/layout/AppLayout";
-import { ShoppingCart, Search, Package2, Calendar, IndianRupee, Truck, CheckCircle2, Clock, AlertCircle, X, ExternalLink, Filter, Plus } from "lucide-react";
+import { 
+  ShoppingCart, Search, Package2, Calendar, IndianRupee, Truck, 
+  CheckCircle2, Clock, AlertCircle, X, ExternalLink, Filter, Plus,
+  Wallet, CreditCard, History, Trash2, TrendingDown, ArrowDownLeft,
+  ArrowUpRight, ShieldCheck, Zap, Download, Anchor, Box
+} from "lucide-react";
 import Modal from "../components/common/Modal";
 import { api, paymentApi } from "../api/erpApi";
-import { Wallet, CreditCard, History, Trash2 } from "lucide-react";
 
 const Purchases = () => {
   const [purchases, setPurchases] = useState([]);
   const [products, setProducts] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [error, setError] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterStatus, setFilterStatus] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     supplier: "",
@@ -40,11 +48,12 @@ const Purchases = () => {
         api.get("/suppliers")
       ]);
       setPurchases(pRes.data);
-      // Filter only raw materials or just all products if type not set
       setProducts(prodRes.data);
       setSuppliers(supRes.data);
+      setError("");
     } catch (err) {
-      console.error("Error fetching purchase data:", err);
+      console.error(err);
+      setError("Registry access failure.");
     } finally {
       setLoading(false);
     }
@@ -57,13 +66,15 @@ const Purchases = () => {
   const handleCreatePurchase = async (e) => {
     e.preventDefault();
     try {
+      setFormLoading(true);
       await api.post("/purchases", formData);
       fetchData();
       setIsModalOpen(false);
       setFormData({ supplier: "", material: "", category: "Raw Materials", quantity: 1, taxableAmount: 0, unit: "kg", gstRate: 18 });
     } catch (err) {
-      console.error("Error creating purchase:", err);
-      alert("Failed to create purchase. Check console.");
+      alert("Validation Error: Check registry parameters");
+    } finally {
+      setFormLoading(false);
     }
   };
 
@@ -72,28 +83,23 @@ const Purchases = () => {
       await api.put(`/purchases/${id}/status`, { status });
       fetchData();
     } catch (err) {
-      console.error("Error updating status:", err);
+      console.error(err);
     }
   };
 
   const handleDeletePurchase = async (id) => {
-    if (window.confirm("CRITICAL: Delete this purchase record? This will revert inventory stock if it was received.")) {
+    if (window.confirm("CRITICAL: Permanent deletion of inward record? Stock levels will be recalculated.")) {
       try {
         await api.delete(`/purchases/${id}`);
         fetchData();
       } catch (err) {
-        alert("Deletion Blocked: " + (err.response?.data?.msg || err.message));
+        alert("Deletion failed: Inventory lock detected.");
       }
     }
   };
 
   const handleAddPayment = async () => {
     try {
-      const balance = (selectedPurchase.totalAmount - selectedPurchase.amountPaid).toFixed(2);
-      if (Number(paymentAmount) > Number(balance)) {
-        alert(`Warning: Payment amount (₹${paymentAmount}) exceeds the balance payable (₹${balance}).`);
-        return;
-      }
       setFormLoading(true);
       await paymentApi.addPurchasePayment(selectedPurchase._id, {
         amount: Number(paymentAmount),
@@ -102,11 +108,10 @@ const Purchases = () => {
       });
       setIsPaymentModalOpen(false);
       setPaymentAmount("");
-      setPaymentPercent("");
       setPaymentNote("");
       fetchData();
     } catch (err) {
-      alert("Payment recording failed: " + (err.response?.data?.msg || err.message));
+      alert("Transaction failed: " + (err.response?.data?.msg || err.message));
     } finally {
       setFormLoading(false);
     }
@@ -117,40 +122,18 @@ const Purchases = () => {
       setFormLoading(true);
       const res = await paymentApi.getHistory("purchase", purchaseId);
       const purchase = purchases.find(p => p._id === purchaseId);
-
-      // Build Unified Journey Timeline
       const events = [
-        // 1. Birth: Documentation
-        {
-          _id: "birth",
-          date: purchase.createdAt,
-          type: 'milestone',
-          amount: purchase.totalAmount,
-          description: "Inward Stock Documented - Procurement Initiated"
-        },
-        // 2. Pulse: Payments
+        { _id: "birth", date: purchase.createdAt, type: 'milestone', amount: purchase.totalAmount, description: "Procurement Initialized" },
         ...res.data.map(p => ({ ...p, type: 'payment' }))
       ];
-
-      // 3. Seal: Full Receipt (if received)
       if (purchase.status === 'received') {
-        events.push({
-          _id: "completion",
-          date: purchase.receivedAt || purchase.updatedAt,
-          type: 'milestone',
-          amount: 0,
-          description: "Full Receipt Recorded - Inventory Updated"
-        });
+        events.push({ _id: "completion", date: purchase.receivedAt || purchase.updatedAt, type: 'milestone', amount: 0, description: "Full Inward Stock Received" });
       }
-
-      // Sort Chronologically
       events.sort((a, b) => new Date(a.date) - new Date(b.date));
-
       setPaymentHistory(events);
       setIsHistoryModalOpen(true);
     } catch (err) {
-      console.error(err);
-      alert("Failed to fetch transaction timeline");
+      alert("Timeline retrieval failed.");
     } finally {
       setFormLoading(false);
     }
@@ -160,25 +143,22 @@ const Purchases = () => {
     setPaymentPercent(percent);
     if (selectedPurchase && percent) {
       const balance = selectedPurchase.totalAmount - (selectedPurchase.amountPaid || 0);
-      const amount = (balance * (Number(percent) / 100)).toFixed(2);
-      setPaymentAmount(amount);
+      setPaymentAmount((balance * (Number(percent) / 100)).toFixed(2));
     }
   };
 
-  const getStatusStyle = (status) => {
-    switch (status) {
-      case "received": return "bg-green-50 text-green-700 border-green-100 ring-4 ring-green-500/5";
-      case "pending": return "bg-orange-50 text-orange-700 border-orange-100 ring-4 ring-orange-500/5";
-      case "cancelled": return "bg-red-50 text-red-600 border-red-100 ring-4 ring-red-500/5";
-      default: return "bg-gray-50 text-gray-600";
-    }
-  };
+  const filteredPurchases = purchases.filter(p => {
+    const searchLow = searchTerm.toLowerCase();
+    const matchSearch = (p._id?.toString() || "").toLowerCase().includes(searchLow) ||
+           (p.material?.name || p.material || "").toLowerCase().includes(searchLow) ||
+           (p.supplier?.company || p.supplier?.name || "").toLowerCase().includes(searchLow) ||
+           (p.supplier?.gstin || "").toLowerCase().includes(searchLow);
+    const matchStatus = filterStatus === 'all' || p.status === filterStatus;
 
-  const selectedProduct = products.find(p => 
-    p._id === formData.material || 
-    p.name.toLowerCase() === (formData.material?.toLowerCase() || "")
-  );
+    return matchSearch && matchStatus;
+  });
 
+  const selectedProduct = products.find(p => p.name.toLowerCase() === (formData.material?.toLowerCase() || ""));
   const gstRate = Number(formData.gstRate) || 18;
   const totalTaxable = (Number(formData.taxableAmount) || 0) * (Number(formData.quantity) || 1);
   const gstAmount = (totalTaxable * gstRate) / 100;
@@ -186,504 +166,365 @@ const Purchases = () => {
 
   return (
     <AppLayout>
-      <div className="space-y-8 animate-in slide-in-from-bottom duration-700">
-        {/* Header section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="p-4 bg-gradient-to-tr from-orange-600 to-red-600 rounded-3xl shadow-xl shadow-orange-500/20 -rotate-2 hover:rotate-0 transition-transform duration-500">
-              <ShoppingCart className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h2 className="text-4xl font-black text-gray-900 tracking-tighter">Inward Ledger</h2>
-              <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest flex items-center gap-2">
-                <span className="w-2 h-2 bg-orange-500 rounded-full animate-bounce"></span>
-                Procurement & Inventory Receipt
-              </p>
-            </div>
-          </div>
+      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        
+        {/* Elite Command Header */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+           <div className="flex items-center gap-6">
+              <div className="w-20 h-20 bg-emerald-500/10 rounded-[2.5rem] flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-sm border border-emerald-500/10">
+                 <Anchor className="w-10 h-10 text-emerald-600" />
+              </div>
+              <div>
+                 <h2 className="text-5xl font-black text-slate-900 tracking-tightest leading-none mb-2 italic">Procurement <span className="text-emerald-600 not-italic">Terminal</span></h2>
+                 <div className="flex items-center gap-3">
+                    <div className="flex items-center -space-x-1.5">
+                       <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                    </div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Inward Logistics & Vendor Settlement Hub</span>
+                 </div>
+              </div>
+           </div>
 
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="group relative px-8 py-4 bg-gray-900 rounded-2xl flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-2xl hover:shadow-orange-500/20 overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <Plus className="w-5 h-5 text-white relative z-10" />
-            <span className="text-white font-black text-sm relative z-10">Record Inward Stock</span>
-          </button>
+           <button onClick={() => setIsModalOpen(true)} className="erp-button-primary !py-5 !bg-slate-900 !rounded-[2rem] hover:!bg-black group">
+              <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+              Initialize Inward Stock
+           </button>
         </div>
 
-        {/* Main Ledger Card */}
-        <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-gray-100/50 backdrop-blur-xl w-full max-w-full">
-          <div className="p-8 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gradient-to-r from-gray-50/50 to-white w-full">
-            <div className="flex items-center gap-8">
-              <div className="flex flex-col">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Purchases</span>
-                <span className="text-2xl font-black text-gray-900 tabular-nums">{purchases.length}</span>
+        {/* Global Financial Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+           <div className="p-10 bg-white rounded-[3rem] border border-slate-100 shadow-sm relative overflow-hidden group">
+              <div className="absolute -right-4 -top-4 w-32 h-32 bg-slate-50 rounded-full group-hover:scale-150 transition-transform duration-700 opacity-50"></div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Capital Outflow (MTD)</p>
+              <h3 className="text-4xl font-black text-slate-900 tracking-tightest tabular-nums italic">₹{(purchases.reduce((acc, p) => acc + p.totalAmount, 0) / 100000).toFixed(1)}L</h3>
+              <div className="flex items-center gap-2 mt-4 text-emerald-500 font-bold text-[10px] uppercase tracking-widest">
+                 <TrendingDown className="w-3.5 h-3.5" />
+                 <span>Strategic Acquisition</span>
               </div>
-              <div className="w-px h-10 bg-gray-100"></div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Pending Inward</span>
-                <span className="text-2xl font-black text-orange-600 tabular-nums">
-                  {purchases.filter(p => p.status === "pending").length}
-                </span>
+           </div>
+           <div className="p-10 bg-white rounded-[3rem] border border-slate-100 shadow-sm group">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Supply Chain Risk</p>
+              <h3 className="text-4xl font-black text-slate-900 tracking-tightest tabular-nums underline decoration-orange-200 decoration-8 underline-offset-4">{purchases.filter(p => p.status === 'pending').length} Nodes</h3>
+              <div className="flex items-center gap-2 mt-4 text-orange-500 font-bold text-[10px] uppercase tracking-widest">
+                 <Clock className="w-3.5 h-3.5 animate-pulse" />
+                 <span>Pending Inward Receipts</span>
               </div>
-            </div>
-          </div>
+           </div>
+           <div className="p-10 bg-slate-900 rounded-[3rem] shadow-2xl shadow-slate-900/20 group relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                 <Zap className="w-16 h-16 text-white rotate-12" />
+              </div>
+              <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-4">Creditor Balance</p>
+              <h3 className="text-4xl font-black text-white tracking-tightest tabular-nums">₹{(purchases.reduce((acc, p) => acc + (p.totalAmount - p.amountPaid), 0) / 1000).toFixed(1)}K</h3>
+              <div className="flex items-center gap-2 mt-4 text-emerald-400 font-bold text-[10px] uppercase tracking-widest">
+                 <Wallet className="w-3.5 h-3.5" />
+                 <span>Next Cycle Settlement</span>
+              </div>
+           </div>
+        </div>
 
-          <div className="overflow-x-auto w-full max-w-full">
-            {loading ? (
-              <div className="p-20 text-center">
-                <div className="inline-block w-12 h-12 border-4 border-gray-100 border-t-orange-600 rounded-full animate-spin"></div>
-                <p className="mt-4 text-gray-400 font-bold uppercase text-[10px] tracking-widest tracking-widest">Opening Purchase Registry...</p>
+        {/* Unified Registry Container */}
+        <div className="bg-white rounded-[4rem] border border-slate-100 shadow-sm overflow-hidden mb-20">
+           <div className="p-10 border-b border-slate-50 flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="relative group w-full max-w-md">
+                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                 <input 
+                    type="text"
+                    placeholder="Registry lookup: Vendor, GSTIN or Material UID..."
+                    className="w-full pl-14 pr-8 py-5 bg-slate-50 border-transparent rounded-[2rem] text-[11px] font-bold outline-none focus:bg-white focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500/20 transition-all shadow-inner"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                 />
               </div>
-            ) : purchases.length === 0 ? (
-              <div className="p-20 text-center">
-                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Package2 className="w-10 h-10 text-gray-300" />
-                </div>
-                <p className="text-gray-900 font-black text-xl mb-2">Registry Empty</p>
-                <p className="text-gray-400 text-sm max-w-xs mx-auto font-medium">Capture incoming raw materials and finished stock from vendors to track procurement GST and inventory levels.</p>
-              </div>
-            ) : (
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-50/50 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
-                    <th className="px-4 py-3">Inward Details</th>
-                    <th className="px-4 py-3">Vendor & GST</th>
-                    <th className="px-4 py-3 text-center">Qty / Status</th>
-                    <th className="px-4 py-3 text-center">Payment</th>
-                    <th className="px-4 py-3 text-right">Value (₹)</th>
-                    <th className="px-4 py-3 text-right">Flow</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {purchases.map((p) => (
-                    <tr key={p._id} className="hover:bg-gray-50/80 transition-all group">
-                      <td className="px-8 py-6">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">SKU: {p.material?.sku}</span>
-                          <span className="font-black text-gray-900 group-hover:text-orange-600 transition-colors uppercase tracking-tighter">{p.material?.name}</span>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] text-orange-500 font-bold uppercase">{p.material?.type === 'raw_material' ? '⛓️ Raw Material' : '📦 Finished Good'}</span>
-                            <span className="w-1 h-1 bg-gray-200 rounded-full"></span>
-                            <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Stock: {p.material?.stock || 0}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-8 py-6">
-                        <div className="space-y-1">
-                          <div className="font-black text-gray-700 text-sm">{p.supplier?.company || p.supplier?.name}</div>
-                          <div className="text-[10px] font-black text-blue-500 bg-blue-50 inline-block px-2 py-0.5 rounded uppercase tracking-widest border border-blue-100">
-                            {p.supplier?.gstin || 'UNREGISTERED'}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-8 py-6 text-center">
-                        <div className="flex flex-col items-center gap-2">
-                          <span className="px-4 py-1 bg-gray-100 rounded-full text-xs font-black text-gray-900">{p.quantity} <span className="text-[10px] uppercase opacity-60 ml-0.5">{p.unit || 'kg'}</span></span>
-                          <span className={`px-4 py-1.5 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${getStatusStyle(p.status)}`}>
-                            {p.status}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-6 text-center">
-                        <div className="flex flex-col items-center gap-1">
-                          <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter ${p.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' :
-                            p.paymentStatus === 'partial' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'
-                            }`}>
-                            {p.paymentStatus}
-                          </span>
-                          <div className="w-12 h-1 bg-gray-100 rounded-full mt-1 overflow-hidden">
-                            <div
-                              className="h-full bg-blue-500 transition-all duration-500"
-                              style={{ width: `${Math.min((p.amountPaid / p.totalAmount) * 100, 100)}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-[8px] font-black text-gray-400 mt-0.5">₹{p.amountPaid?.toLocaleString()} PAID</span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-6 text-right">
-                        <div className="flex flex-col">
-                          <span className="text-gray-900 font-black tracking-tight text-lg">₹{p.totalAmount?.toLocaleString('en-IN')}</span>
-                          <span className="text-[10px] font-bold text-gray-400 uppercase text-right">GST: ₹{p.gstAmount?.toLocaleString('en-IN')}</span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-6 text-right pr-8">
-                        <div className="flex flex-nowrap justify-end gap-2 whitespace-nowrap">
-                          {p.status === "pending" && (
-                            <>
-                              <button
-                                onClick={() => handleUpdateStatus(p._id, "received")}
-                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-500/20 hover:scale-105 transition-transform"
-                              >
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                Receive
-                              </button>
-                              <button
-                                onClick={() => handleUpdateStatus(p._id, "cancelled")}
-                                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:text-red-600 hover:border-red-200 transition-all"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                                Cancel
-                              </button>
-                            </>
-                          )}
-                          {p.paymentStatus !== 'paid' && !['cancelled', 'refunded'].includes(p.status) && (
-                            <button
-                              onClick={() => { setSelectedPurchase(p); setIsPaymentModalOpen(true); }}
-                              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:scale-105 transition-transform"
-                            >
-                              <Wallet className="w-3.5 h-3.5" />
-                              Payment
-                            </button>
-                          )}
-                          <button
-                            onClick={() => fetchPaymentHistory(p._id)}
-                            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:text-gray-900 transition-all font-bold"
-                          >
-                            <History className="w-3.5 h-3.5" />
-                            Timeline
-                          </button>
-                          <button
-                            onClick={() => handleDeletePurchase(p._id)}
-                            className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-400 hover:text-red-600 transition-all shadow-sm hover:shadow-red-500/10"
-                            title="Delete Purchase"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                          {p.status === "received" && (
-                            <div className="px-4 py-2 bg-green-50 text-green-600 rounded-xl text-[10px] font-black uppercase border border-green-100 font-bold whitespace-nowrap">
-                              Received: {new Date(p.receivedAt || p.updatedAt).toLocaleDateString()}
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`p-4 rounded-2xl transition-all active:scale-95 ${showFilters ? 'bg-emerald-600 text-white' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+                  >
+                    <Filter className="w-5 h-5" />
+                  </button>
+                  <button className="p-4 bg-slate-50 rounded-2xl text-slate-400 hover:bg-slate-100 transition-all active:scale-95">
+                    <Download className="w-5 h-5" />
+                  </button>
+               </div>
+            </div>
+
+            {/* Advanced Filter Manifold */}
+            {showFilters && (
+               <div className="px-10 py-8 bg-slate-50/50 border-b border-slate-50 flex flex-wrap gap-10 animate-in slide-in-from-top-2 duration-500">
+                  <div className="space-y-4">
+                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Procurement Lifecycle</p>
+                     <div className="flex flex-wrap gap-2">
+                        {['all', 'pending', 'received'].map(status => (
+                           <button 
+                              key={status}
+                              onClick={() => setFilterStatus(status)}
+                              className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${filterStatus === status ? 'bg-slate-900 text-white border-slate-900 shadow-lg scale-105' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300'}`}
+                           >
+                              {status}
+                           </button>
+                        ))}
+                     </div>
+                  </div>
+
+                  <div className="flex-1 flex justify-end items-end pb-1">
+                     <button 
+                        onClick={() => { setFilterStatus("all"); setSearchTerm(""); }}
+                        className="text-[9px] font-black text-slate-400 hover:text-rose-500 uppercase tracking-widest transition-colors flex items-center gap-2"
+                     >
+                        <Trash2 className="w-3.5 h-3.5" /> Synchronize All
+                     </button>
+                  </div>
+               </div>
             )}
-          </div>
+
+           <div className="overflow-x-auto">
+              {loading ? (
+                <div className="p-32 text-center text-slate-300 font-black uppercase tracking-[0.4em] animate-pulse text-[10px]">Accessing Master Registry...</div>
+              ) : (
+                <table className="w-full text-left">
+                   <thead>
+                      <tr className="bg-slate-50/50 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] border-b border-slate-50">
+                         <th className="px-12 py-8">Procurement UID</th>
+                         <th className="px-12 py-8">Inward Context</th>
+                         <th className="px-12 py-8 text-center">Qty / Lifecycle</th>
+                         <th className="px-12 py-8 text-center">Settlement Status</th>
+                         <th className="px-12 py-8 text-right pr-20">Financial Value</th>
+                      </tr>
+                   </thead>
+                   <tbody className="divide-y divide-slate-50">
+                      {filteredPurchases.map((p) => (
+                        <tr key={p._id} className="group hover:bg-slate-50/80 transition-all duration-500">
+                           <td className="px-12 py-10">
+                              <div className="flex items-center gap-4">
+                                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:rotate-12 ${p.status === 'received' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
+                                    <Box className="w-6 h-6" />
+                                 </div>
+                                 <div className="flex flex-col">
+                                    <span className="text-[11px] font-bold text-slate-900 tracking-tightest">PO-{p._id.slice(-6).toUpperCase()}</span>
+                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">{new Date(p.createdAt).toLocaleDateString()}</span>
+                                 </div>
+                              </div>
+                           </td>
+                           <td className="px-12 py-10">
+                              <div className="flex flex-col">
+                                 <span className="text-base font-black text-slate-900 tracking-tightest group-hover:text-emerald-600 transition-colors uppercase italic">{p.material?.name || p.material}</span>
+                                 <div className="flex items-center gap-2 mt-1.5">
+                                    <div className="w-2 h-2 bg-slate-900 rounded-full"></div>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{p.supplier?.company || p.supplier?.name}</span>
+                                    <span className="text-[8px] px-2 py-0.5 bg-slate-100 rounded text-slate-400">{p.supplier?.gstin || 'B2C'}</span>
+                                 </div>
+                              </div>
+                           </td>
+                           <td className="px-12 py-10 text-center">
+                              <div className="flex flex-col items-center gap-3">
+                                 <span className="text-sm font-black text-slate-900 tracking-tightest">{p.quantity} <span className="opacity-40 text-[10px]">{p.unit}</span></span>
+                                 <span className={`px-4 py-1.5 rounded-2xl text-[8px] font-black uppercase tracking-[0.1em] border transition-all ${
+                                    p.status === 'received' ? 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-sm' : 
+                                    p.status === 'pending' ? 'bg-orange-50 text-orange-600 border-orange-100 animate-pulse' : 'bg-rose-50 text-rose-600'
+                                 }`}>
+                                    {p.status}
+                                 </span>
+                              </div>
+                           </td>
+                           <td className="px-12 py-10 text-center">
+                              <div className="flex flex-col items-center gap-2">
+                                 <div className="flex items-center gap-2 mb-1">
+                                    <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                                       <div className="h-full bg-emerald-500" style={{ width: `${Math.min((p.amountPaid / p.totalAmount) * 100, 100)}%` }}></div>
+                                    </div>
+                                    <span className="text-[9px] font-black text-slate-400">{Math.round((p.amountPaid / p.totalAmount) * 100)}%</span>
+                                 </div>
+                                 <button onClick={() => { setSelectedPurchase(p); setIsPaymentModalOpen(true); }} className="px-3 py-1.5 bg-slate-50 hover:bg-slate-900 hover:text-white rounded-xl text-[8px] font-black uppercase tracking-widest transition-all">Record TX</button>
+                              </div>
+                           </td>
+                           <td className="px-12 py-10 text-right pr-20">
+                              <div className="flex items-center justify-end gap-10">
+                                 <div className="flex flex-col items-end">
+                                    <span className="text-2xl font-black text-slate-900 tracking-tightest tabular-nums">₹{p.totalAmount.toLocaleString()}</span>
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Tax Included (₹{p.gstAmount?.toLocaleString()})</span>
+                                 </div>
+                                 <div className="flex items-center gap-2 transition-opacity">
+                                    {p.status === 'pending' && <button onClick={() => handleUpdateStatus(p._id, "received")} className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl hover:scale-110 active:scale-95 transition-all shadow-sm"><CheckCircle2 className="w-5 h-5" /></button>}
+                                    <button onClick={() => fetchPaymentHistory(p._id)} className="p-3 bg-slate-50 text-slate-400 hover:text-slate-900 rounded-2xl transition-all"><History className="w-5 h-5" /></button>
+                                    <button onClick={() => handleDeletePurchase(p._id)} className="p-3 bg-rose-50 text-rose-400 hover:text-rose-600 rounded-2xl transition-all"><Trash2 className="w-5 h-5" /></button>
+                                 </div>
+                              </div>
+                           </td>
+                        </tr>
+                      ))}
+                   </tbody>
+                </table>
+              )}
+           </div>
         </div>
 
-        {/* Record Purchase Modal */}
-        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Document Inward Stock">
-          <form onSubmit={handleCreatePurchase} className="space-y-6 pt-4">
-            <div className="grid grid-cols-2 gap-5">
-              <div className="col-span-2">
-                <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2">Select Vendor / Supplier</label>
-                <select
-                  required
-                  className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                  value={formData.supplier}
-                  onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
-                >
-                  <option value="">Choose Supplier...</option>
-                  {suppliers.map(s => <option key={s._id} value={s._id}>{s.company} ({s.name})</option>)}
-                </select>
-              </div>
+      </div>
 
+      {/* Advanced Modals */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Initialize Inward Provision">
+        <form onSubmit={handleCreatePurchase} className="p-10 space-y-8">
+           <div className="grid grid-cols-2 gap-8">
               <div className="col-span-2">
-                <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 px-1 flex justify-between items-center">
-                  <span>Material / Product Details</span>
-                  <span className="text-[8px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded tracking-widest font-black uppercase italic">Type name manually for new items</span>
-                </label>
-                <div className="relative group">
-                   <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-orange-500 transition-colors pointer-events-none">
-                      <Search className="w-4 h-4" />
-                   </div>
-                   <input
-                     required
-                     list="material-list"
-                     className="w-full pl-12 pr-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-black text-gray-900 outline-none focus:ring-2 focus:ring-orange-500/10 transition-all font-mono"
-                     placeholder="Type Material Name manually..."
-                     value={formData.material}
-                     onChange={(e) => setFormData({ ...formData, material: e.target.value })}
-                     onBlur={(e) => {
-                        // Try to find the product object if it's an existing one for the summary
-                        const found = products.find(p => p.name.toLowerCase() === e.target.value.toLowerCase());
-                        if (found) {
-                          setFormData(prev => ({ 
-                            ...prev, 
-                            material: found.name, 
-                            gstRate: found.gstRate || 18 
-                          }));
-                        }
-                     }}
-                   />
-                </div>
-                <datalist id="material-list">
-                  {products.map(p => <option key={p._id} value={p.name} />)}
-                </datalist>
-                
-                {selectedProduct ? (
-                  <div className="mt-3 ml-4 flex items-center gap-2 animate-in fade-in duration-300">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">In Stock:</span>
-                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-lg border ${selectedProduct.stock <= 5 ? "bg-red-50 text-red-600 border-red-100" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
-                      {selectedProduct.stock} {selectedProduct.unit}
-                    </span>
-                    <span className="text-[8px] font-black text-blue-500 uppercase px-2 py-0.5 bg-blue-50 border border-blue-100 rounded-lg">ID: {selectedProduct.sku}</span>
-                  </div>
-                ) : formData.material && (
-                  <div className="mt-3 ml-4 flex items-center gap-2 animate-pulse">
-                    <span className="text-[10px] font-black text-orange-600 bg-orange-50 px-3 py-1 rounded-xl border border-orange-100 uppercase tracking-widest">✨ Create New: "{formData.material}"</span>
-                  </div>
-                )}
+                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">Target Logistics Entity (Supplier)</label>
+                 <select 
+                    required 
+                    className="erp-input !py-5"
+                    value={formData.supplier}
+                    onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                 >
+                    <option value="">Select Vendor...</option>
+                    {suppliers.map(s => <option key={s._id} value={s._id}>{s.company} ({s.name})</option>)}
+                 </select>
               </div>
-
-              <div className="col-span-2 md:col-span-1">
-                <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2">Inward Qty & Unit</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    required
-                    type="number"
-                    className="flex-1 px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+              <div className="col-span-2">
+                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">Material Node Label</label>
+                 <input 
+                    required 
+                    className="erp-input !py-5 uppercase tabular-nums"
+                    placeholder="Identify Resource SKU or Name..."
+                    value={formData.material}
+                    onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                 />
+              </div>
+              <div>
+                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">Resource Quantity</label>
+                 <input 
+                    required type="number" 
+                    className="erp-input !py-5" 
                     value={formData.quantity}
                     onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                  />
-                  <select
-                    className="w-32 px-3 py-3.5 bg-white border border-gray-100 rounded-2xl text-xs font-black uppercase tracking-tighter"
+                 />
+              </div>
+              <div>
+                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">Unit Identity</label>
+                 <select 
+                    className="erp-input !py-5"
                     value={formData.unit}
                     onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                  >
-                    <option value="kg">kg</option>
-                    <option value="gram">gram</option>
-                    <option value="dagina">dagina</option>
-                    <option value="unit">unit</option>
-                    <option value="amount">amount</option>
-                  </select>
-                </div>
-                {formData.unit === 'gram' && (
-                  <p className="mt-1 ml-4 text-[8px] font-bold text-orange-400 uppercase tracking-widest italic animate-pulse">
-                    Note: Grams are calculated at the Per-KG rate
-                  </p>
-                )}
+                 >
+                    <option value="kg">KILOGRAM (KG)</option>
+                    <option value="dagina">DAGINA (UNIT)</option>
+                    <option value="pcs">PIECES (PCS)</option>
+                    <option value="amount">VALUATION (AMT)</option>
+                 </select>
               </div>
-
-              {!selectedProduct && formData.material && (
-                <div className="col-span-2 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <label className="block text-[10px] font-black uppercase text-orange-500 tracking-widest mb-1 ml-1 px-1 flex items-center justify-between">
-                    <span>New Material Category</span>
-                    <span className="text-[7px] bg-orange-500 text-white px-2 py-0.5 rounded tracking-normal">Mandatory for New Items</span>
-                  </label>
-                  <select
-                    className="w-full px-5 py-3.5 bg-orange-50/50 border-2 border-dashed border-orange-200 rounded-2xl text-sm font-black text-orange-900 outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  >
-                    <option value="Raw Materials">Raw Materials</option>
-                    <option value="Packing Materials">Packing Materials</option>
-                    <option value="Consumables">Consumables</option>
-                    <option value="Hardware">Hardware</option>
-                    <option value="Chemicals">Chemicals</option>
-                    <option value="Electronic Components">Electronic Components</option>
-                    <option value="Others">Others</option>
-                  </select>
-                </div>
-              )}
-
-              <div className="col-span-2 md:col-span-1">
-                <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 px-1 flex justify-between items-baseline">
-                  <span>Unit Price (₹)</span>
-                  <span className="text-[7px] text-gray-300 font-bold tracking-normal italic capitalize">per {formData.unit === 'gram' ? 'kg' : formData.unit}</span>
-                </label>
-                <input
-                  required
-                  type="number"
-                  className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                  value={formData.taxableAmount}
-                  placeholder={`Rate / ${formData.unit === 'gram' ? 'kg' : formData.unit}`}
-                  onChange={(e) => setFormData({ ...formData, taxableAmount: e.target.value })}
-                />
+              <div>
+                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">Base Unit Rate (₹)</label>
+                 <input 
+                    required type="number" 
+                    className="erp-input !py-5"
+                    value={formData.taxableAmount}
+                    onChange={(e) => setFormData({ ...formData, taxableAmount: e.target.value })}
+                 />
               </div>
-
-              <div className="col-span-2 md:col-span-1">
-                <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 px-1">GST Rate (%)</label>
-                <select
-                   className="w-full px-5 py-3.5 bg-gray-50 border-none rounded-2xl text-sm font-black text-gray-700 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                   value={formData.gstRate}
-                   onChange={(e) => setFormData({ ...formData, gstRate: e.target.value })}
-                >
-                   <option value="18">18% (Standard+)</option>
-                   <option value="12">12% (Standard)</option>
-                   <option value="5">5% (Essential)</option>
-                   <option value="3">3% (Special)</option>
-                   <option value="0">Exempt (0%)</option>
-                </select>
+              <div>
+                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">Tax Index (GST%)</label>
+                 <select 
+                    className="erp-input !py-5"
+                    value={formData.gstRate}
+                    onChange={(e) => setFormData({ ...formData, gstRate: e.target.value })}
+                 >
+                    <option value="18">18% (Industrial)</option>
+                    <option value="12">12% (Standard)</option>
+                    <option value="5">5% (Essential)</option>
+                    <option value="0">0% (Exempt)</option>
+                 </select>
               </div>
-
-              {/* Real-time Summary Card */}
-              <div className="col-span-2 bg-orange-50 rounded-3xl p-6 border-2 border-orange-100/50 space-y-4">
-                <div className="flex justify-between items-center text-[10px] font-black uppercase text-gray-400 tracking-widest">
-                  <span>Procurement Summary</span>
-                  <span className="text-orange-600 bg-orange-100 px-2 py-0.5 rounded">{gstRate}% GST Rate Applied</span>
-                </div>
-                <div className="flex justify-between items-end">
-                  <div>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">Total Inward GST</p>
-                    <p className="text-xl font-black text-gray-900 tabular-nums">₹{gstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] text-orange-500 font-black uppercase mb-1 underline underline-offset-4 decoration-2">Net Purchase Value</p>
-                    <p className="text-3xl font-black text-orange-600 tabular-nums tracking-tighter">₹{totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
-                  </div>
-                </div>
+           </div>
+           
+           <div className="p-8 bg-slate-900 rounded-[3rem] shadow-2xl shadow-slate-900/40 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-6 opacity-10"><Zap className="w-12 h-12 text-white" /></div>
+              <div className="flex justify-between items-end">
+                 <div>
+                    <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Projected Commitment</p>
+                    <p className="text-3xl font-black text-white tracking-tightest tabular-nums italic">₹{totalAmount.toLocaleString()}</p>
+                 </div>
+                 <div className="text-right">
+                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Calculated Flux</p>
+                    <p className="text-xs font-black text-slate-400">GST Impact: ₹{gstAmount.toLocaleString()}</p>
+                 </div>
               </div>
-            </div>
+           </div>
 
-            <div className="flex gap-4 pt-4 border-t border-gray-50">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="flex-1 py-4 bg-white text-gray-400 font-black text-xs uppercase tracking-widest rounded-2xl border border-gray-100 hover:bg-gray-50 transition-all"
-              >
-                Discard
-              </button>
-              <button
-                type="submit"
-                className="flex-1 py-4 bg-gray-900 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-orange-400/20 hover:bg-orange-600 active:scale-95 transition-all"
-              >
-                Confirm Inward Stock
-              </button>
-            </div>
-          </form>
-        </Modal>
+           <div className="flex gap-4">
+              <button type="button" onClick={() => setIsModalOpen(false)} className="erp-button-secondary flex-1 !py-6">Abort Entry</button>
+              <button type="submit" className="erp-button-primary flex-1 !py-6 !bg-slate-900 !text-white hover:!bg-black">Authorize Inward Stock</button>
+           </div>
+        </form>
+      </Modal>
 
-        {/* Payment Modal */}
-        <Modal
-          isOpen={isPaymentModalOpen}
-          onClose={() => {
-            setIsPaymentModalOpen(false);
-            setPaymentAmount("");
-            setPaymentPercent("");
-            setPaymentNote("");
-          }}
-          title="Record Vendor Payment"
-        >
-          <div className="p-6">
-            {selectedPurchase && (
-              <div className="space-y-6">
-                <div className="p-6 bg-orange-50 rounded-[2rem] border border-orange-100">
-                  <p className="text-[10px] font-black uppercase text-orange-400 tracking-widest mb-2 text-center">Remaining Balance</p>
-                  <p className="text-4xl font-black text-orange-900 text-center tracking-tighter italic">₹{(selectedPurchase.totalAmount - selectedPurchase.amountPaid).toLocaleString('en-IN')}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-1">
-                    <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 px-1">Amount (₹)</label>
-                    <input
-                      type="number"
-                      max={selectedPurchase ? (selectedPurchase.totalAmount - selectedPurchase.amountPaid).toFixed(2) : undefined}
-                      className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-lg font-black text-gray-900 outline-none focus:ring-2 focus:ring-orange-500/10 transition-all font-mono"
-                      placeholder="0.00"
-                      value={paymentAmount}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        const balance = selectedPurchase.totalAmount - selectedPurchase.amountPaid;
-                        if (Number(val) > balance) {
-                          setPaymentAmount(balance.toFixed(2));
-                          setPaymentPercent("100");
-                        } else {
-                          setPaymentAmount(val);
-                          setPaymentPercent("");
-                        }
-                      }}
+      <Modal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} title="Treasury: Disbursement Registry">
+        <div className="p-10 space-y-8">
+           <div className="p-10 bg-emerald-50 rounded-[3rem] border border-emerald-100 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-6 opacity-20"><Wallet className="w-10 h-10 text-emerald-600" /></div>
+              <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-4">Balance Payable</p>
+              <h3 className="text-5xl font-black text-emerald-900 tracking-tightest tabular-nums">₹{selectedPurchase ? (selectedPurchase.totalAmount - selectedPurchase.amountPaid).toLocaleString() : 0}</h3>
+           </div>
+           
+           <div className="grid grid-cols-2 gap-6">
+              <div className="col-span-2">
+                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">Disbursement Magnitude (₹)</label>
+                 <div className="relative">
+                    <input 
+                       type="number" 
+                       className="erp-input !py-6 !text-2xl font-black tabular-nums placeholder:text-slate-200"
+                       value={paymentAmount}
+                       onChange={(e) => setPaymentAmount(e.target.value)}
+                       placeholder="0.00"
                     />
-                  </div>
-                  <div className="col-span-1">
-                    <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 px-1">Percent (%)</label>
-                    <input
-                      type="number"
-                      className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-lg font-black text-gray-900 outline-none focus:ring-2 focus:ring-orange-500/10 transition-all font-mono"
-                      placeholder="%"
-                      value={paymentPercent}
-                      onChange={(e) => handlePercentChange(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 px-1">Transaction Date</label>
-                  <input
-                    type="date"
-                    className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-xs font-black text-gray-900 outline-none hover:bg-gray-100 transition-colors"
-                    value={paymentDate}
-                    onChange={(e) => setPaymentDate(e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 px-1">Transaction Note</label>
-                  <textarea
-                    className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-xs font-bold text-gray-900 outline-none h-20 resize-none placeholder:text-gray-300 focus:bg-white focus:ring-1 focus:ring-gray-100"
-                    placeholder="Enter reference or note..."
-                    value={paymentNote}
-                    onChange={(e) => setPaymentNote(e.target.value)}
-                  />
-                </div>
-
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => setIsPaymentModalOpen(false)}
-                    className="flex-1 py-4 bg-gray-100 text-gray-400 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-gray-200 transition-all font-bold"
-                  >Cancel</button>
-                  <button
-                    onClick={handleAddPayment}
-                    disabled={formLoading || !paymentAmount}
-                    className="flex-[2] py-4 bg-orange-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/30 active:scale-95 disabled:opacity-50 font-bold"
-                  >
-                    {formLoading ? "Saving..." : `Pay ₹${Number(paymentAmount).toLocaleString()}`}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </Modal>
-
-        {/* Payment History Modal */}
-        <Modal
-          isOpen={isHistoryModalOpen}
-          onClose={() => setIsHistoryModalOpen(false)}
-          title="Payment History"
-        >
-          <div className="p-8">
-            {paymentHistory.length === 0 ? (
-              <div className="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
-                <AlertCircle className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">No transaction history</p>
-              </div>
-            ) : (
-              <div className="relative border-l-4 border-gray-100 ml-6 space-y-10 py-2">
-                {paymentHistory.map((item, idx) => {
-                  const isMilestone = item.type === 'milestone';
-                  return (
-                    <div key={item._id} className="relative pl-10 group animate-in fade-in slide-in-from-left duration-300">
-                      <div className={`absolute -left-[14px] top-0 w-6 h-6 bg-white border-4 rounded-full group-hover:scale-125 transition-transform shadow-sm ${isMilestone ? "border-indigo-600" : "border-emerald-500"}`}></div>
-                      <div>
-                        <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isMilestone ? "text-indigo-600" : "text-emerald-500"}`}>
-                          {new Date(item.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })} — {isMilestone ? 'Milestone' : 'Disbursement'}
-                        </p>
-                        {isMilestone ? (
-                          <h4 className="text-xl font-black text-gray-900 tracking-tighter uppercase italic">{item.description}</h4>
-                        ) : (
-                          <h4 className="text-2xl font-black text-gray-900 tracking-tighter tabular-nums">₹{item.amount.toLocaleString()}</h4>
-                        )}
-                        {!isMilestone && <p className="text-xs font-bold text-gray-400 mt-1 italic leading-relaxed">"{item.description || 'No notes provided'}"</p>}
-                      </div>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2">
+                       {['25', '50', '100'].map(p => (
+                          <button key={p} onClick={() => handlePercentChange(p)} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-900 hover:text-white rounded-xl text-[10px] font-black transition-all">{p}%</button>
+                       ))}
                     </div>
-                  );
-                })}
+                 </div>
               </div>
-            )}
-            <button
-              onClick={() => setIsHistoryModalOpen(false)}
-              className="w-full mt-12 py-5 bg-gray-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-black active:scale-95 transition-all shadow-xl shadow-gray-200"
-            >Close Record</button>
-          </div>
-        </Modal>
-      </div>
+              <div>
+                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">Execution Date</label>
+                 <input type="date" className="erp-input !py-5" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} />
+              </div>
+              <div>
+                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-3">Transaction Reference</label>
+                 <input className="erp-input !py-5" placeholder="UTR / Ref ID / Chq No..." value={paymentNote} onChange={(e) => setPaymentNote(e.target.value)} />
+              </div>
+           </div>
+
+           <div className="flex gap-4 pt-4">
+              <button disabled={formLoading} onClick={handleAddPayment} className="erp-button-primary w-full !py-6 !bg-slate-900 !text-white hover:!bg-black group">
+                 <CreditCard className="w-5 h-5 group-hover:animate-bounce" />
+                 {formLoading ? "Synchronizing..." : `Commit Disbursement: ₹${Number(paymentAmount).toLocaleString()}`}
+              </button>
+           </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={isHistoryModalOpen} onClose={() => setIsHistoryModalOpen(false)} title="Audit Vault: Financial Timeline">
+        <div className="p-10">
+           <div className="space-y-12 relative before:absolute before:left-[1.35rem] before:top-2 before:bottom-2 before:w-1 before:bg-slate-50 before:rounded-full">
+              {paymentHistory.map((event, idx) => (
+                <div key={idx} className="relative pl-14 group">
+                   <div className={`absolute left-0 top-1 w-12 h-12 rounded-2xl border-4 border-white flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 ${event.type === 'milestone' ? 'bg-slate-900 text-white' : 'bg-emerald-500 text-white'}`}>
+                      {event.type === 'milestone' ? <Zap className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                   </div>
+                   <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{new Date(event.date).toLocaleDateString()} — {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                      <h4 className={`text-xl font-black tracking-tightest leading-tight ${event.type === 'milestone' ? 'text-slate-900 uppercase italic' : 'text-emerald-600'}`}>
+                         {event.type === 'milestone' ? event.description : `Disbursement Executed: ₹${event.amount.toLocaleString()}`}
+                      </h4>
+                      {event.description && event.type !== 'milestone' && <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase italic leading-none opacity-60">REF: {event.description}</p>}
+                   </div>
+                </div>
+              ))}
+           </div>
+           <button onClick={() => setIsHistoryModalOpen(false)} className="w-full mt-12 py-6 bg-slate-900 text-white rounded-[2.5rem] text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-slate-900/20 active:scale-95 transition-all">Exit Archive</button>
+        </div>
+      </Modal>
+
     </AppLayout>
   );
 };
+
+const ChevronRight = ({ className }) => <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>;
 
 export default Purchases;

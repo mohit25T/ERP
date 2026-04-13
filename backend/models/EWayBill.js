@@ -9,8 +9,10 @@ const ewayBillSchema = new mongoose.Schema(
     },
     ewayBillNo: {
       type: String,
-      default: "", // To be filled after integration or manually
+      default: "", // To be filled manually after government portal upload
     },
+    ewbDate: { type: Date },
+    validityDate: { type: Date },
     status: {
       type: String,
       enum: ["pending", "generated", "cancelled", "expired"],

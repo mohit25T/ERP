@@ -12,6 +12,11 @@ const productionSchema = new mongoose.Schema(
       required: true,
       min: 1,
     },
+    status: {
+      type: String,
+      enum: ["pending", "in_progress", "completed", "cancelled"],
+      default: "pending",
+    },
     consumedMaterials: [
       {
         material: {
@@ -22,11 +27,32 @@ const productionSchema = new mongoose.Schema(
           type: Number,
           required: true,
         },
+        unitPrice: {
+          type: Number, // Cost of material at the time of production
+        }
       },
     ],
+    costPerUnit: {
+      type: Number,
+      default: 0,
+    },
+    totalCost: {
+      type: Number,
+      default: 0,
+    },
+    scrapQuantity: {
+      type: Number,
+      default: 0,
+    },
     productionDate: {
       type: Date,
       default: Date.now,
+    },
+    startedAt: {
+      type: Date,
+    },
+    completedAt: {
+      type: Date,
     },
     notes: {
       type: String,

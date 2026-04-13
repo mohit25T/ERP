@@ -1,13 +1,15 @@
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import Customer from "../models/Customer.js";
+import Purchase from "../models/Purchase.js";
 
 export const getDashboardStats = async (req, res) => {
   try {
-    const [orders, products, customers] = await Promise.all([
+    const [orders, products, customers, purchases] = await Promise.all([
       Order.find().populate("product"),
       Product.find(),
-      Customer.find()
+      Customer.find(),
+      Purchase.find()
     ]);
 
     // Calculate Total Revenue
@@ -15,17 +17,22 @@ export const getDashboardStats = async (req, res) => {
       .filter(o => !["cancelled", "refunded"].includes(o.status))
       .reduce((acc, curr) => acc + curr.totalAmount, 0);
 
-    // Calculate Sales Trends (by month)
-    const monthlySales = orders.reduce((acc, order) => {
-      const month = new Date(order.createdAt).toLocaleString("default", { month: "short" });
-      acc[month] = (acc[month] || 0) + order.totalAmount;
-      return acc;
-    }, {});
+    // Calculate Trade Trends (by month)
+    const trendMap = {};
 
-    const salesTrendData = Object.entries(monthlySales).map(([name, total]) => ({
-      name,
-      total
-    }));
+    orders.forEach(order => {
+      const month = new Date(order.createdAt).toLocaleString("default", { month: "short" });
+      if (!trendMap[month]) trendMap[month] = { name: month, sold: 0, bought: 0 };
+      trendMap[month].sold += order.totalAmount;
+    });
+
+    purchases.forEach(purchase => {
+      const month = new Date(purchase.createdAt).toLocaleString("default", { month: "short" });
+      if (!trendMap[month]) trendMap[month] = { name: month, sold: 0, bought: 0 };
+      trendMap[month].bought += purchase.totalAmount;
+    });
+
+    const tradeTrendData = Object.values(trendMap);
 
     // Category Distribution
     const categoryCounts = products.reduce((acc, prod) => {
@@ -53,7 +60,7 @@ export const getDashboardStats = async (req, res) => {
         totalCustomers: customers.length,
         totalProducts: products.length
       },
-      salesTrend: salesTrendData,
+      tradeTrend: tradeTrendData,
       categoryDistribution: categoryData,
       lowStockAlerts
     });

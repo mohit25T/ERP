@@ -3,37 +3,26 @@ import AppLayout from "../components/layout/AppLayout";
 import Modal from "../components/common/Modal";
 import { staffApi, payrollApi } from "../api/erpApi";
 import { 
-  Users, 
-  Banknote, 
-  Plus, 
-  Search, 
-  Calendar, 
-  ChevronRight, 
-  UserPlus, 
-  Trash2, 
-  CheckCircle2, 
-  Clock,
-  TrendingDown,
-  Briefcase
+  Users, Banknote, Plus, Search, Calendar, ChevronRight, 
+  UserPlus, Trash2, CheckCircle2, Clock, Activity, Briefcase,
+  Zap, ShieldCheck, Database, ArrowUpRight, ArrowDownLeft,
+  TrendingUp, TrendingDown, UserCheck
 } from "lucide-react";
 
 const Payroll = () => {
-  const [activeTab, setActiveTab] = useState("staff"); // "staff" or "payroll"
+  const [activeTab, setActiveTab] = useState("staff");
   const [staff, setStaff] = useState([]);
   const [payrollEntries, setPayrollEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Filtering
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleString('default', { month: 'long' }));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  // Modal States
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
   const [isPayrollModalOpen, setIsPayrollModalOpen] = useState(false);
   
-  // Form States
   const [formLoading, setFormLoading] = useState(false);
   
   useEffect(() => {
@@ -57,22 +46,32 @@ const Payroll = () => {
     }
   };
 
+  const filteredStaff = staff.filter(s => {
+    const searchLow = searchTerm.toLowerCase();
+    return (s.name || "").toLowerCase().includes(searchLow) ||
+           (s.position || "").toLowerCase().includes(searchLow) ||
+           (s.mobile || "").toLowerCase().includes(searchLow);
+  });
+
+  const filteredPayrollEntries = payrollEntries.filter(p => {
+    const searchLow = searchTerm.toLowerCase();
+    return (p.staff?.name || "").toLowerCase().includes(searchLow) ||
+           (p.staff?.position || "").toLowerCase().includes(searchLow) ||
+           (p._id?.toString() || "").toLowerCase().includes(searchLow);
+  });
+
   const handleCreateStaff = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
-    
     try {
       setFormLoading(true);
-      if (editingStaff) {
-        await staffApi.update(editingStaff._id, data);
-      } else {
-        await staffApi.create(data);
-      }
+      if (editingStaff) await staffApi.update(editingStaff._id, data);
+      else await staffApi.create(data);
       setIsStaffModalOpen(false);
       fetchData();
     } catch (err) {
-      alert("Error: " + (err.response?.data?.msg || err.message));
+      alert("Registration Protocol Failed.");
     } finally {
       setFormLoading(false);
     }
@@ -82,31 +81,26 @@ const Payroll = () => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
-    
     try {
       setFormLoading(true);
-      await payrollApi.create({
-          ...data,
-          month: selectedMonth,
-          year: selectedYear
-      });
+      await payrollApi.create({ ...data, month: selectedMonth, year: selectedYear });
       setIsPayrollModalOpen(false);
       fetchData();
     } catch (err) {
-      alert("Error: " + (err.response?.data?.msg || err.message));
+      alert("Payroll Generation Failed.");
     } finally {
       setFormLoading(false);
     }
   };
 
   const handleDisburseSalary = async (id) => {
-    if (!window.confirm("Confirm salary disbursement? This will record an expense in the Financial Ledger.")) return;
+    if (!window.confirm("Authorize salary disbursement?")) return;
     try {
       setLoading(true);
       await payrollApi.paySalary(id);
       fetchData();
     } catch (err) {
-      alert(err.response?.data?.msg || "Failed to disburse salary");
+      alert("Disbursement failed.");
     } finally {
       setLoading(false);
     }
@@ -119,254 +113,250 @@ const Payroll = () => {
 
   return (
     <AppLayout>
-      {/* Header & Stats Section */}
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            <h2 className="text-3xl font-black text-gray-900 tracking-tight italic flex items-center gap-2">
-              <span className="p-2 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/20">
-                <Banknote className="w-6 h-6" />
-              </span>
-              Payroll & Staff
-            </h2>
-            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1 ml-12">Workforce Management Hub</p>
-          </div>
+      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        
+        {/* Elite Human Capital Header */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+           <div className="flex items-center gap-6">
+              <div className="w-20 h-20 bg-slate-900 rounded-[2.5rem] flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-xl border border-slate-800">
+                 <Users className="w-10 h-10 text-white" />
+              </div>
+              <div>
+                 <h2 className="text-5xl font-black text-slate-900 tracking-tightest leading-none mb-2 italic">Workforce <span className="text-slate-400 not-italic">Intelligence</span></h2>
+                 <div className="flex items-center gap-3">
+                    <ShieldCheck className="w-4 h-4 text-indigo-500" />
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Human Capital Analytics & Payroll Orchestration</span>
+                 </div>
+              </div>
+           </div>
 
-          <div className="flex items-center bg-gray-100 p-1.5 rounded-2xl border border-gray-200 shadow-inner">
-             <button 
-                onClick={() => setActiveTab("staff")}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === "staff" ? 'bg-white text-blue-600 shadow-md transform scale-105' : 'text-gray-400 hover:text-gray-600'}`}
-             >
-                <Users className="w-4 h-4" /> Staff Directory
-             </button>
-             <button 
-                onClick={() => setActiveTab("payroll")}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === "payroll" ? 'bg-white text-blue-600 shadow-md transform scale-105' : 'text-gray-400 hover:text-gray-600'}`}
-             >
-                <Calendar className="w-4 h-4" /> Monthly Payroll
-             </button>
-          </div>
+           <div className="flex items-center p-2 bg-slate-100 rounded-3xl border border-slate-200">
+              <button onClick={() => setActiveTab("staff")} className={`flex items-center gap-2 px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "staff" ? 'bg-white text-slate-900 shadow-xl scale-105' : 'text-slate-400 hover:text-slate-600'}`}>
+                 <UserCheck className="w-4 h-4" /> Workforce Registry
+              </button>
+              <button onClick={() => setActiveTab("payroll")} className={`flex items-center gap-2 px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "payroll" ? 'bg-white text-slate-900 shadow-xl scale-105' : 'text-slate-400 hover:text-slate-600'}`}>
+                 <Banknote className="w-4 h-4" /> Salary Dispersion
+              </button>
+           </div>
         </div>
 
-        {/* Global Controls */}
-        <div className="flex flex-wrap gap-4 items-center justify-between">
-           <div className="flex gap-4">
+        {/* Dynamic Toolbar */}
+        <div className="flex flex-wrap gap-6 items-center justify-between bg-white p-6 rounded-[3rem] border border-slate-100 shadow-sm">
+           <div className="flex items-center gap-4">
               {activeTab === "payroll" && (
                 <>
-                   <select 
-                     className="bg-white border border-gray-200 text-xs font-black uppercase px-4 py-2 rounded-xl focus:ring-2 focus:ring-blue-500/10 outline-none"
-                     value={selectedMonth}
-                     onChange={(e) => setSelectedMonth(e.target.value)}
-                   >
+                   <select className="px-6 py-3 bg-slate-50 border-none rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-slate-900/10 cursor-pointer" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)}>
                       {months.map(m => <option key={m} value={m}>{m}</option>)}
                    </select>
-                   <select 
-                     className="bg-white border border-gray-200 text-xs font-black uppercase px-4 py-2 rounded-xl focus:ring-2 focus:ring-blue-500/10 outline-none"
-                     value={selectedYear}
-                     onChange={(e) => setSelectedYear(e.target.value)}
-                   >
+                   <select className="px-6 py-3 bg-slate-50 border-none rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-slate-900/10 cursor-pointer" value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
                       {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
                    </select>
                 </>
               )}
+              {activeTab === "staff" && (
+                 <div className="relative group w-80">
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input className="pl-12 pr-6 py-3.5 bg-slate-50 border-none rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none focus:bg-white focus:ring-4 focus:ring-slate-900/5 transition-all w-full shadow-inner" placeholder="Personnel Lookup..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                 </div>
+              )}
            </div>
 
-           <button 
-             onClick={() => activeTab === "staff" ? (setEditingStaff(null), setIsStaffModalOpen(true)) : setIsPayrollModalOpen(true)}
-             className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:scale-105 transition-all active:scale-95"
-           >
-              {activeTab === "staff" ? <UserPlus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-              {activeTab === "staff" ? "Add Staff Member" : "Generate Payroll"}
+           <button onClick={() => activeTab === "staff" ? (setEditingStaff(null), setIsStaffModalOpen(true)) : setIsPayrollModalOpen(true)} className="erp-button-primary !py-5 !bg-indigo-600 !rounded-[2rem] hover:!bg-indigo-700 shadow-indigo-200">
+              {activeTab === "staff" ? <UserPlus className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+              {activeTab === "staff" ? "Enlist Associate" : "Initialize Payroll"}
            </button>
         </div>
+
+        {activeTab === "staff" ? (
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {staff.length === 0 ? (
+                 <div className="col-span-full py-40 text-center bg-slate-50 rounded-[4rem] border-2 border-dashed border-slate-200 italic font-black text-slate-300 uppercase tracking-widest text-[11px]">
+                    <Users className="w-16 h-16 mx-auto mb-6 opacity-20" />
+                    Zero personnel records synchronized in current repository.
+                 </div>
+              ) : filteredStaff.map((s) => (
+                 <div key={s._id} className="group bg-white rounded-[3.5rem] p-10 border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-700 hover:-translate-y-2 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-100 transition-all duration-500">
+                       <button onClick={() => {setEditingStaff(s); setIsStaffModalOpen(true);}} className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-lg shadow-indigo-100 hover:rotate-90">
+                          <ChevronRight className="w-6 h-6" />
+                       </button>
+                    </div>
+                    
+                    <div className="flex items-center gap-6 mb-10">
+                       <div className="w-20 h-20 bg-gradient-to-br from-indigo-50 to-slate-50 rounded-[2rem] flex items-center justify-center text-indigo-600 border border-indigo-100 shadow-inner group-hover:scale-110 transition-transform duration-700">
+                          <span className="text-3xl font-black italic">{s.name.charAt(0).toUpperCase()}</span>
+                       </div>
+                       <div>
+                          <h4 className="text-2xl font-black text-slate-900 tracking-tightest uppercase italic">{s.name}</h4>
+                          <div className="flex items-center gap-2 mt-1">
+                             <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></div>
+                             <span className="text-[10px] font-black uppercase text-indigo-600 tracking-widest">{s.position}</span>
+                          </div>
+                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-8 border-t border-slate-50 pt-10">
+                       <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Compensation</p>
+                          <p className="text-xl font-black text-slate-900 tracking-tightest italic">₹{s.baseSalary.toLocaleString()}</p>
+                          <span className="text-[9px] font-black text-slate-400 uppercase opacity-40">Per {s.salaryType}</span>
+                       </div>
+                       <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Telemetry Node</p>
+                          <p className="text-xs font-black text-slate-600 truncate underline decoration-slate-200 decoration-2 underline-offset-4 tracking-tightest italic">{s.mobile}</p>
+                       </div>
+                    </div>
+                    
+                    <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-indigo-50 rounded-full opacity-5 group-hover:opacity-20 transition-opacity"></div>
+                 </div>
+              ))}
+           </div>
+        ) : (
+           <div className="bg-white rounded-[4rem] border border-slate-100 shadow-sm overflow-hidden mb-20 animate-in fade-in slide-in-from-right-4 duration-1000">
+              <div className="overflow-x-auto">
+                 {payrollEntries.length === 0 ? (
+                    <div className="py-40 text-center text-slate-300 font-black uppercase tracking-[0.4em] italic text-[11px]">Zero Salary Fluctuations Detected.</div>
+                 ) : (
+                    <table className="w-full text-left">
+                       <thead>
+                          <tr className="bg-slate-50/50 border-b border-slate-50 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">
+                             <th className="px-12 py-8">Associate Node</th>
+                             <th className="px-12 py-8 text-center">Operational Units</th>
+                             <th className="px-12 py-8 text-right">Yield (Net Salary)</th>
+                             <th className="px-12 py-8 text-center">Registry Status</th>
+                             <th className="px-12 py-8 text-right pr-20">Actions</th>
+                          </tr>
+                       </thead>
+                       <tbody className="divide-y divide-slate-50">
+                          {filteredPayrollEntries.map((p) => (
+                             <tr key={p._id} className="group hover:bg-slate-50/80 transition-all duration-500">
+                                <td className="px-12 py-8">
+                                   <div className="flex items-center gap-5">
+                                      <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-indigo-600 font-black text-sm italic shadow-lg shadow-indigo-100 border border-indigo-50 group-hover:scale-110 transition-transform">
+                                         {p.staff?.name.charAt(0)}
+                                      </div>
+                                      <div>
+                                         <p className="text-base font-black text-slate-900 tracking-tightest uppercase italic">{p.staff?.name}</p>
+                                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1 opacity-60">{p.staff?.position}</p>
+                                      </div>
+                                   </div>
+                                </td>
+                                <td className="px-12 py-8 text-center">
+                                   <div className="inline-flex items-center gap-3 px-5 py-2 bg-slate-50 rounded-2xl border border-slate-100">
+                                      <Clock className="w-4 h-4 text-slate-400" />
+                                      <span className="text-[11px] font-black text-slate-900 uppercase tracking-tighter italic">
+                                         {p.workingDays} {p.staff?.salaryType === 'daily' ? 'Days' : 'Months'}
+                                      </span>
+                                   </div>
+                                </td>
+                                <td className="px-12 py-8 text-right">
+                                   <p className="text-2xl font-black text-slate-900 tracking-tightest italic tabular-nums">₹{p.netSalary.toLocaleString()}</p>
+                                   <div className="flex justify-end items-center gap-3 mt-1.5 opacity-60">
+                                      {p.bonus > 0 && <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg uppercase tracking-tight">+{p.bonus} Growth</span>}
+                                      {p.deductions > 0 && <span className="text-[9px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg uppercase tracking-tight">-{p.deductions} Offset</span>}
+                                   </div>
+                                </td>
+                                <td className="px-12 py-8 text-center">
+                                   <span className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest italic border ${p.status === 'paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-sm shadow-emerald-500/5' : 'bg-amber-50 text-amber-600 border-amber-100 animate-pulse'}`}>
+                                      {p.status === 'paid' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Activity className="w-3.5 h-3.5" />}
+                                      {p.status}
+                                   </span>
+                                </td>
+                                <td className="px-12 py-8 text-right pr-20">
+                                   {p.status === 'unpaid' ? (
+                                      <button onClick={() => handleDisburseSalary(p._id)} className="erp-button-primary !py-3.5 !px-8 !bg-indigo-600 !rounded-2xl shadow-indigo-100 group transition-all">
+                                         Authorized Payment
+                                         <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                      </button>
+                                   ) : (
+                                      <div className="flex items-center justify-end gap-3 text-slate-400 font-black italic uppercase tracking-widest text-[10px]">
+                                         <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                                         Settled
+                                      </div>
+                                   )}
+                                </td>
+                             </tr>
+                          ))}
+                       </tbody>
+                    </table>
+                 )}
+              </div>
+           </div>
+        )}
+
+        {/* MODAL CONFIG */}
+        <Modal isOpen={isStaffModalOpen} onClose={() => setIsStaffModalOpen(false)} title={<div className="flex items-center gap-4"><UserPlus className="w-6 h-6 text-indigo-600" /><span className="text-xl font-black italic tracking-tightest uppercase">Personnel Registration</span></div>}>
+           <form onSubmit={handleCreateStaff} className="space-y-10 p-4">
+              <div className="grid grid-cols-2 gap-8">
+                 <div className="col-span-2 space-y-3">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-2 italic">Full Legal Identity</label>
+                    <input name="name" required defaultValue={editingStaff?.name} className="erp-input !py-5 !bg-slate-50 focus:!bg-white" placeholder="Associate Name..." />
+                 </div>
+                 <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-2 italic">Operational Node (Mobile)</label>
+                    <input name="mobile" required defaultValue={editingStaff?.mobile} className="erp-input !py-5 !bg-slate-50 font-mono tracking-widest" placeholder="+91 XXXX XXX XXX" />
+                 </div>
+                 <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-2 italic">Designation / Role</label>
+                    <input name="position" defaultValue={editingStaff?.position || "Analyst"} className="erp-input !py-5 uppercase !font-black" placeholder="Role Identifier..." />
+                 </div>
+                 <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-2 italic">Base Compensation (₹)</label>
+                    <input name="baseSalary" type="number" required defaultValue={editingStaff?.baseSalary} className="erp-input !py-5 !text-indigo-600 !font-black !text-lg" placeholder="0" />
+                 </div>
+                 <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-2 italic">Yield Frequency</label>
+                    <select name="salaryType" defaultValue={editingStaff?.salaryType || "monthly"} className="erp-input !py-5 uppercase !font-black cursor-pointer bg-slate-50">
+                       <option value="monthly">Monthly Fixed</option>
+                       <option value="daily">Daily Wage</option>
+                    </select>
+                 </div>
+              </div>
+              <div className="pt-6 border-t border-slate-50 flex gap-6">
+                 <button type="button" onClick={() => setIsStaffModalOpen(false)} className="flex-1 py-6 text-[10px] font-black uppercase text-slate-400 hover:text-slate-900 tracking-widest italic">Abort Protocol</button>
+                 <button type="submit" disabled={formLoading} className="flex-2 erp-button-primary !py-6 !px-12 !bg-slate-900 !rounded-[2.5rem] hover:!bg-black group">
+                    <Zap className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    {formLoading ? "Synchronizing..." : editingStaff ? "Commit Updates" : "Enlist Personnel"}
+                 </button>
+              </div>
+           </form>
+        </Modal>
+
+        <Modal isOpen={isPayrollModalOpen} onClose={() => setIsPayrollModalOpen(false)} title={<div className="flex items-center gap-4"><Banknote className="w-6 h-6 text-indigo-600" /><span className="text-xl font-black italic tracking-tightest uppercase">Initialize Dispersion</span></div>}>
+           <form onSubmit={handleGeneratePayroll} className="space-y-10 p-4">
+              <div className="space-y-3">
+                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-2 italic">Target Associate</label>
+                 <select name="staffId" required className="erp-input !py-5 uppercase !font-black cursor-pointer bg-slate-50">
+                    <option value="">-- Access Personnel Hub --</option>
+                    {staff.map(s => <option key={s._id} value={s._id}>{s.name} [{s.position}]</option>)}
+                 </select>
+              </div>
+              <div className="grid grid-cols-2 gap-8">
+                 <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-2 italic">Operational Units</label>
+                    <input name="workingDays" type="number" step="0.5" defaultValue="30" required className="erp-input !py-5 !font-black !text-lg" />
+                 </div>
+                 <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-2 italic">Growth Bonus (₹)</label>
+                    <input name="bonus" type="number" defaultValue="0" className="erp-input !py-5 !text-emerald-600 !font-black !text-lg" />
+                 </div>
+                 <div className="col-span-2 space-y-3">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-2 italic">Operational Deductions (₹)</label>
+                    <input name="deductions" type="number" defaultValue="0" className="erp-input !py-5 !text-rose-600 !font-black !text-lg" />
+                 </div>
+              </div>
+              <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 flex items-center gap-4">
+                 <Activity className="w-6 h-6 text-slate-300" />
+                 <span className="text-[9px] font-black uppercase text-slate-400 leading-relaxed italic">Calculations synchronized with daily/monthly performance protocols.</span>
+              </div>
+              <button type="submit" disabled={formLoading} className="w-full erp-button-primary !py-7 !bg-slate-900 !rounded-[2.5rem] hover:!bg-black shadow-xl shadow-slate-900/10">
+                 <Database className="w-5 h-5" />
+                 {formLoading ? "Computing Yield..." : "Deploy Financial Entry"}
+              </button>
+           </form>
+        </Modal>
+
       </div>
-
-      {activeTab === "staff" ? (
-         /* STAFF DIRECTORY VIEW */
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {staff.length === 0 ? (
-               <div className="col-span-full py-20 text-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100 italic font-bold text-gray-300">
-                  <Users className="w-16 h-16 mx-auto mb-4 opacity-20" />
-                  No staff members registered in the directory.
-               </div>
-            ) : staff.map((s) => (
-               <div key={s._id} className="group bg-white rounded-[2.5rem] p-6 border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-blue-500/5 transition-all hover:-translate-y-1 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                     <button onClick={() => {setEditingStaff(s); setIsStaffModalOpen(true);}} className="p-2 text-gray-400 hover:text-blue-600 transition-colors">
-                        <ChevronRight className="w-5 h-5" />
-                     </button>
-                  </div>
-                  <div className="flex items-center gap-4 mb-6">
-                     <div className="w-14 h-14 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl flex items-center justify-center text-blue-600 text-xl font-black">
-                        {s.name.charAt(0).toUpperCase()}
-                     </div>
-                     <div>
-                        <h4 className="text-xl font-black text-gray-900 tracking-tight">{s.name}</h4>
-                        <span className="text-[10px] font-black uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full tracking-tighter italic">{s.position}</span>
-                     </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 border-t border-gray-50 pt-6">
-                     <div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Base Salary</p>
-                        <p className="text-lg font-black text-gray-900 leading-none tracking-tighter italic">₹{s.baseSalary.toLocaleString()}</p>
-                        <span className="text-[8px] font-bold text-gray-400 uppercase">per {s.salaryType}</span>
-                     </div>
-                     <div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Mobile</p>
-                        <p className="text-sm font-black text-gray-600 truncate underline decoration-gray-200 decoration-2 underline-offset-4 tracking-tighter">{s.mobile}</p>
-                     </div>
-                  </div>
-               </div>
-            ))}
-         </div>
-      ) : (
-         /* PAYROLL LOGS VIEW */
-         <div className="space-y-4">
-            {payrollEntries.length === 0 ? (
-               <div className="py-20 text-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100 italic font-bold text-gray-300">
-                  <Calendar className="w-16 h-16 mx-auto mb-4 opacity-20" />
-                  No payroll records found for {selectedMonth} {selectedYear}.
-               </div>
-            ) : (
-               <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden">
-                  <table className="w-full text-left">
-                     <thead>
-                        <tr className="bg-gray-50/50 border-b border-gray-50">
-                           <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest">Employee</th>
-                           <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Work Details</th>
-                           <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest text-right">Net Salary</th>
-                           <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Status</th>
-                           <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-400 tracking-widest text-right">Actions</th>
-                        </tr>
-                     </thead>
-                     <tbody className="divide-y divide-gray-50">
-                        {payrollEntries.map((p) => (
-                           <tr key={p._id} className="group hover:bg-gray-50/50 transition-colors">
-                              <td className="px-8 py-6">
-                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 font-black text-xs">
-                                       {p.staff?.name.charAt(0)}
-                                    </div>
-                                    <div>
-                                       <p className="text-sm font-black text-gray-900 tracking-tight">{p.staff?.name}</p>
-                                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{p.staff?.position}</p>
-                                    </div>
-                                 </div>
-                              </td>
-                              <td className="px-8 py-6 text-center">
-                                 <p className="text-xs font-black text-gray-700 tracking-tighter flex items-center justify-center gap-1.5">
-                                    <Clock className="w-3.5 h-3.5 text-gray-400" />
-                                    {p.workingDays} {p.staff?.salaryType === 'daily' ? 'Days' : 'Months'}
-                                 </p>
-                              </td>
-                              <td className="px-8 py-6 text-right">
-                                 <p className="text-lg font-black text-gray-900 tracking-tighter italic">₹{p.netSalary.toLocaleString()}</p>
-                                 <div className="flex justify-end items-center gap-2">
-                                    {p.bonus > 0 && <span className="text-[8px] font-black text-green-600 bg-green-50 px-1 py-0.5 rounded uppercase">+{p.bonus} Bonus</span>}
-                                    {p.deductions > 0 && <span className="text-[8px] font-black text-red-600 bg-red-50 px-1 py-0.5 rounded uppercase">-{p.deductions} Ded.</span>}
-                                 </div>
-                              </td>
-                              <td className="px-8 py-6 text-center">
-                                 <span className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest italic ${p.status === 'paid' ? 'bg-green-50 text-green-600 shadow-sm shadow-green-500/5' : 'bg-orange-50 text-orange-600 animate-pulse'}`}>
-                                    {p.status === 'paid' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                                    {p.status}
-                                 </span>
-                              </td>
-                              <td className="px-8 py-6 text-right">
-                                 {p.status === 'unpaid' ? (
-                                    <button 
-                                      onClick={() => handleDisburseSalary(p._id)}
-                                      className="px-5 py-2 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:scale-105 transition-all"
-                                    >
-                                       Pay Now
-                                    </button>
-                                 ) : (
-                                    <span className="text-xs font-black text-gray-300 italic tracking-widest uppercase">Verified & Paid</span>
-                                 )}
-                              </td>
-                           </tr>
-                        ))}
-                     </tbody>
-                  </table>
-               </div>
-            )}
-         </div>
-      )}
-
-      {/* STAFF MODAL */}
-      <Modal 
-        isOpen={isStaffModalOpen} 
-        onClose={() => setIsStaffModalOpen(false)} 
-        title={editingStaff ? "Edit Staff Details" : "Register New Staff"}
-      >
-         <form onSubmit={handleCreateStaff} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-               <div className="col-span-2">
-                  <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 ml-1">Full Name</label>
-                  <input name="name" required defaultValue={editingStaff?.name} className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl text-sm font-black text-gray-900 border-2 border-transparent focus:border-blue-500/20 focus:bg-white outline-none transition-all shadow-inner" placeholder="Enter name..." />
-               </div>
-               <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 ml-1">Mobile No.</label>
-                  <input name="mobile" required defaultValue={editingStaff?.mobile} className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl text-sm font-black text-gray-900 border-2 border-transparent focus:border-blue-500/20 focus:bg-white outline-none transition-all shadow-inner font-mono" placeholder="+91..." />
-               </div>
-               <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 ml-1">Position / Role</label>
-                  <input name="position" defaultValue={editingStaff?.position || "Worker"} className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl text-sm font-black text-gray-900 border-2 border-transparent focus:border-blue-500/20 focus:bg-white outline-none transition-all shadow-inner" placeholder="e.g. Foreman" />
-               </div>
-               <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 ml-1">Base Rate (₹)</label>
-                  <input name="baseSalary" type="number" required defaultValue={editingStaff?.baseSalary} className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl text-sm font-black text-gray-900 border-2 border-transparent focus:border-blue-500/20 focus:bg-white outline-none transition-all shadow-inner" placeholder="0" />
-               </div>
-               <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 ml-1">Salary Type</label>
-                  <select name="salaryType" defaultValue={editingStaff?.salaryType || "monthly"} className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl text-sm font-black text-gray-900 border-2 border-transparent focus:border-blue-500/20 focus:bg-white appearance-none outline-none transition-all shadow-inner">
-                     <option value="monthly">Monthly Fixed</option>
-                     <option value="daily">Daily Wage</option>
-                  </select>
-               </div>
-            </div>
-            <div className="pt-4 border-t border-gray-100 flex gap-3">
-               <button type="button" onClick={() => setIsStaffModalOpen(false)} className="flex-1 py-4 text-xs font-black uppercase text-gray-400 hover:text-gray-600">Dismiss</button>
-               <button type="submit" disabled={formLoading} className="flex-2 py-4 px-10 bg-blue-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all">
-                  {formLoading ? "Processing..." : editingStaff ? "Save Updates" : "Register Worker"}
-               </button>
-            </div>
-         </form>
-      </Modal>
-
-      {/* PAYROLL MODAL */}
-      <Modal isOpen={isPayrollModalOpen} onClose={() => setIsPayrollModalOpen(false)} title={`Generate Payroll: ${selectedMonth} ${selectedYear}`}>
-         <form onSubmit={handleGeneratePayroll} className="space-y-6">
-            <div>
-               <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 ml-1">Select Employee</label>
-               <select name="staffId" required className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl text-sm font-black text-gray-900 border-2 border-transparent focus:border-blue-500/20 focus:bg-white outline-none appearance-none transition-all shadow-inner">
-                  <option value="">-- Choose Staff Member --</option>
-                  {staff.map(s => <option key={s._id} value={s._id}>{s.name} ({s.position})</option>)}
-               </select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-               <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 ml-1">Working Days/Units</label>
-                  <input name="workingDays" type="number" step="0.5" defaultValue="30" required className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl text-sm font-black text-gray-900 outline-none shadow-inner" />
-               </div>
-               <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 ml-1">Bonus (₹)</label>
-                  <input name="bonus" type="number" defaultValue="0" className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl text-sm font-black text-gray-900 outline-none shadow-inner" />
-               </div>
-               <div className="col-span-2">
-                  <label className="block text-[10px] font-black uppercase text-gray-400 tracking-widest mb-2 ml-1">Deductions (₹)</label>
-                  <input name="deductions" type="number" defaultValue="0" className="w-full px-5 py-3.5 bg-gray-50 rounded-2xl text-sm font-black text-gray-900 outline-none shadow-inner text-red-500" />
-               </div>
-            </div>
-            <div className="pt-4 border-t border-gray-100 italic text-[10px] text-gray-400 text-center font-bold">
-               Calculations will be performed based on Worker's Daily/Monthly rate.
-            </div>
-            <button type="submit" disabled={formLoading} className="w-full py-4 bg-blue-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all">
-               {formLoading ? "Generating..." : "Calculate & Record Entry"}
-            </button>
-         </form>
-      </Modal>
-
     </AppLayout>
   );
 };

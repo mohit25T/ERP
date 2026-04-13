@@ -4,7 +4,7 @@ class AuditService {
   static async logAction({ user, action, resource, resourceId, changes, req }) {
     try {
       await AuditLog.create({
-        user: user._id || user,
+        user: user._id || user.id || user,
         action,
         resource,
         resourceId,
