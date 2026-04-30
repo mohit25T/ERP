@@ -60,6 +60,7 @@ class PdfService {
 
     const margin = 20;
     const pageWidth = 595.28; // Standard A4 width in points
+    const pageHeight = 841.89; // Standard A4 height in points
     const contentWidth = pageWidth - (margin * 2);
 
     // Helpers for drawing grid
@@ -69,27 +70,27 @@ class PdfService {
 
     doc.lineWidth(0.5);
 
-    // --- Header Section ---
-    drawBox(margin, 20, contentWidth, 60);
-
-    // Add Logo as centered watermark if exists and enabled
+    // Add Logo as global centered watermark if exists and enabled
     if (user.companyLogo && user.invoiceSettings?.showLogo !== false) {
       const logoBuffer = await this.fetchImageBuffer(user.companyLogo);
       if (logoBuffer) {
         try {
           doc.save();
-          doc.opacity(0.1); // Reduced opacity for watermark effect
-          doc.image(logoBuffer, margin, 22, { 
-            fit: [contentWidth, 55], 
+          doc.opacity(0.05); // Ultra-low opacity for document-wide watermark
+          doc.image(logoBuffer, 0, 0, { 
+            fit: [pageWidth, pageHeight], 
             align: 'center', 
             valign: 'center' 
           });
           doc.restore();
         } catch (err) {
-          console.warn("Logo watermark rendering failed:", err.message);
+          console.warn("Global watermark rendering failed:", err.message);
         }
       }
     }
+
+    // --- Header Section ---
+    drawBox(margin, 20, contentWidth, 60);
 
     doc.fontSize(16).font("Helvetica-Bold").text(user.companyName || user.name, margin, 32, { align: "center", width: contentWidth });
     doc.fontSize(8).font("Helvetica").text(user.address || "", margin, 50, { align: "center", width: contentWidth });
