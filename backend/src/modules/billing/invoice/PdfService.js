@@ -72,14 +72,21 @@ class PdfService {
     // --- Header Section ---
     drawBox(margin, 20, contentWidth, 60);
 
-    // Add Logo if exists and enabled
+    // Add Logo as centered watermark if exists and enabled
     if (user.companyLogo && user.invoiceSettings?.showLogo !== false) {
       const logoBuffer = await this.fetchImageBuffer(user.companyLogo);
       if (logoBuffer) {
         try {
-          doc.image(logoBuffer, margin + 10, 25, { height: 50 });
+          doc.save();
+          doc.opacity(0.1); // Reduced opacity for watermark effect
+          doc.image(logoBuffer, margin, 22, { 
+            fit: [contentWidth, 55], 
+            align: 'center', 
+            valign: 'center' 
+          });
+          doc.restore();
         } catch (err) {
-          console.warn("Logo rendering failed:", err.message);
+          console.warn("Logo watermark rendering failed:", err.message);
         }
       }
     }
