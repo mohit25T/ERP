@@ -1,6 +1,25 @@
 import PDFDocument from "pdfkit";
+import axios from "axios";
 
 class PdfService {
+  /**
+   * Helper to fetch image buffer from URL or base64
+   */
+  static async fetchImageBuffer(url) {
+    if (!url) return null;
+    try {
+      if (url.startsWith("data:image")) {
+        const base64Data = url.split(",")[1];
+        return Buffer.from(base64Data, "base64");
+      }
+      const response = await axios.get(url, { responseType: "arraybuffer" });
+      return Buffer.from(response.data);
+    } catch (err) {
+      console.error("[PDF LOGO ERROR]:", err.message);
+      return null;
+    }
+  }
+
   /**
    * Converts numbers to Indian English Words (Lakh/Crore system)
    */
@@ -52,6 +71,19 @@ class PdfService {
 
     // --- Header Section ---
     drawBox(margin, 20, contentWidth, 60);
+
+    // Add Logo if exists and enabled
+    if (user.companyLogo && user.invoiceSettings?.showLogo !== false) {
+      const logoBuffer = await this.fetchImageBuffer(user.companyLogo);
+      if (logoBuffer) {
+        try {
+          doc.image(logoBuffer, margin + 10, 25, { height: 50 });
+        } catch (err) {
+          console.warn("Logo rendering failed:", err.message);
+        }
+      }
+    }
+
     doc.fontSize(16).font("Helvetica-Bold").text(user.companyName || user.name, margin, 32, { align: "center", width: contentWidth });
     doc.fontSize(8).font("Helvetica").text(user.address || "", margin, 50, { align: "center", width: contentWidth });
     doc.text(`PH: ${user.mobile || ""} EMAIL: ${user.email || ""}`, margin, 60, { align: "center", width: contentWidth });
