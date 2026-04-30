@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { validateGSTIN } from "../../utils/gstValidator";
-import { CheckCircle2, XCircle, AlertCircle, Search, Loader2, User, Mail, Phone, Building2, MapPin, Hash, ShieldCheck, Zap, Activity } from "lucide-react";
 import { gstApi } from "../../api/erpApi";
+import {
+  Zap, ShieldCheck, Activity, User, Mail, 
+  Building2, Hash, Search, Loader2, CheckCircle2, 
+  XCircle, AlertCircle, Phone, MapPin
+} from "lucide-react";
 
 /**
  * CustomerForm: The Corporate Identity Node

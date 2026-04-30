@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { customerApi, productApi, distanceApi } from "../../api/erpApi";
-import { Link } from "react-router-dom";
+import unitsUtil from "../../utils/units";
 import { useAuth } from "../../context/AuthContext";
 import {
-  Plus, Trash2, Search, Loader2, Package, ShieldCheck, Truck, Zap, Calendar,
-  ShoppingCart, IndianRupee, Hash, Tag, Activity, ArrowRight, User, AlertCircle,
-  Info, CheckCircle2, MapPin, Hammer, AlertTriangle
+  User, Search, Zap, Package, Hash, IndianRupee,
+  ShoppingCart, Truck, Loader2, MapPin, Activity, ShieldCheck
 } from "lucide-react";
+
 
 /**
  * OrderForm: The Fulfillment Intelligence Terminal
@@ -198,12 +198,13 @@ const OrderForm = ({ onSubmit, onCancel, loading, initialData }) => {
 
   if (fetching) return <div className="p-12 text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic">Syncing master data nodes...</div>;
 
-  const totalBeforeTax = formData.price * formData.quantity;
+  const normalizedQty = unitsUtil.normalizeToPieces(formData.quantity, formData.unit);
+  const totalBeforeTax = formData.price * normalizedQty;
   const gstRate = selectedProduct?.gstRate || 0;
   const grandTotal = totalBeforeTax * (1 + gstRate / 100);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-12 animate-in fade-in zoom-in-95 duration-700">
+    <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in zoom-in-95 duration-700">
 
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -249,7 +250,7 @@ const OrderForm = ({ onSubmit, onCancel, loading, initialData }) => {
               <button
                 type="button"
                 onClick={() => setFormData(p => ({ ...p, saleType: 'scrap' }))}
-                className={`flex-1 py-4 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500 flex items-center justify-center gap-2 ${formData.saleType === 'scrap' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/40 scale-[1.02] z-10 italic' : 'text-slate-400 hover:text-slate-600'}`}
+                className={`flex-1 py-4 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500 flex items-center justify-center gap-2 ${formData.saleType === 'scrap' ? 'bg-[#0f172a] text-white shadow-xl shadow-slate-900/40 scale-[1.02] z-10 italic' : 'text-slate-400 hover:text-slate-600'}`}
               >
                 Scrap Salvage
               </button>
@@ -273,12 +274,17 @@ const OrderForm = ({ onSubmit, onCancel, loading, initialData }) => {
             >
               <option value="">-- SELECT ASSET --</option>
               {products
-                .filter(p => p.type !== 'raw_material')
-                .map(p => (
-                  <option key={p._id} value={p._id}>
-                    {p.name.toUpperCase()} (AVL: {formData.saleType === 'scrap' ? (p.scrapStock || 0) : p.stock})
-                  </option>
-                ))}
+                .filter(p => formData.saleType === 'scrap' || p.type !== 'raw_material')
+                .map(p => {
+                  const avlText = formData.saleType === 'scrap' 
+                    ? `${p.scrapStock || 0} ${p.unit || 'KG'}${p.unit !== 'kg' && p.unitWeightGrams > 0 ? ` (≈${((p.scrapStock * p.unitWeightGrams) / 1000).toFixed(2)} KG)` : ''}`
+                    : `${p.totalStock} ${p.unit || 'KG'}`;
+                  return (
+                    <option key={p._id} value={p._id}>
+                      {p.name.toUpperCase()} (AVL: {avlText})
+                    </option>
+                  );
+                })}
             </select>
           </div>
 
@@ -293,7 +299,7 @@ const OrderForm = ({ onSubmit, onCancel, loading, initialData }) => {
                   name="scrapPieces"
                   type="number"
                   placeholder="Count..."
-                  className="erp-input !bg-indigo-50/30 !border-indigo-100 focus:!bg-indigo-600 focus:!text-white !font-black !text-center !text-lg transition-all"
+                  className="erp-input !bg-slate-50/50 focus:!bg-slate-900 focus:!text-white !font-black !text-left !pl-6 !text-lg transition-all"
                   value={formData.scrapPieces}
                   onChange={handleChange}
                 />
@@ -307,18 +313,28 @@ const OrderForm = ({ onSubmit, onCancel, loading, initialData }) => {
                   name="quantity"
                   type="number"
                   required
-                  className="erp-input !bg-slate-50/50 focus:!bg-black focus:!text-white !font-black !text-center !text-lg"
+                  className="erp-input !bg-slate-50/50 focus:!bg-slate-900 focus:!text-white !font-black !text-left !pl-6 !text-lg transition-all"
                   value={formData.quantity}
                   onChange={handleChange}
                 />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-300 uppercase tracking-widest">
-                  {formData.saleType === 'scrap' ? (
-                    <select name="unit" value={formData.unit} onChange={handleChange} className="bg-transparent border-none outline-none text-right cursor-pointer hover:text-indigo-600 transition-colors">
-                      <option value="kg">KG</option>
-                      <option value="tons">TONS</option>
-                      <option value="mts">MTS</option>
-                    </select>
-                  ) : formData.unit}
+                <div className="absolute right-0 top-0 bottom-0 flex items-center px-4 border-l border-slate-200 group-focus-within:border-slate-700 transition-colors pointer-events-auto">
+                    {formData.product && formData.saleType !== 'scrap' ? (
+                      <span className="text-slate-400 group-focus-within:text-indigo-400 font-black uppercase tracking-widest text-[9px] cursor-default">
+                        {formData.unit || 'unit'}
+                      </span>
+                    ) : (
+                      <select 
+                        name="unit" 
+                        value={formData.unit} 
+                        onChange={handleChange} 
+                        className="bg-transparent border-none outline-none text-right cursor-pointer text-slate-400 group-focus-within:text-indigo-400 font-black uppercase tracking-widest transition-colors text-[9px]"
+                      >
+                        <option value="kg">KG</option>
+                        <option value="mts">MTS</option>
+                        <option value="dagina">DAGINA</option>
+                        <option value="pcs">PCS</option>
+                      </select>
+                    )}
                 </div>
               </div>
             </div>
@@ -341,46 +357,46 @@ const OrderForm = ({ onSubmit, onCancel, loading, initialData }) => {
       </div>
 
       {/* DYNAMIC VALUATION NODE */}
-      <div className="bg-slate-900 rounded-[3rem] p-10 flex flex-col md:flex-row items-center justify-between border border-slate-800 shadow-2xl relative overflow-hidden group">
-        <div className="absolute top-0 -right-8 p-12 opacity-5 group-hover:rotate-12 transition-transform duration-1000">
+      <div className="bg-[#0f172a] rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between border border-slate-800 shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 -right-8 p-12 opacity-[0.03] group-hover:rotate-12 transition-transform duration-1000">
           <ShoppingCart className="w-32 h-32 text-white" />
         </div>
         <div className="flex flex-col gap-1 relative z-10">
-          <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] mb-2 block">Aggregate Settlement Specification</span>
-          <div className="flex items-center gap-6">
+          <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] mb-3 block">Aggregate Settlement Specification</span>
+          <div className="flex items-center gap-8">
             <div>
-              <label className="text-[8px] font-black text-white/30 uppercase tracking-widest block mb-1">Taxable Payload</label>
-              <p className="text-white text-xl font-black italic">₹ {totalBeforeTax.toLocaleString()}</p>
+              <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest block mb-1">Taxable Payload</label>
+              <p className="text-white text-2xl font-black italic">₹ {totalBeforeTax.toLocaleString()}</p>
             </div>
-            <div className="w-px h-10 bg-white/10 mx-2"></div>
+            <div className="w-px h-10 bg-slate-800 mx-2"></div>
             <div>
-              <label className="text-[8px] font-black text-white/30 uppercase tracking-widest block mb-1">Statutory GST ({gstRate}%)</label>
-              <p className="text-emerald-400 text-xl font-black italic">₹ {(grandTotal - totalBeforeTax).toLocaleString()}</p>
+              <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest block mb-1">Statutory GST ({gstRate}%)</label>
+              <p className="text-emerald-400 text-2xl font-black italic">₹ {(grandTotal - totalBeforeTax).toLocaleString()}</p>
             </div>
           </div>
         </div>
         <div className="text-right relative z-10 mt-8 md:mt-0">
-          <span className="text-[11px] font-black text-white/20 uppercase tracking-[0.3em] block mb-2">Final Fulfillment Value</span>
-          <div className="text-6xl font-black text-white tracking-tightest flex items-baseline gap-4 italic group-hover:scale-105 transition-transform duration-700">
-            <span className="text-2xl text-indigo-500 font-normal">₹</span>
+          <span className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em] block mb-2">Final Fulfillment Value</span>
+          <div className="text-6xl font-black text-white tracking-tighter flex items-baseline justify-end gap-3 italic group-hover:scale-[1.02] transition-transform duration-700">
+            <span className="text-2xl text-indigo-500 font-normal not-italic">₹</span>
             {grandTotal.toLocaleString()}
           </div>
         </div>
       </div>
 
       {/* LOGISTICS TELEMETRY (E-WAY BILL) */}
-      <div className={`transition-all duration-700 ${formData.ewayBillData.active ? 'bg-indigo-600/5 border-indigo-600/20 shadow-inner' : 'bg-slate-50 border-slate-100'} p-10 rounded-[3.5rem] border space-y-8`}>
+      <div className={`transition-all duration-700 ${formData.ewayBillData.active ? 'bg-indigo-50/50 border-indigo-100' : 'bg-slate-50 border-slate-100'} p-8 rounded-[3rem] border space-y-8`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
-            <div className={`p-4 rounded-[1.5rem] shadow-xl transition-all duration-500 ${formData.ewayBillData.active ? 'bg-indigo-600 text-white scale-110 shadow-indigo-600/30' : 'bg-slate-200 text-slate-400'}`}>
+            <div className={`p-4 rounded-[1.25rem] shadow-xl transition-all duration-500 ${formData.ewayBillData.active ? 'bg-indigo-600 text-white scale-110 shadow-indigo-200' : 'bg-slate-200 text-slate-400'}`}>
               <Truck className="w-6 h-6" />
             </div>
             <div>
-              <h4 className={`text-xl font-black uppercase tracking-tightest italic leading-none mb-1.5 ${formData.ewayBillData.active ? 'text-slate-900' : 'text-slate-400'}`}>Logistics <span className="text-slate-400 not-italic">Node</span></h4>
-              <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest leading-none">Government E-Way Bill Telemetry & Registration</p>
+              <h4 className={`text-xl font-black uppercase tracking-tighter italic leading-none mb-1 ${formData.ewayBillData.active ? 'text-slate-900' : 'text-slate-400'}`}>Logistics <span className="text-slate-400 not-italic">Node</span></h4>
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest leading-none">Government E-Way Bill Telemetry & Registration</p>
             </div>
           </div>
-          <label className="relative inline-flex items-center cursor-pointer scale-125 mr-4">
+          <label className="relative inline-flex items-center cursor-pointer scale-110 mr-2">
             <input
               type="checkbox"
               name="active"
@@ -388,26 +404,26 @@ const OrderForm = ({ onSubmit, onCancel, loading, initialData }) => {
               checked={formData.ewayBillData.active}
               onChange={handleEwayChange}
             />
-            <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+            <div className="w-12 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
           </label>
         </div>
 
         {formData.ewayBillData.active && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in slide-in-from-top-6 duration-700">
-            <div className="space-y-4 md:col-span-2">
-              <div className="grid grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="lg:col-span-8 space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <div className="flex justify-between items-center px-2">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">KM Displacement</label>
-                    <button type="button" onClick={handleFetchDistance} disabled={distanceLoading} className="text-[8px] font-black text-indigo-600 uppercase hover:text-indigo-800 transition-all flex items-center gap-1">
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic">KM Displacement</label>
+                    <button type="button" onClick={handleFetchDistance} disabled={distanceLoading} className="text-[8px] font-black text-indigo-600 uppercase hover:text-indigo-800 transition-all flex items-center gap-1.5 bg-indigo-50 px-2 py-1 rounded-md">
                       {distanceLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <MapPin className="w-3 h-3" />} AUTO SYNC
                     </button>
                   </div>
-                  <input name="distance" type="number" className="erp-input !bg-white !py-4" value={formData.ewayBillData.distance} onChange={handleEwayChange} />
+                  <input name="distance" type="number" className="erp-input !bg-white focus:!ring-indigo-500/10" value={formData.ewayBillData.distance} onChange={handleEwayChange} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 italic">Transport Matrix</label>
-                  <select name="mode" className="erp-input !bg-white !py-4" value={formData.ewayBillData.mode} onChange={handleEwayChange}>
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-2 italic">Transport Matrix</label>
+                  <select name="mode" className="erp-input !bg-white" value={formData.ewayBillData.mode} onChange={handleEwayChange}>
                     <option value="road">ROAD EXPEDITED</option>
                     <option value="rail">RAIL FREIGHT</option>
                     <option value="air">AIR CARGO</option>
@@ -415,42 +431,42 @@ const OrderForm = ({ onSubmit, onCancel, loading, initialData }) => {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 italic">Transporter Agency</label>
-                  <input name="transport" className="erp-input !bg-white !py-4 uppercase" placeholder="CARRIER NAME" value={formData.ewayBillData.transport} onChange={handleEwayChange} />
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-2 italic">Transporter Agency</label>
+                  <input name="transport" className="erp-input !bg-white uppercase placeholder:italic" placeholder="CARRIER NAME" value={formData.ewayBillData.transport} onChange={handleEwayChange} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2 italic">Transporter Master ID</label>
-                  <input name="transporterId" className="erp-input !bg-white !py-4 uppercase" placeholder="TRNP-0000" value={formData.ewayBillData.transporterId} onChange={handleEwayChange} />
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-2 italic">Transporter Master ID</label>
+                  <input name="transporterId" className="erp-input !bg-white uppercase placeholder:italic" placeholder="TRNP-0000" value={formData.ewayBillData.transporterId} onChange={handleEwayChange} />
                 </div>
               </div>
             </div>
 
-            <div className="bg-indigo-600/10 rounded-[2.5rem] p-8 border border-indigo-200/50 space-y-5">
-              <div className="flex items-center gap-3 mb-2">
-                <ShieldCheck className="w-4 h-4 text-indigo-600" />
-                <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest italic">High-Priority Telemetry</span>
+            <div className="lg:col-span-4 bg-indigo-600/5 rounded-[2rem] p-6 border border-indigo-100 space-y-6">
+              <div className="flex items-center gap-2 px-1">
+                <Activity className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="text-[9px] font-black text-indigo-600 uppercase tracking-[0.2em] italic">High-Priority Telemetry</span>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest ml-2">Vehicle Asset ID</label>
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Vehicle Asset ID</label>
                 <input
                   name="vehicleNo"
                   required
-                  className="erp-input !bg-white !text-2xl !font-black !tracking-tight !py-6 !border-indigo-200 focus:!border-indigo-600 uppercase text-center"
+                  className="erp-input !bg-white !text-xl !font-black !tracking-tighter !py-4 !border-indigo-100 focus:!border-indigo-600 uppercase text-center placeholder:text-slate-200"
                   placeholder="GJ-03-XX-0000"
                   value={formData.ewayBillData.vehicleNo}
                   onChange={handleEwayChange}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-2">L.R. Node</label>
-                  <input name="lrNo" className="erp-input !bg-white !py-3 !text-[11px]" placeholder="REF-000" value={formData.ewayBillData.lrNo} onChange={handleEwayChange} />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">L.R. Node</label>
+                  <input name="lrNo" className="erp-input !bg-white !py-2.5 !text-[11px] !rounded-lg" placeholder="REF-000" value={formData.ewayBillData.lrNo} onChange={handleEwayChange} />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-2">L.R. TS</label>
-                  <input name="lrDate" className="erp-input !bg-white !py-3 !text-[11px]" placeholder="DD/MM/YY" value={formData.ewayBillData.lrDate} onChange={handleEwayChange} />
+                <div className="space-y-1.5">
+                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">L.R. TS</label>
+                  <input name="lrDate" className="erp-input !bg-white !py-2.5 !text-[11px] !rounded-lg" placeholder="DD/MM/YY" value={formData.ewayBillData.lrDate} onChange={handleEwayChange} />
                 </div>
               </div>
             </div>

@@ -1,22 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* Premium Slate Palette */
   --primary: 221.2 83.2% 53.3%;
   --primary-foreground: 210 40% 98%;
   
-  --background: 210 40% 98%;
-  --foreground: 222.2 84% 4.9%;
+  --background: 240 20% 99%; /* Very soft gray/blue bg */
+  --foreground: 222.2 47.4% 11.2%;
   
   --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
+  --card-foreground: 222.2 47.4% 11.2%;
   
   --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
+  --popover-foreground: 222.2 47.4% 11.2%;
   
   --secondary: 210 40% 96.1%;
   --secondary-foreground: 222.2 47.4% 11.2%;
@@ -27,14 +26,14 @@
   --accent: 210 40% 96.1%;
   --accent-foreground: 222.2 47.4% 11.2%;
   
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive: 346.8 77.2% 49.8%;
+  --destructive-foreground: 0 0% 100%;
   
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
   --ring: 221.2 83.2% 53.3%;
   
-  --radius: 1rem;
+  --radius: 0.75rem;
 }
 
 @layer base {
@@ -43,76 +42,86 @@
   }
   body {
     @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))];
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 🚫 HIDE NUMBER INPUT SPIN BUTTONS (ARROWS) */
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type=number] {
+    -moz-appearance: textfield;
   }
 }
 
 @layer components {
+  /* Soft, clean card styling */
   .glass-card {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl shadow-slate-200/50;
-  }
-
-  .glass-card-dark {
-    @apply bg-slate-900/90 backdrop-blur-xl border border-slate-700 shadow-2xl shadow-slate-900/40;
+    @apply bg-white border border-slate-100 shadow-sm rounded-xl transition-all duration-300;
   }
   
+  /* Modern soft gradient bg */
   .mesh-gradient {
-    background-color: hsla(210, 40%, 98%, 1);
-    background-image: 
-      radial-gradient(at 0% 0%, hsla(221, 83%, 53%, 0.1) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, hsla(262, 83%, 58%, 0.1) 0px, transparent 50%),
-      radial-gradient(at 0% 100%, hsla(199, 89%, 48%, 0.1) 0px, transparent 50%);
+    background-color: #f8fafc;
   }
 
   .erp-input {
-    @apply w-full px-5 py-4 bg-white border border-slate-200 rounded-[1.25rem] text-xs font-bold outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all duration-300 placeholder:text-slate-400 placeholder:opacity-50 appearance-none;
+    @apply w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 placeholder:text-slate-400 placeholder:font-normal appearance-none;
   }
   
   select.erp-input {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 1.25rem center;
+    background-position: right 1rem center;
     background-size: 1rem;
-    padding-right: 3rem;
+    padding-right: 2.5rem;
   }
   
   .erp-button-primary {
-    @apply bg-[hsl(var(--primary))] text-white font-black text-[10px] uppercase tracking-[0.2em] py-5 px-10 rounded-[1.5rem] shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 hover:-translate-y-0.5 active:scale-95 transition-all duration-500 flex items-center justify-center gap-3 italic;
+    @apply bg-indigo-600 text-white font-semibold text-sm py-2.5 px-5 rounded-xl shadow-sm hover:shadow-md hover:bg-indigo-700 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2;
   }
 
   .erp-button-secondary {
-    @apply bg-white border border-slate-200 text-slate-700 font-black text-[10px] uppercase tracking-[0.2em] py-5 px-10 rounded-[1.5rem] hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all duration-500 flex items-center justify-center gap-3 italic;
+    @apply bg-white border border-slate-200 text-slate-700 font-semibold text-sm py-2.5 px-5 rounded-xl hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2;
   }
 
   .status-badge {
-    @apply px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm;
+    @apply px-3 py-1 rounded-full text-xs font-semibold tracking-wider;
   }
 
   .sidebar-link {
-    @apply flex items-center px-6 py-4 text-[11px] font-black uppercase tracking-widest rounded-[1.5rem] transition-all duration-500 relative overflow-hidden;
+    @apply flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-300;
   }
 
   .sidebar-link-active {
-    @apply bg-indigo-600 text-white shadow-xl shadow-indigo-600/30 scale-105 italic;
+    @apply bg-indigo-50 text-indigo-700;
   }
 
   .sidebar-link-inactive {
-    @apply text-slate-400 hover:bg-slate-800 hover:text-white;
+    @apply text-slate-500 hover:bg-slate-50 hover:text-slate-900;
+  }
+
+  .erp-table {
+    @apply w-full text-left border-collapse whitespace-nowrap;
+  }
+
+  .erp-table th {
+    @apply px-4 py-3.5 bg-slate-50/80 text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100;
+  }
+
+  .erp-table td {
+    @apply px-4 py-4 text-sm font-medium text-slate-700;
+  }
+
+  .erp-row-hover {
+    @apply transition-all duration-300 border-b border-slate-50 hover:bg-slate-50/80 cursor-pointer;
   }
 }
 
-/* Typography Refinements */
-.tracking-tightest {
-  letter-spacing: -0.07em;
-}
-
-.text-glow {
-  text-shadow: 0 0 30px hsla(var(--primary), 0.4);
-}
-
-/* Hide scrollbars globally but allow scrolling */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -123,15 +132,15 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
+  @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
 }
 
 .animate-in {
-  animation: animate-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: animate-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes animate-in {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 

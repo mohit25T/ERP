@@ -1,23 +1,25 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "../pages/Dashboard";
-import Products from "../pages/Products";
-import Customers from "../pages/Customers";
+import Products from "../pages/erp/Products";
+import Customers from "../pages/erp/Customers";
 import Settings from "../pages/Settings";
-import Orders from "../pages/Orders";
-import Suppliers from "../pages/Suppliers";
-import Purchases from "../pages/Purchases";
-import Accounting from "../pages/Accounting";
-import Payroll from "../pages/Payroll";
+import Orders from "../pages/erp/Orders";
+import Suppliers from "../pages/erp/Suppliers";
+import Purchases from "../pages/erp/Purchases";
+import Accounting from "../pages/accounting/Accounting";
+import Payroll from "../pages/accounting/Payroll";
 import Reports from "../pages/Reports";
-import PartyLedger from "../pages/PartyLedger";
-import CompanyStatement from "../pages/CompanyStatement";
+import PartyLedger from "../pages/accounting/PartyLedger";
+import CompanyStatement from "../pages/accounting/CompanyStatement";
 import Login from "../pages/Login";
-import PublicLedger from "../pages/PublicLedger";
-import Production from "../pages/Production";
-import Billing from "../pages/Billing";
+import PublicLedger from "../pages/accounting/PublicLedger";
+import Production from "../pages/erp/Production";
+import Billing from "../pages/accounting/Billing";
+import Compliance from "../pages/accounting/Compliance";
 import ProtectedRoute from "./ProtectedRoute";
 
 import { useParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 // Helper for param-aware redirects
 const RedirectWithId = ({ base }) => {
@@ -25,40 +27,114 @@ const RedirectWithId = ({ base }) => {
   return <Navigate to={`${base}/${id}${window.location.search}`} replace />;
 };
 
+// Role-Based Authorization Wrapper
+const RoleProtectedRoute = ({ children, allowedRoles }) => {
+  const { user } = useAuth();
+  const userRole = user?.role?.toLowerCase();
+
+  // Admin and Super Admin satisfy all role requirements
+  if (userRole === "admin" || userRole === "super_admin") {
+    return children;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-8 text-center">
+        <div className="space-y-4">
+          <h2 className="text-xl font-black text-rose-500 uppercase italic tracking-widest">Access Protocol Restricted</h2>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Your credentials do not satisfy the security requirements for this sector.</p>
+          <button onClick={() => window.location.href = "/"} className="erp-button-primary mt-4">Return to Base</button>
+        </div>
+      </div>
+    );
+  }
+
+  return children;
+};
+
 const AppRouter = () => {
+  const { user } = useAuth();
+  const activeModules = user?.activeModules || { erp: true, accounting: true };
+
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/public/ledger/:token" element={<PublicLedger />} />
-        
+
         {/* Protected ERP Routing */}
         <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
-        
-        <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
-        <Route path="/purchases" element={<ProtectedRoute><Purchases /></ProtectedRoute>} />
-        <Route path="/accounting" element={<ProtectedRoute><Accounting /></ProtectedRoute>} />
-        <Route path="/payroll" element={<ProtectedRoute><Payroll /></ProtectedRoute>} />
-        <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-        
-        {/* Statement & Ledger (Renamed from Reports Context) */}
-        <Route path="/statements" element={<ProtectedRoute><PartyLedger /></ProtectedRoute>} />
-        <Route path="/statements/:id" element={<ProtectedRoute><PartyLedger /></ProtectedRoute>} />
-        <Route path="/financial-statement" element={<ProtectedRoute><CompanyStatement /></ProtectedRoute>} />
-        
-        {/* Legacy Redirects for backwards compatibility */}
-        <Route path="/reports/ledger" element={<Navigate to="/statements" replace />} />
-        <Route path="/reports/party/:id" element={<RedirectWithId base="/statements" />} />
 
-        {/* Core ERP Modules */}
-        <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
-        <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
-        <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-        <Route path="/production" element={<ProtectedRoute><Production /></ProtectedRoute>} />
-        
+        <Route path="/products" element={<ProtectedRoute>{activeModules.erp ? <Products /> : <Navigate to="/" replace />}</ProtectedRoute>} />
+
+        <Route path="/suppliers" element={<ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["admin", "accountant"]}>
+            {activeModules.erp ? <Suppliers /> : <Navigate to="/" replace />}
+          </RoleProtectedRoute>
+        </ProtectedRoute>} />
+
+        <Route path="/purchases" element={<ProtectedRoute>{activeModules.erp ? <Purchases /> : <Navigate to="/" replace />}</ProtectedRoute>} />
+        <Route path="/production" element={<ProtectedRoute>{activeModules.erp ? <Production /> : <Navigate to="/" replace />}</ProtectedRoute>} />
+
+        <Route path="/reports" element={<ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["admin", "accountant"]}>
+            {activeModules.erp ? <Reports /> : <Navigate to="/" replace />}
+          </RoleProtectedRoute>
+        </ProtectedRoute>} />
+
+        <Route path="/customers" element={<ProtectedRoute>{activeModules.erp ? <Customers /> : <Navigate to="/" replace />}</ProtectedRoute>} />
+        <Route path="/orders" element={<ProtectedRoute>{activeModules.erp ? <Orders /> : <Navigate to="/" replace />}</ProtectedRoute>} />
+
+        {/* Global Fiscal Domain - NO LOCK */}
+        <Route path="/accounting" element={<ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["admin", "accountant"]}>
+            {activeModules.accounting ? <Accounting /> : <Navigate to="/" replace />}
+          </RoleProtectedRoute>
+        </ProtectedRoute>} />
+
+        <Route path="/payroll" element={<ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["admin"]}>
+            {activeModules.accounting ? <Payroll /> : <Navigate to="/" replace />}
+          </RoleProtectedRoute>
+        </ProtectedRoute>} />
+
+        <Route path="/billing" element={<ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["admin", "accountant"]}>
+            {activeModules.accounting ? <Billing /> : <Navigate to="/" replace />}
+          </RoleProtectedRoute>
+        </ProtectedRoute>} />
+
+        {/* Statement & Ledger */}
+        <Route path="/statements" element={<ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["admin", "accountant"]}>
+            {activeModules.accounting ? <PartyLedger /> : <Navigate to="/" replace />}
+          </RoleProtectedRoute>
+        </ProtectedRoute>} />
+
+        <Route path="/statements/:id" element={<ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["admin", "accountant"]}>
+            {activeModules.accounting ? <PartyLedger /> : <Navigate to="/" replace />}
+          </RoleProtectedRoute>
+        </ProtectedRoute>} />
+
+        <Route path="/compliance" element={<ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["admin"]}>
+            {activeModules.accounting ? <Compliance /> : <Navigate to="/" replace />}
+          </RoleProtectedRoute>
+        </ProtectedRoute>} />
+
+        <Route path="/financial-statement" element={<ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["admin"]}>
+            {activeModules.accounting ? <CompanyStatement /> : <Navigate to="/" replace />}
+          </RoleProtectedRoute>
+        </ProtectedRoute>} />
+
         {/* Support & Configuration */}
-        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["admin"]}>
+            <Settings />
+          </RoleProtectedRoute>
+        </ProtectedRoute>} />
 
         {/* Catch-all Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

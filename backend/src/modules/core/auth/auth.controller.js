@@ -1,0 +1,275 @@
+import User from "../users/User.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { sendOtpEmail } from "../../../shared/utils/sendOtpEmail.js";
+
+// Helper to merge individual user with Global Company Details
+const getMergedUser = (user, masterAdmin) => {
+  return {
+    id: user._id,
+    name: user.name,
+    role: user.role,
+    email: user.email,
+    mobile: user.mobile,
+    passwordLength: user.passwordLength || 8,
+    // GLOBAL OVERRIDE: Always use masterAdmin details for the entire organization
+    gstin: masterAdmin?.gstin || user.gstin,
+    pan: masterAdmin?.pan || ((masterAdmin?.gstin || user.gstin)?.length >= 12 ? (masterAdmin?.gstin || user.gstin).substring(2, 12) : ""),
+    companyName: masterAdmin?.companyName || user.companyName,
+    address: masterAdmin?.address || user.address,
+    state: masterAdmin?.state || user.state,
+    pincode: masterAdmin?.pincode || user.pincode,
+    companyLogo: masterAdmin?.companyLogo || user.companyLogo,
+    invoiceSettings: masterAdmin?.invoiceSettings || user.invoiceSettings,
+    notificationSettings: user.notificationSettings,
+    activeModules: masterAdmin?.activeModules || user.activeModules || { erp: true, accounting: true }
+  };
+};
+
+// Register (Updated to require mobile)
+export const register = async (req, res) => {
+  try {
+    const { name, email, mobile, password, role } = req.body;
+
+    const userExists = await User.findOne({ mobile });
+    if (userExists) {
+      return res.status(400).json({ msg: "User with this mobile already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const userCount = await User.countDocuments();
+    const roleToSet = userCount === 0 ? "super_admin" : (role || "worker");
+
+    const user = await User.create({
+      name,
+      email,
+      mobile,
+      password: hashedPassword,
+      passwordLength: password.length,
+      role: roleToSet,
+    });
+
+    // 🏆 NOTIFICATION: Welcome Alert
+    await Notification.create({
+      user: user._id,
+      title: "Welcome to Apex ERP! 🚀",
+      message: "Your enterprise account is ready. Start by setting up your business profile.",
+      type: "success",
+      link: "/settings"
+    });
+
+    res.status(201).json({ msg: "User registered successfully", user: { id: user._id, name: user.name, mobile: user.mobile } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Login Step 1: Verify Mobile/Password & Send OTP
+export const loginStep1 = async (req, res) => {
+  try {
+    const { mobile, password } = req.body;
+    console.log(`[AUTH STEP 1]: Login attempt for mobile ${mobile}`);
+
+    const user = await User.findOne({ mobile });
+    if (!user) {
+      console.warn(`[AUTH FAILED]: Mobile number ${mobile} not found.`);
+      return res.status(400).json({ msg: "Invalid mobile or password" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      console.warn(`[AUTH FAILED]: Password mismatch for mobile ${mobile}.`);
+      return res.status(400).json({ msg: "Invalid mobile or password" });
+    }
+
+    // [SELF-HEALING]: Sync password character count for UI visuals during login
+    if (user.passwordLength !== password.length) {
+      user.passwordLength = password.length;
+      await user.save();
+      console.log(`[AUTH SYNC]: Password character count updated to ${password.length} for ${user.name}`);
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    user.otp = otp;
+    user.otpExpiry = otpExpiry;
+    await user.save();
+
+    console.log(`[AUTH STEP 1.5]: Generating OTP for ${user.name} (${mobile})`);
+
+    if (!user.email) {
+      console.warn(`[AUTH WARNING]: No email address found for ${user.name}. Email delivery will be skipped.`);
+    }
+
+    // Send the OTP via Email to the user's registered email address
+    await sendOtpEmail(user.email, otp);
+
+    res.json({ success: true, msg: user.email ? `OTP sent to ${user.email}` : "OTP generated. Check server console (No email set).", emailMasked: user.email ? user.email.replace(/(.{2})(.*)(?=@)/, "$1***") : "No Email" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Login Step 2: Verify OTP and grant JWT
+export const loginStep2 = async (req, res) => {
+  try {
+    const { mobile, otp } = req.body;
+
+    const user = await User.findOne({ mobile });
+    if (!user) {
+      return res.status(400).json({ msg: "Invalid request" });
+    }
+
+    if (!user.otp || user.otp !== otp) {
+      return res.status(400).json({ msg: "Invalid OTP" });
+    }
+
+    if (user.otpExpiry < new Date()) {
+      return res.status(400).json({ msg: "OTP has expired. Please log in again." });
+    }
+
+    // OTP is valid. Clear it out and sign JWT.
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+    await user.save();
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role, plan: user.plan || "ERP_BILLING" },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    // Fetch Master Record for Global Identity Merge
+    const masterAdmin = await User.findOne({ role: "super_admin" });
+
+    res.json({
+      token,
+      user: getMergedUser(user, masterAdmin)
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Verify Password (for Module Lockdown)
+export const verifyPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const user = await User.findById(req.user.id);
+
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, msg: "Security Cipher Mismatch" });
+    }
+
+    res.json({ success: true, msg: "Module Unlocked" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Change Password
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user.id);
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: "Current password does not match" });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.passwordLength = newPassword.length;
+    await user.save();
+
+    // 🏆 NOTIFICATION: Security Alert
+    if (user.notificationSettings?.securityAlerts) {
+      await Notification.create({
+        user: user._id,
+        title: "Security Update 🛡️",
+        message: "Your system password was recently updated successfully.",
+        type: "warning",
+        link: "/settings"
+      });
+    }
+
+    res.json({ msg: "Password updated successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Update Profile (With Global Company Sync)
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, gstin, companyName, address, state, pincode, companyLogo, invoiceSettings, notificationSettings, activeModules } = req.body;
+
+    // 1. Personal Profile Update (Current User)
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser) return res.status(404).json({ msg: "User not found" });
+
+    if (name !== undefined) currentUser.name = name;
+    if (notificationSettings !== undefined) currentUser.notificationSettings = notificationSettings;
+    await currentUser.save();
+
+    // 2. Global Company Profile Update (Admin Only)
+    if (["super_admin", "admin"].includes(currentUser.role)) {
+      const masterAdmin = await User.findOne({ role: "super_admin" });
+      if (masterAdmin) {
+        if (activeModules !== undefined) masterAdmin.activeModules = activeModules;
+        if (gstin !== undefined) {
+          masterAdmin.gstin = gstin;
+          if (gstin.length >= 12) {
+            masterAdmin.pan = gstin.substring(2, 12).toUpperCase();
+          }
+        }
+        if (companyName !== undefined) masterAdmin.companyName = companyName;
+        if (address !== undefined) masterAdmin.address = address;
+        if (state !== undefined) masterAdmin.state = state;
+        if (pincode !== undefined) masterAdmin.pincode = pincode;
+        if (companyLogo !== undefined) masterAdmin.companyLogo = companyLogo;
+        if (invoiceSettings !== undefined) masterAdmin.invoiceSettings = invoiceSettings;
+
+        await masterAdmin.save();
+        console.log(`[GLOBAL SYNC]: Company Identity updated by ${currentUser.name}`);
+      }
+    }
+
+    // Refresh Master for return response
+    const masterAdmin = await User.findOne({ role: "super_admin" });
+
+    // 3. Return the merged result to update frontend state immediately
+    res.json(getMergedUser(currentUser, masterAdmin));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Get Global Company Profile
+export const getGlobalCompanyProfile = async (req, res) => {
+  try {
+    const masterAdmin = await User.findOne({ role: "super_admin" }).lean();
+    if (!masterAdmin) {
+      return res.status(404).json({ error: "Master company record not found." });
+    }
+
+    res.json({
+      name: masterAdmin.name,
+      companyName: masterAdmin.companyName,
+      gstin: masterAdmin.gstin,
+      address: masterAdmin.address,
+      state: masterAdmin.state,
+      pincode: masterAdmin.pincode,
+      companyLogo: masterAdmin.companyLogo,
+      invoiceSettings: masterAdmin.invoiceSettings
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

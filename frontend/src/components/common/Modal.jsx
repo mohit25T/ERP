@@ -1,12 +1,24 @@
+
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { X, ShieldCheck } from "lucide-react";
 
 /**
  * Modal: The System Interaction Node
  * Designed with a high-fidelity 'Commercial Operations' design language.
  */
-const Modal = ({ isOpen, onClose, title, children }) => {
+const Modal = ({ isOpen, onClose, title, children, size = "xl" }) => {
+  const sizeClasses = {
+    "sm": "max-w-sm",
+    "md": "max-w-md",
+    "lg": "max-w-lg",
+    "xl": "max-w-xl",
+    "2xl": "max-w-2xl",
+    "3xl": "max-w-3xl",
+    "4xl": "max-w-4xl",
+    "5xl": "max-w-5xl"
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -27,7 +39,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 30 }}
               transition={{ duration: 0.6, cubicBezier: [0.16, 1, 0.3, 1] }}
-              className="bg-white rounded-[3.5rem] shadow-3xl shadow-slate-900/20 w-full max-w-xl overflow-hidden pointer-events-auto border border-slate-100 flex flex-col max-h-[90vh]"
+              className={`bg-white rounded-[3.5rem] shadow-3xl shadow-slate-900/20 w-full ${sizeClasses[size] || "max-w-xl"} overflow-hidden pointer-events-auto border border-slate-100 flex flex-col max-h-[95vh]`}
             >
               {/* Modal Control Header */}
               <div className="flex items-center justify-between px-10 pt-12 pb-8 border-b border-slate-50 bg-slate-50/30">

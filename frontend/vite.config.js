@@ -9,7 +9,9 @@ export default defineConfig({
     allowedHosts: [
       "apexitworld.com",
       "www.apexitworld.com",
-      "erp-1-et0w.onrender.com"
+      "erp-1-et0w.onrender.com",
+      "localhost",
+      "127.0.0.1"
     ]
   }
 })

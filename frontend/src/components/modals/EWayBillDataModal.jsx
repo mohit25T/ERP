@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { Truck, Calendar, Tag, Save, X, Timer, Activity, ShieldCheck } from "lucide-react";
+import { useState } from "react";
 
 /**
  * EWayBillDataModal: The Logistics Interaction Node
@@ -34,7 +33,7 @@ const EWayBillDataModal = ({ isOpen, onClose, invoice, onUpdate }) => {
       <div className="bg-white w-full max-w-xl rounded-[3.5rem] shadow-3xl shadow-slate-900/20 overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]">
         
         {/* Elite Header Node */}
-        <div className="px-10 py-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+        <div className="px-10 py-3 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
           <div className="flex items-center gap-5">
              <div className="p-4 bg-slate-900 rounded-[1.5rem] shadow-xl shadow-slate-900/10">
                 <Truck className="w-6 h-6 text-white" />
@@ -121,7 +120,7 @@ const EWayBillDataModal = ({ isOpen, onClose, invoice, onUpdate }) => {
                 </div>
                 <input 
                   required
-                  className="erp-input !py-8 !pl-20 !text-3xl !font-black !tracking-tighter !text-slate-900 !bg-indigo-50/30 border-indigo-100 focus:!border-indigo-600 focus:!bg-white uppercase placeholder:text-slate-200"
+                  className="erp-input !py-3 !pl-20 !text-3xl !font-black !tracking-tighter !text-slate-900 !bg-indigo-50/30 border-indigo-100 focus:!border-indigo-600 focus:!bg-white uppercase placeholder:text-slate-200"
                   placeholder="GJ-03-XX-0000"
                   value={formData.vehicleNo}
                   onChange={(e) => setFormData({...formData, vehicleNo: e.target.value.toUpperCase()})}

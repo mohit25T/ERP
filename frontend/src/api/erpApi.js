@@ -8,12 +8,36 @@ const isLocalhost =
   window.location.hostname.startsWith("10.");
 
 const API_BASE_URL = isLocalhost
-  ? "http://localhost:5000/api"
-  : "https://erp-1i9o.onrender.com/api";
+  ? `http://localhost:5000/api/v1`
+  : "https://erp-1i9o.onrender.com/api/v1";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
 });
+
+// Diagnostic Interceptor: Captures absolute network failures and redirects on session expiry
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    // 1. Handle Network/Connectivity Failures
+    if (!err.response) {
+      alert(`[MIRACLE ERP NETWORK DIAGNOSTIC]\n\nA connectivity failure occurred.\n\nMessage: ${err.message}\nResolution: Check if the Backend Server is running at ${API_BASE_URL}`);
+    }
+
+    // 2. Handle Session Expiry (401 Unauthorized)
+    if (err.response && err.response.status === 401) {
+      console.warn("[AUTH PROTOCOL] Session expired. Redirecting to Login Terminal.");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      // Prevent infinite loop if already on login
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+    }
+
+    return Promise.reject(err);
+  }
+);
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
@@ -21,7 +45,7 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  // Cache Busting: Appends a timestamp to all GET requests to bypass aggressive browser/proxy caches
+  // Cache Busting: Appends a timestamp to all all requests to bypass aggressive browser/proxy caches
   if (config.method?.toLowerCase() === 'get') {
     config.params = { ...config.params, _t: Date.now() };
   }
@@ -83,13 +107,14 @@ export const authApi = {
   register: (data) => api.post("/auth/register", data),
   updateProfile: (data) => api.put("/auth/profile", data),
   getCompanyProfile: () => api.get("/auth/company-profile"),
+  verifyPassword: (password) => api.post("/auth/verify-password", { password }),
   changePassword: (data) => api.post("/auth/change-password", data),
 };
 
 export const dashboardApi = {
   getStats: () => api.get("/dashboard/stats"),
   getFinancialSummary: () => api.get("/payments/summary"),
-  getPnLSummary: () => api.get("/ledger/summary")
+  getPnLSummary: () => api.get("/dashboard/pnl-summary")
 };
 
 export const paymentApi = {
@@ -141,6 +166,7 @@ export const distanceApi = {
 export const productionApi = {
   getAll: () => api.get("/productions"),
   create: (data) => api.post("/productions", data),
+  update: (id, data) => api.patch(`/productions/${id}`, data),
   start: (id) => api.patch(`/productions/${id}/start`),
   complete: (id, data) => api.patch(`/productions/${id}/complete`, data),
   delete: (id) => api.delete(`/productions/${id}`),
@@ -160,6 +186,10 @@ export const invoiceApi = {
   updateEwayBillDetails: (id, data) => api.patch(`/invoices/${id}/ewaybill-details`, data)
 };
 
+export const auditApi = {
+  getLogs: (params) => api.get("/audit", { params })
+};
+
 export const journalApi = {
   getAll: () => api.get("/journal")
 };
@@ -170,5 +200,9 @@ export const inventoryApi = {
   getScrapLogs: () => api.get("/inventory/scrap")
 };
 
-export default api;
+export const complianceApi = {
+  getGstConfig: () => api.get("/compliance/gst-config"),
+  saveGstConfig: (data) => api.post("/compliance/gst-config", data)
+};
 
+export default api;

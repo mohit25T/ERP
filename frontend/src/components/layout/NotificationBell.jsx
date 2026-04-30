@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Bell, Check, Info, AlertTriangle, CheckCircle, XCircle, MoreVertical, Trash2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { Bell, AlertTriangle, CheckCircle, XCircle, Info, Check } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 const NotificationBell = () => {
   const [notifications, setNotifications] = useState([]);

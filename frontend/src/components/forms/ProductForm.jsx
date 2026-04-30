@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { Plus, Trash2, Layers, Info, Package, Hash, Tag, Type, IndianRupee, Database, ShieldCheck, Activity, Zap } from "lucide-react";
+import { useState, useEffect } from "react";
 import { api } from "../../api/erpApi";
+import {
+  Zap, Package, Database, Type, Hash, Tag,
+  IndianRupee, Layers, Plus, Info, Trash2, ShieldCheck
+} from "lucide-react";
 
 /**
  * ProductForm: The Asset Intelligence Node
@@ -14,7 +17,7 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
     type: initialData?.type || "finished_good",
     hsnCode: initialData?.hsnCode || "",
     gstRate: initialData?.gstRate || 18,
-    price: initialData?.price || 0,
+    price: initialData?.unit === 'dagina' ? (initialData.price * 50) : (initialData?.price || 0),
     stock: initialData?.unit === 'dagina' ? (initialData.stock / 50) : (initialData?.stock || 0),
     unit: initialData?.unit || "kg",
     bom: initialData?.bom || []
@@ -40,14 +43,19 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
     if (name === 'unit') {
       const prevUnit = formData.unit;
       const nextUnit = value;
-      let newStock = formData.stock;
-      const baseStock = prevUnit === 'dagina' ? newStock * 50 : newStock;
+      const prevStock = formData.stock;
+      const baseStock = prevUnit === 'dagina' ? prevStock * 50 : prevStock;
       const convertedStock = nextUnit === 'dagina' ? baseStock / 50 : baseStock;
+
+      const prevPrice = formData.price;
+      const basePrice = prevUnit === 'dagina' ? prevPrice / 50 : prevPrice;
+      const convertedPrice = nextUnit === 'dagina' ? basePrice * 50 : basePrice;
 
       setFormData(prev => ({
         ...prev,
         unit: nextUnit,
-        stock: convertedStock
+        stock: convertedStock,
+        price: convertedPrice
       }));
       return;
     }
@@ -80,9 +88,15 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formData.sku || !formData.sku.trim()) {
+      alert("Error: SKU Identity cannot be empty or whitespace.");
+      return;
+    }
     const submissionData = {
       ...formData,
-      stock: formData.unit === 'dagina' ? formData.stock * 50 : formData.stock
+      sku: formData.sku.trim(),
+      stock: formData.unit === 'dagina' ? formData.stock * 50 : formData.stock,
+      price: formData.unit === 'dagina' ? formData.price / 50 : formData.price
     };
     onSubmit(submissionData);
   };
@@ -190,22 +204,6 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
         </div>
 
         <div className="space-y-2.5">
-           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Base Unit Price</label>
-           <div className="relative group">
-              <IndianRupee className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
-              <input
-                name="price"
-                type="number"
-                step="0.01"
-                required
-                className="erp-input !pl-14 !bg-slate-50/50 focus:!bg-white !font-black !text-lg"
-                value={formData.price}
-                onChange={handleChange}
-              />
-           </div>
-        </div>
-
-        <div className="space-y-2.5">
            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Inventory Telemetry (Stock)</label>
            <div className="flex gap-4">
               <input
@@ -222,8 +220,26 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
                 value={formData.unit}
                 onChange={handleChange}
               >
-                {["kg", "gram", "meters", "pcs", "dagina", "amount"].map(u => <option key={u} value={u}>{u}</option>)}
+                {["kg", "gram", "dagina", "pcs", "meters", "tons", "mts", "unit", "amount"].map(u => (
+                  <option key={u} value={u}>{u.toUpperCase()}</option>
+                ))}
               </select>
+           </div>
+        </div>
+
+        <div className="space-y-2.5">
+           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Base Unit Price</label>
+           <div className="relative group">
+              <IndianRupee className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
+              <input
+                name="price"
+                type="number"
+                step="0.01"
+                required
+                className="erp-input !pl-14 !bg-slate-50/50 focus:!bg-white !font-black !text-lg"
+                value={formData.price}
+                onChange={handleChange}
+              />
            </div>
         </div>
       </div>

@@ -1,15 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { inventoryApi } from "../../api/erpApi";
-import { 
-  History, 
-  ArrowUpRight, 
-  ArrowDownRight, 
-  Calendar, 
-  Receipt,
-  Package,
-  X 
-} from "lucide-react";
-import Modal from "../common/Modal";
+
+
 
 const InventoryHistory = ({ isOpen, onClose, product }) => {
   const [logs, setLogs] = useState([]);

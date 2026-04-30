@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Cpu, ShieldAlert, Lock, Phone, KeyRound, 
+  ArrowRight, ShieldCheck, Database, Activity 
+} from "lucide-react";
 import { authApi } from "../api/erpApi";
 import { useAuth } from "../context/AuthContext";
-import { KeyRound, Phone, AlertCircle, ShieldCheck, Zap, Lock, Globe, Database, ArrowRight, ShieldAlert, Cpu, Activity } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 
 /**
  * Login: The Identity Firewall & Security Entry Node
@@ -96,7 +99,7 @@ const Login = () => {
             transition={{ delay: 0.2 }}
             className="relative z-10 space-y-8"
           >
-             <h2 className="text-5xl lg:text-7xl font-black text-white leading-[0.9] tracking-tightest italic">
+             <h2 className="text-3xl lg:text-7xl font-black text-white leading-[0.9] tracking-tightest italic">
                 SECURE<br/>
                 IDENTITY<br/>
                 <span className="text-slate-600">FIREWALL</span>
@@ -222,7 +225,7 @@ const Login = () => {
                       className="space-y-10 flex flex-col items-center text-center relative z-10"
                       onSubmit={handleStep2}
                     >
-                      <div className="w-20 h-20 bg-indigo-50 rounded-[2rem] flex items-center justify-center mb-4 border border-indigo-100 shadow-xl shadow-indigo-500/10">
+                      <div className="w-14 h-14 bg-indigo-50 rounded-[2rem] flex items-center justify-center mb-4 border border-indigo-100 shadow-xl shadow-indigo-500/10">
                          <ShieldCheck className="w-10 h-10 text-indigo-600 animate-pulse" />
                       </div>
                       <div>
@@ -238,7 +241,7 @@ const Login = () => {
                          <input
                            type="text"
                            maxLength="6"
-                           className="w-full text-center text-5xl font-black italic tracking-[0.5em] py-8 bg-slate-50 border-none rounded-[2.5rem] text-indigo-600 outline-none focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-inner"
+                           className="w-full text-center text-3xl font-black italic tracking-[0.5em] py-3 bg-slate-50 border-none rounded-[2.5rem] text-indigo-600 outline-none focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-inner"
                            placeholder="000000"
                            value={otp}
                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}

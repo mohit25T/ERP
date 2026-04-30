@@ -2,7 +2,6 @@ export const CONVERSIONS = {
   dagina: 50,
   kg: 1,
   gram: 0.001,
-  ton: 1000,
   mts: 1000,
   unit: 1,
   pcs: 1,
