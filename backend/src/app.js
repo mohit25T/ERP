@@ -42,6 +42,7 @@ import complianceRoutes from "./modules/gst/compliance/compliance.route.js";
 import reportRoutes from "./modules/analytics/reports/reports.route.js";
 import auditRoutes from "./modules/analytics/audit/audit.route.js";
 import biRoutes from "./modules/analytics/bi/bi.route.js";
+import treasuryRoutes from "./modules/treasury/treasury.route.js";
 
 // Services
 import UnitService from "./modules/erp/products/UnitService.js";
@@ -162,6 +163,7 @@ apiV1.use("/compliance", billingMiddleware, complianceRoutes);
 apiV1.use("/reports", reportRoutes);
 apiV1.use("/audit", auditRoutes);
 apiV1.use("/bi", biRoutes);
+apiV1.use("/treasury", treasuryRoutes);
 
 // Mount API v1
 app.use("/api/v1", apiV1);

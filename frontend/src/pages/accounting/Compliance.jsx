@@ -96,7 +96,7 @@ const Compliance = () => {
         </div>
 
         {/* Audit Table */}
-        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden mb-20">
+        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden mb-12">
            <div className="p-6 border-b border-slate-50 flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="relative group w-full max-w-md">
                  <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
@@ -130,17 +130,17 @@ const Compliance = () => {
                 <table className="erp-table">
                    <thead>
                       <tr className="bg-slate-50/50 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] border-b border-slate-50">
-                         <th className="px-10 py-5 italic">Tactical Timeline</th>
-                         <th className="px-10 py-5 italic">Operational Action</th>
-                         <th className="px-10 py-5 italic">Sector/Resource</th>
-                         <th className="px-10 py-5 italic">Identity Proxy</th>
-                         <th className="px-10 py-5 italic text-right pr-20">Network Address</th>
+                         <th className="px-6 py-4 italic">Tactical Timeline</th>
+                         <th className="px-6 py-4 italic">Operational Action</th>
+                         <th className="px-6 py-4 italic">Sector/Resource</th>
+                         <th className="px-6 py-4 italic">Identity Proxy</th>
+                         <th className="px-6 py-4 italic text-right pr-20">Network Address</th>
                       </tr>
                    </thead>
                    <tbody className="divide-y divide-slate-50">
                       {filteredLogs.map((log) => (
                         <tr key={log._id} className="erp-row-hover group transition-all duration-500">
-                           <td className="px-10 py-6">
+                           <td className="px-6 py-4">
                               <div className="flex items-center gap-4">
                                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center group-hover:bg-indigo-50 group-hover:rotate-12 transition-all">
                                     <Calendar className="w-5 h-5 text-slate-400 group-hover:text-indigo-600" />
@@ -151,19 +151,19 @@ const Compliance = () => {
                                  </div>
                               </div>
                            </td>
-                           <td className="px-10 py-6">
+                           <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
                                  <div className={`w-2 h-2 rounded-full ${log.action.includes('error') ? 'bg-rose-500' : 'bg- emerald-500 animate-pulse'}`}></div>
                                  <span className="text-[11px] font-black text-slate-900 uppercase tracking-tightest italic group-hover:text-indigo-600 transition-colors">{log.action.replace(/_/g, " ")}</span>
                               </div>
                            </td>
-                           <td className="px-10 py-6">
+                           <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
                                  <Database className="w-3.5 h-3.5 text-slate-300" />
                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{log.resource} <span className="text-[8px] opacity-40">#{log.resourceId?.slice(-6).toUpperCase()}</span></span>
                               </div>
                            </td>
-                           <td className="px-10 py-6">
+                           <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
                                  <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-[10px] font-black text-white italic">
                                     {log.user?.name?.charAt(0) || "S"}
@@ -174,7 +174,7 @@ const Compliance = () => {
                                  </div>
                               </div>
                            </td>
-                           <td className="px-10 py-6 text-right pr-20">
+                           <td className="px-6 py-4 text-right pr-20">
                               <div className="flex items-center justify-end gap-3">
                                  <Globe className="w-3.5 h-3.5 text-slate-300" />
                                  <span className="text-[11px] font-bold text-slate-400 tabular-nums">{log.ipAddress || "127.0.0.1"}</span>

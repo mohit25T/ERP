@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { productApi, productionApi, bomApi, inventoryApi } from "../../api/erpApi";
 import AppLayout from "../../components/layout/AppLayout";
 import Modal from "../../components/common/Modal";
+import HammerLoader from "../../components/common/HammerLoader";
 import {
    Factory, Plus, TrendingUp, Activity, Search, Filter,
    Trash2, Edit3, Play, CheckCircle2, AlertTriangle,
    Layers, X, Info, PackageOpen, LayoutGrid, ArrowRight,
-   Gauge, History, Recycle, Download, Zap, AlertCircle
+   Gauge, History, Recycle, Download, Zap, AlertCircle,
+   ShieldCheck
 } from "lucide-react";
 
 
@@ -277,7 +280,7 @@ const Production = () => {
 
             {/* Global Operational Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-               <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
+               <div className="bg-white rounded-md border border-slate-100 p-5 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-4">
                      <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Output Yield (24H)</h3>
                      <div className="p-2.5 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-lg">
@@ -290,7 +293,7 @@ const Production = () => {
                   </div>
                </div>
 
-               <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
+               <div className="bg-white rounded-md border border-slate-100 p-5 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-4">
                      <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Active Batches (WIP)</h3>
                      <div className="p-2.5 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-lg">
@@ -318,7 +321,7 @@ const Production = () => {
             </div>
 
             {/* Unified Command Container */}
-            <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden mb-8">
+            <div className="bg-white rounded-md border border-slate-100 shadow-sm overflow-hidden mb-8">
                <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
                   <div className="flex bg-slate-50 p-1 rounded-lg border border-slate-100">
                      <button onClick={() => setActiveView("batches")} className={`px-4 py-2 rounded-md text-sm font-semibold transition-colors ${activeView === 'batches' ? 'bg-white text-indigo-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>Production Batches</button>
@@ -337,13 +340,13 @@ const Production = () => {
                      <div className="flex items-center gap-2">
                         <button
                            onClick={() => setShowFilters(!showFilters)}
-                           className="p-2 border border-slate-200 bg-white rounded-lg text-slate-500 hover:text-slate-900 transition-colors shadow-sm"
+                           className="p-2 border border-slate-200 bg-white rounded-md text-slate-500 hover:text-slate-900 transition-colors shadow-sm"
                         >
                            <Filter className="w-4 h-4" />
                         </button>
                         <button
                            onClick={activeView === 'batches' ? handleExportBatches : handleExportScrap}
-                           className="p-2 border border-slate-200 bg-white rounded-lg text-slate-500 hover:text-slate-900 transition-colors shadow-sm"
+                           className="p-2 border border-slate-200 bg-white rounded-md text-slate-500 hover:text-slate-900 transition-colors shadow-sm"
                         >
                            <Download className="w-4 h-4" />
                         </button>
@@ -351,10 +354,10 @@ const Production = () => {
                   </div>
                </div>
 
-               <div className="overflow-x-auto">
-                  {loading ? (
-                     <div className="p-12 text-center text-slate-500 text-sm font-semibold animate-pulse">Loading Production Data...</div>
-                  ) : activeView === "batches" ? (
+                <div className="overflow-x-auto">
+                   {loading ? (
+                      <HammerLoader />
+                   ) : activeView === "batches" ? (
                      <table className="erp-table">
                         <thead>
                            <tr>
@@ -367,67 +370,87 @@ const Production = () => {
                            </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                           {filteredBatches.map((b) => (
-                              <tr key={b._id} className="erp-row-hover transition-colors">
-                                 <td>
-                                    <div className="flex flex-col">
-                                       <span className="text-sm font-semibold text-slate-900">BN-{b.batchNumber ? b.batchNumber.slice(-6).toUpperCase() : (b._id ? b._id.slice(-6).toUpperCase() : "VOID")}</span>
-                                       <span className="text-xs text-slate-500">{new Date(b.createdAt).toLocaleDateString()}</span>
-                                    </div>
-                                 </td>
-                                 <td>
-                                    <div className="flex flex-col">
-                                       <span className="text-sm font-semibold text-slate-900">{b.product?.name || "Unknown Product"}</span>
-                                       <span className="text-xs text-slate-500">{b.product?.category || "Uncategorized"}</span>
-                                    </div>
-                                 </td>
-                                 <td>
-                                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${b.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                       b.status === 'in_progress' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                          'bg-amber-50 text-amber-700 border-amber-200'
-                                       }`}>
-                                       {b.status === 'in_progress' ? 'In Progress' : b.status === "completed" ? "Completed" : "Pending"}
-                                    </span>
-                                 </td>
-                                 <td>
-                                    <div className="flex flex-col">
-                                       <span className="text-sm font-semibold text-slate-900">
-                                          {b.status === 'completed' ? (b.outputQuantity ?? b.quantity) : b.quantity}
-                                          {b.status === 'completed' && <span className="text-[10px] text-slate-400 font-medium ml-1">/ {b.quantity}</span>}
-                                          <span className="text-xs font-normal text-slate-500 ml-1">{b.product?.unit}</span>
-                                       </span>
-                                    </div>
-                                 </td>
-                                 <td>
-                                    {b.status === 'completed' && (b.scrapWeight > 0 || b.scrapQuantity > 0) ? (
-                                       <div className="flex flex-col">
-                                          <span className="text-sm font-bold text-rose-600">
-                                             -{b.scrapQuantity} <span className="text-[10px] font-medium uppercase tracking-tighter">{b.scrapUnit || 'pcs'} loss</span>
-                                          </span>
-                                          {b.scrapUnit === 'pcs' && b.scrapWeight > 0 && (
-                                             <span className="text-[10px] font-medium text-rose-400">
-                                                ({b.scrapWeight.toFixed(2)} kg mass)
-                                             </span>
-                                          )}
-                                       </div>
-                                    ) : (
-                                       <span className="text-xs text-slate-300">—</span>
-                                    )}
-                                 </td>
-                                 <td className="text-right">
-                                    <div className="flex items-center justify-end gap-2">
-                                       {b.status === 'pending' && <button onClick={() => handleEdit(b)} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-indigo-600 rounded-lg transition-colors" title="Edit Batch"><Edit3 className="w-4 h-4" /></button>}
-                                       {b.status === 'pending' && <button onClick={() => handleStart(b._id)} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-indigo-600 rounded-lg transition-colors" title="Start Production"><Activity className="w-4 h-4" /></button>}
-                                       {b.status === 'in_progress' && <button onClick={() => { setCompleteBatch(b); setProducedQty(b.quantity); setScrapQuantity(0); setScrapPieces(0); setIsCompleteModalOpen(true); }} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-emerald-600 rounded-lg transition-colors" title="Complete Batch"><CheckCircle2 className="w-4 h-4" /></button>}
-                                       <button onClick={() => handleDelete(b._id)} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-rose-500 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
-                                    </div>
-                                 </td>
-                              </tr>
-                           ))}
+                           <AnimatePresence mode="popLayout">
+                             {filteredBatches.map((b, index) => (
+                                <motion.tr 
+                                  key={b._id} 
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ duration: 0.2, delay: index * 0.03 }}
+                                  className="erp-row-hover transition-colors"
+                                >
+                                   <td>
+                                      <div className="flex flex-col">
+                                         <span className="text-sm font-semibold text-slate-900">BN-{b.batchNumber ? b.batchNumber.slice(-6).toUpperCase() : (b._id ? b._id.slice(-6).toUpperCase() : "VOID")}</span>
+                                         <span className="text-xs text-slate-500">{new Date(b.createdAt).toLocaleDateString()}</span>
+                                      </div>
+                                   </td>
+                                   <td>
+                                      <div className="flex flex-col">
+                                         <span className="text-sm font-semibold text-slate-900">{b.product?.name || "Unknown Product"}</span>
+                                         <span className="text-xs text-slate-500">{b.product?.category || "Uncategorized"}</span>
+                                      </div>
+                                   </td>
+                                   <td>
+                                      <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold border ${b.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                         b.status === 'in_progress' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                            'bg-amber-50 text-amber-700 border-amber-200'
+                                         }`}>
+                                         {b.status === 'in_progress' ? 'IN FABRICATION' : b.status === "completed" ? "CLOSED" : "PENDING"}
+                                      </span>
+                                   </td>
+                                   <td>
+                                      <div className="flex flex-col">
+                                         <span className="text-sm font-semibold text-slate-900">
+                                            {b.status === 'completed' ? (b.outputQuantity ?? b.quantity) : b.quantity}
+                                            {b.status === 'completed' && <span className="text-[10px] text-slate-400 font-medium ml-1">/ {b.quantity}</span>}
+                                            <span className="text-xs font-normal text-slate-500 ml-1">{b.product?.unit}</span>
+                                         </span>
+                                      </div>
+                                   </td>
+                                   <td>
+                                      {b.status === 'completed' && (b.scrapWeight > 0 || b.scrapQuantity > 0) ? (
+                                         <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-rose-600">
+                                               -{b.scrapQuantity} <span className="text-[10px] font-medium uppercase tracking-tighter">{b.scrapUnit || 'pcs'} loss</span>
+                                            </span>
+                                             {b.scrapUnit === 'pcs' && (b.product?.unitWeightGrams > 0) && (
+                                                <>
+                                                   <span className="text-[10px] font-medium text-rose-400">
+                                                      ({((b.scrapQuantity * b.product.unitWeightGrams) / 1000).toFixed(2)} kg mass)
+                                                   </span>
+                                                   {b.scrapWeight > ((b.scrapQuantity * b.product.unitWeightGrams) / 1000 + 0.01) && (
+                                                      <span className="text-[9px] font-medium text-rose-300 italic">
+                                                         (+{(b.scrapWeight - (b.scrapQuantity * b.product.unitWeightGrams) / 1000).toFixed(2)}kg process loss)
+                                                      </span>
+                                                   )}
+                                                </>
+                                             )}
+                                             {b.scrapUnit === 'kg' && b.scrapWeight > b.scrapQuantity && (
+                                                <span className="text-[10px] font-medium text-rose-400">
+                                                   (+{(b.scrapWeight - b.scrapQuantity).toFixed(2)} kg yield loss)
+                                                </span>
+                                             )}
+                                         </div>
+                                      ) : (
+                                         <span className="text-xs text-slate-300">—</span>
+                                      )}
+                                   </td>
+                                   <td className="text-right">
+                                      <div className="flex items-center justify-end gap-2">
+                                         {b.status === 'pending' && <button onClick={() => handleEdit(b)} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-indigo-600 rounded-md transition-colors" title="Edit Batch"><Edit3 className="w-4 h-4" /></button>}
+                                         {b.status === 'pending' && <button onClick={() => handleStart(b._id)} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-indigo-600 rounded-md transition-colors" title="Start Production"><Activity className="w-4 h-4" /></button>}
+                                         {b.status === 'in_progress' && <button onClick={() => { setCompleteBatch(b); setProducedQty(b.quantity); setScrapQuantity(0); setScrapPieces(0); setIsCompleteModalOpen(true); }} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-emerald-600 rounded-md transition-colors" title="Complete Batch"><CheckCircle2 className="w-4 h-4" /></button>}
+                                         <button onClick={() => handleDelete(b._id)} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-rose-500 rounded-md transition-colors"><Trash2 className="w-4 h-4" /></button>
+                                      </div>
+                                   </td>
+                                </motion.tr>
+                             ))}
+                           </AnimatePresence>
                            {filteredBatches.length === 0 && (
-                              <tr>
-                                 <td colSpan="5" className="py-8 text-center text-sm text-slate-500">No batches match your search.</td>
-                              </tr>
+                               <tr>
+                                  <td colSpan="6" className="py-8 text-center text-sm text-slate-500 uppercase font-black tracking-widest opacity-50">No Active Data Stream</td>
+                               </tr>
                            )}
                         </tbody>
                      </table>
@@ -506,10 +529,13 @@ const Production = () => {
 
                            {/* Automated Scrap Analysis */}
                            {(() => {
-                              const inputWeightGrams = localBom.reduce((acc, item) => {
+                              const normalizedInputGrams = localBom.reduce((acc, item) => {
                                  const qty = parseFloat(item.quantity) || 0;
-                                 return acc + (item.unit === 'gram' ? qty : qty * 1000);
+                                 const factor = unitsUtil.CONVERSIONS[item.unit?.toLowerCase()] || 1;
+                                 return acc + (qty * factor * 1000);
                               }, 0);
+                              
+                              const inputWeightGrams = normalizedInputGrams;
                               const outputWeightGrams = parseFloat(newWeight) || 0;
                               const lossGrams = inputWeightGrams - outputWeightGrams;
 
@@ -533,7 +559,7 @@ const Production = () => {
                                        <div className="space-y-1">
                                           <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Input (BOM)</p>
                                           <p className="text-sm font-black text-white italic tracking-tight">
-                                             {(inputWeightGrams / divisor).toFixed(precision)} {unitLabel}
+                                             {(normalizedInputGrams / divisor).toFixed(precision)} {unitLabel}
                                           </p>
                                        </div>
                                        <div className="space-y-1">

@@ -4,6 +4,7 @@ import { dashboardApi } from "../api/erpApi";
 import AppLayout from "../components/layout/AppLayout";
 import KPICard from "../components/dashboard/KPICard";
 import StatusBadge from "../components/common/StatusBadge";
+import HammerLoader from "../components/common/HammerLoader";
 import {
   Package, Activity, ShoppingCart, Database, 
   ArrowRight, ShieldAlert
@@ -42,10 +43,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <AppLayout>
-        <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-          <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
-          <p className="text-sm font-semibold text-slate-500 animate-pulse">Loading Insights...</p>
-        </div>
+        <HammerLoader />
       </AppLayout>
     );
   }
@@ -113,7 +111,7 @@ const Dashboard = () => {
           {/* B. CHARTS */}
           <div className="lg:col-span-2 space-y-6">
             {/* Production Output Chart */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 relative overflow-hidden">
+            <div className="bg-white p-6 rounded-md shadow-sm border border-slate-100 relative overflow-hidden">
               <h3 className="text-base font-semibold text-slate-900 mb-6">Production Output</h3>
               <div className="h-[300px] w-full min-w-[10px] min-h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -133,7 +131,7 @@ const Dashboard = () => {
                     />
                     <Tooltip
                       cursor={{ fill: '#f8fafc' }}
-                      contentStyle={{ borderRadius: '0.75rem', border: '1px solid #f1f5f9', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      contentStyle={{ borderRadius: '0.375rem', border: '1px solid #f1f5f9', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
                     <Bar dataKey="output" fill="#4f46e5" radius={[4, 4, 0, 0]} name="Output (kg)" maxBarSize={50} />
                   </BarChart>
@@ -147,7 +145,7 @@ const Dashboard = () => {
             </div>
 
             {/* Efficiency vs Scrap Trend */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 relative overflow-hidden">
+            <div className="bg-white p-6 rounded-md shadow-sm border border-slate-100 relative overflow-hidden">
               <h3 className="text-base font-semibold text-slate-900 mb-6">Efficiency & Scrap Trend</h3>
               <div className="h-[300px] w-full min-w-[10px] min-h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -174,7 +172,7 @@ const Dashboard = () => {
                       tick={{ fontSize: 12, fill: '#64748b' }}
                     />
                     <Tooltip
-                      contentStyle={{ borderRadius: '0.75rem', border: '1px solid #f1f5f9', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      contentStyle={{ borderRadius: '0.375rem', border: '1px solid #f1f5f9', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
                     <Legend wrapperStyle={{ paddingTop: '20px' }} />
                     <Line yAxisId="left" type="monotone" dataKey="efficiency" stroke="#10b981" strokeWidth={3} name="Efficiency (%)" dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
@@ -187,7 +185,7 @@ const Dashboard = () => {
 
           {/* C. ALERT PANEL */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 flex flex-col h-full h-[650px]">
+            <div className="bg-white rounded-md shadow-sm border border-slate-100 flex flex-col h-full h-[650px]">
               <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                 <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
                   <ShieldAlert className="w-5 h-5 text-amber-500" /> System Alerts
@@ -204,7 +202,7 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   lowStockAlerts.map(alert => (
-                    <div key={alert.id} className="p-4 rounded-xl border border-slate-100 bg-white flex items-start gap-3 hover:border-slate-200 hover:shadow-sm transition-all cursor-pointer">
+                    <div key={alert.id} className="p-4 rounded-md border border-slate-100 bg-white flex items-start gap-3 hover:border-slate-200 hover:shadow-sm transition-all cursor-pointer">
                       <Database className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
@@ -219,7 +217,7 @@ const Dashboard = () => {
               </div>
 
               <div className="p-4 border-t border-slate-100">
-                <Link to="/products" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center justify-center gap-1 w-full py-2 hover:bg-indigo-50 rounded-lg transition-colors">
+                <Link to="/products" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center justify-center gap-1 w-full py-2 hover:bg-indigo-50 rounded-md transition-colors">
                   View full inventory <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -233,5 +231,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
-

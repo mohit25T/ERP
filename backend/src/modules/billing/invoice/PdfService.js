@@ -30,7 +30,7 @@ class PdfService {
     const inWords = (n) => {
       if ((n = n.toString()).length > 9) return 'Overflow';
       let n_arr = ('000000000' + n).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
-      if (!n_arr) return ''; 
+      if (!n_arr) return '';
       let str = '';
       str += n_arr[1] != 0 ? (a[Number(n_arr[1])] || b[n_arr[1][0]] + ' ' + a[n_arr[1][1]]) + 'Crore ' : '';
       str += n_arr[2] != 0 ? (a[Number(n_arr[2])] || b[n_arr[2][0]] + ' ' + a[n_arr[2][1]]) + 'Lakh ' : '';
@@ -76,11 +76,10 @@ class PdfService {
       if (logoBuffer) {
         try {
           doc.save();
-          doc.opacity(0.05); // Ultra-low opacity for document-wide watermark
-          doc.image(logoBuffer, 0, 0, { 
-            fit: [pageWidth, pageHeight], 
-            align: 'center', 
-            valign: 'center' 
+          doc.opacity(1); // Ultra-low opacity for document-wide watermark
+          doc.image(logoBuffer, (pageWidth - 300) / 2, (pageHeight - 300) / 2, {
+            width: 300,
+            height: 300
           });
           doc.restore();
         } catch (err) {
@@ -103,13 +102,13 @@ class PdfService {
     doc.text("IRN No.:", margin + 5, currentY + 5);
     doc.text("Ack No.:", margin + 5, currentY + 20);
     doc.text("Ack Date:", margin + 5, currentY + 35);
-    
+
     doc.font("Helvetica");
     const einvoice = invoice.einvoice || {};
     doc.text(einvoice.irn || "Not Generated", margin + 60, currentY + 5);
     doc.text(einvoice.ackNo || "Not Generated", margin + 60, currentY + 20);
     doc.text(invoice.finalizedAt ? new Date(invoice.finalizedAt).toLocaleString("en-GB") : "Not Finalized", margin + 60, currentY + 35);
-    
+
     // Optional QR Code
     if (einvoice.qrCodeUrl) {
       try {
@@ -139,7 +138,7 @@ class PdfService {
     doc.fontSize(10).text(customer.company || customer.name, margin + 45, currentY + 5, { width: (splitX - margin) - 50 });
     doc.fontSize(8).font("Helvetica").text(customer.address || "", margin + 45, currentY + 20, { width: (splitX - margin) - 50 });
     doc.fontSize(9).font("Helvetica-Bold").text(`${customer.state?.toUpperCase() || ""} - ${customer.pincode || ""}`, margin + 45, currentY + 65);
-    
+
     doc.fontSize(8).text("Place of Supply:", margin + 5, currentY + 80);
     doc.font("Helvetica").text(customer.state || "", margin + 75, currentY + 80);
     doc.font("Helvetica-Bold").text("GSTIN No. :", margin + 5, currentY + 90);
@@ -151,23 +150,23 @@ class PdfService {
     doc.fontSize(8).font("Helvetica-Bold");
     doc.text("Invoice No. :", rMargin, currentY + 5);
     doc.font("Helvetica").text(invoice.invoiceNumber, rValPos, currentY + 5);
-    
+
     doc.font("Helvetica-Bold").text("Date :", rMargin, currentY + 18);
     doc.font("Helvetica").text(new Date(invoice.createdAt).toLocaleDateString("en-IN"), rValPos, currentY + 18);
-    
+
     hLine(currentY + 35, splitX, margin + contentWidth);
-    
+
     const eway = invoice.ewayBill || {};
     doc.fontSize(8).font("Helvetica-Bold");
     doc.text("EWB No.", rMargin, currentY + 40);
     doc.font("Helvetica").text(`: ${eway.ewayBillNo || "."}`, rValPos - 20, currentY + 40);
-    
+
     doc.font("Helvetica-Bold").text("EWB Date", rMargin, currentY + 55);
     doc.font("Helvetica").text(`: ${eway.ewbDate ? new Date(eway.ewbDate).toLocaleDateString("en-GB") : "/ /"}`, rValPos - 20, currentY + 55);
-    
+
     doc.font("Helvetica-Bold").text("Valid Until", rMargin, currentY + 70);
     doc.font("Helvetica").text(`: ${eway.validityDate ? new Date(eway.validityDate).toLocaleDateString("en-GB") : "/ /"}`, rValPos - 20, currentY + 70);
-    
+
     doc.font("Helvetica-Bold").text("Vehicle No.", rMargin, currentY + 85);
     doc.font("Helvetica").text(`: ${eway.vehicleNo || "."}`, rValPos - 20, currentY + 85);
 
@@ -214,7 +213,7 @@ class PdfService {
     const footerH = 100;
     drawBox(margin, currentY, contentWidth, footerH);
     vLine(splitX, currentY, currentY + 85);
-    
+
     hLine(currentY + 15, margin, margin + contentWidth);
     hLine(currentY + 45, margin, margin + contentWidth);
     hLine(currentY + 70, margin, margin + contentWidth);
@@ -236,7 +235,7 @@ class PdfService {
 
     doc.fontSize(8).font("Helvetica-Bold").text("Taxable Amount", splitX + 5, currentY + 18);
     doc.font("Helvetica").text(invoice.taxableAmount.toFixed(2), margin + contentWidth - 85, currentY + 18, { width: 80, align: "right" });
-    
+
     if (invoice.cgst > 0) {
       doc.text("CGST", splitX + 5, currentY + 28);
       doc.text("9%", splitX + 60, currentY + 28);
@@ -252,7 +251,7 @@ class PdfService {
 
     doc.fontSize(7).font("Helvetica-Bold").text("Total GST :", margin + 5, currentY + 48);
     doc.font("Helvetica-Oblique").text(this.numberToWords(invoice.gstAmount), margin + 55, currentY + 48);
-    
+
     doc.font("Helvetica-Bold").text("Bill Amount :", margin + 5, currentY + 58);
     doc.font("Helvetica-Oblique").text(this.numberToWords(invoice.totalAmount), margin + 55, currentY + 58);
 

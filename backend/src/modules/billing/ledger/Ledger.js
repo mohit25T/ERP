@@ -10,7 +10,7 @@ const ledgerSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: ["Salary", "Rent", "Marketing", "Electricity", "Utilities", "Direct Sales", "Refund", "Service Fee", "Material Cost", "Stock Purchase", "Other"],
+      enum: ["Salary", "Rent", "Marketing", "Electricity", "Utilities", "Direct Sales", "Refund", "Service Fee", "Material Cost", "Stock Purchase", "Credit Note", "Debit Note", "Adjustment", "Other"],
     },
     amount: {
       type: Number,

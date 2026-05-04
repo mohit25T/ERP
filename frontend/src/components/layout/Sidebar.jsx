@@ -1,6 +1,7 @@
 import { useNavigate, NavLink } from "react-router-dom";
-import { Users, ShoppingCart, LayoutDashboard, Settings,
-  Building2, Download, Wallet, Banknote, BarChart3, FileText,
+import {
+  Users, ShoppingCart, LayoutDashboard, Settings,
+  Building2, Download, Wallet, Banknote, BarChart3, FileText, Landmark, TrendingDown,
   FileBarChart, ClipboardCheck, Boxes, ShieldCheck, X, LogOut
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -13,7 +14,7 @@ const navSections = [
   {
     title: "Intelligence Hub",
     items: [
-      { name: "Global Overview", path: "/", icon: LayoutDashboard },
+      { name: "Global Overview", path: "/", icon: LayoutDashboard, end: true },
       { name: "Compliance Radar", path: "/compliance", icon: ShieldCheck, module: "accounting", roles: ["admin"] },
       { name: "Intelligence Reports", path: "/reports", icon: BarChart3, module: "erp", roles: ["admin", "accountant"] },
     ]
@@ -45,6 +46,17 @@ const navSections = [
       { name: "Audit Ledgers", path: "/statements", icon: FileText },
       { name: "Human Capital", path: "/payroll", icon: Banknote, roles: ["admin"] },
       { name: "Global Statement", path: "/financial-statement", icon: FileBarChart, roles: ["admin"] },
+    ]
+  },
+  {
+    title: "Treasury Intel",
+    module: "accounting",
+    roles: ["admin", "accountant"],
+    items: [
+      { name: "Financial Overview", path: "/treasury", icon: LayoutDashboard, end: true },
+      { name: "Bank Reserves", path: "/treasury/bank", icon: Landmark },
+      { name: "Burn Matrix", path: "/treasury/expenses", icon: TrendingDown },
+      { name: "Cash Flux", path: "/treasury/cash", icon: Wallet },
     ]
   },
   {
@@ -85,7 +97,7 @@ const Sidebar = ({ open, setOpen }) => {
             </div>
             <button
               onClick={() => setOpen(false)}
-              className="p-2 text-slate-400 hover:text-slate-600 md:hidden bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors"
+              className="p-2 text-slate-400 hover:text-slate-600 md:hidden bg-slate-50 hover:bg-slate-100 rounded-md transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -98,20 +110,20 @@ const Sidebar = ({ open, setOpen }) => {
                 .filter(section => {
                   const role = user?.role?.toLowerCase();
                   const isSuperAdmin = role === "super_admin";
-                  
+
                   // Module filtering
                   const moduleActive = !section.module || user?.activeModules?.[section.module] !== false;
-                  
+
                   // Role filtering 
                   const roleAllowed = !section.roles || isSuperAdmin || (role && section.roles.includes(role));
-                  
+
                   return moduleActive && roleAllowed;
                 })
                 .map((section, sIdx) => {
                   const filteredItems = section.items.filter(item => {
                     const role = user?.role?.toLowerCase();
                     const isSuperAdmin = role === "super_admin";
-                    
+
                     const moduleActive = !item.module || user?.activeModules?.[item.module] !== false;
                     const roleAllowed = !item.roles || isSuperAdmin || (role && item.roles.includes(role));
                     return moduleActive && roleAllowed;
@@ -131,6 +143,7 @@ const Sidebar = ({ open, setOpen }) => {
                             <NavLink
                               key={item.path}
                               to={item.path}
+                              end={item.end}
                               onClick={() => setOpen(false)}
                               className={({ isActive }) =>
                                 `sidebar-link group ${isActive ? "sidebar-link-active" : "sidebar-link-inactive"}`
@@ -156,19 +169,19 @@ const Sidebar = ({ open, setOpen }) => {
 
           {/* User Profile */}
           <div className="p-4 border-t border-slate-100">
-            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold shadow-sm">
+            <div className="flex items-center gap-3 p-2 bg-slate-50 rounded-md border border-slate-100 hover:bg-slate-100 transition-all duration-300">
+              <div className="w-9 h-9 rounded-md bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold shadow-sm">
                 {user?.name?.charAt(0).toUpperCase()}
               </div>
               <div className="flex flex-col flex-1 min-w-0">
-                <span className="text-sm font-semibold text-slate-900 truncate">
+                <span className="text-sm font-semibold text-slate-900 truncate tracking-tight">
                   {user?.name || "Root Admin"}
                 </span>
-                <span className="text-xs text-slate-500 truncate">
+                <span className="text-[10px] text-slate-400 truncate uppercase font-bold tracking-widest">
                   {user?.role || "System Authority"}
                 </span>
               </div>
-              <button onClick={logout} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-white rounded-lg transition-colors">
+              <button onClick={logout} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-white rounded-md transition-colors">
                 <LogOut className="w-4 h-4" />
               </button>
             </div>

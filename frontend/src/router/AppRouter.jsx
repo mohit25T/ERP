@@ -17,6 +17,10 @@ import Production from "../pages/erp/Production";
 import Billing from "../pages/accounting/Billing";
 import Compliance from "../pages/accounting/Compliance";
 import ProtectedRoute from "./ProtectedRoute";
+import TreasuryDashboard from "../pages/treasury/TreasuryDashboard";
+import BankManagement from "../pages/treasury/BankManagement";
+import ExpenseManagement from "../pages/treasury/ExpenseManagement";
+import CashManagement from "../pages/treasury/CashManagement";
 
 import { useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -126,6 +130,31 @@ const AppRouter = () => {
         <Route path="/financial-statement" element={<ProtectedRoute>
           <RoleProtectedRoute allowedRoles={["admin"]}>
             {activeModules.accounting ? <CompanyStatement /> : <Navigate to="/" replace />}
+          </RoleProtectedRoute>
+        </ProtectedRoute>} />
+
+        {/* Treasury Intelligence Modules */}
+        <Route path="/treasury" element={<ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["admin", "accountant"]}>
+            <TreasuryDashboard />
+          </RoleProtectedRoute>
+        </ProtectedRoute>} />
+
+        <Route path="/treasury/bank" element={<ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["admin", "accountant"]}>
+            <BankManagement />
+          </RoleProtectedRoute>
+        </ProtectedRoute>} />
+
+        <Route path="/treasury/expenses" element={<ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["admin", "accountant"]}>
+            <ExpenseManagement />
+          </RoleProtectedRoute>
+        </ProtectedRoute>} />
+
+        <Route path="/treasury/cash" element={<ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["admin", "accountant"]}>
+            <CashManagement />
           </RoleProtectedRoute>
         </ProtectedRoute>} />
 

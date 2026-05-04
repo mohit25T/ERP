@@ -45,7 +45,7 @@ const AppLayout = ({ children }) => {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 text-slate-500 hover:text-slate-900 md:hidden bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+              className="p-2 text-slate-500 hover:text-slate-900 md:hidden bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
             >
               <LayoutGrid className="w-5 h-5" />
             </button>
@@ -57,11 +57,11 @@ const AppLayout = ({ children }) => {
 
           <div className="flex items-center gap-6">
              {/* Global Search Interface */}
-             <div className="hidden lg:flex items-center bg-slate-100 border border-transparent rounded-lg px-4 py-2 w-72 focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all duration-300">
+             <div className="hidden lg:flex items-center bg-slate-100 border border-transparent rounded-md px-4 py-2 w-72 focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all duration-300">
                 <Search className="w-4 h-4 text-slate-400" />
                 <input 
-                  placeholder="Search..."
-                  className="bg-transparent border-none outline-none text-sm ml-3 w-full placeholder:text-slate-400 text-slate-900"
+                  placeholder="Search dataset..."
+                  className="bg-transparent border-none outline-none text-sm ml-3 w-full placeholder:text-slate-400 text-slate-900 font-medium"
                   value={globalSearch}
                   onChange={(e) => setGlobalSearch(e.target.value)}
                 />
@@ -70,7 +70,7 @@ const AppLayout = ({ children }) => {
              {/* System Utilities */}
              <div className="flex items-center gap-2 text-slate-500">
                 <NotificationBell />
-                <Link to="/settings" className="p-2 hover:bg-slate-100 hover:text-slate-900 rounded-lg transition-colors">
+                <Link to="/settings" className="p-2 hover:bg-slate-100 hover:text-slate-900 rounded-md transition-colors">
                    <SettingsIcon className="w-5 h-5" />
                 </Link>
              </div>
@@ -80,16 +80,16 @@ const AppLayout = ({ children }) => {
              {/* Authorized User Profile */}
              <Link 
                to="/settings"
-               className="flex items-center gap-3 hover:bg-slate-50 p-1.5 pr-3 rounded-xl transition-colors border border-transparent hover:border-slate-200"
+               className="flex items-center gap-3 hover:bg-slate-50 p-1 pr-3 rounded-md transition-colors border border-transparent hover:border-slate-200"
              >
-               <div className="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold shadow-sm">
+               <div className="w-8 h-8 rounded-md bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold shadow-sm">
                  {user?.name?.charAt(0).toUpperCase() || 'A'}
                </div>
                <div className="hidden sm:flex flex-col">
                   <span className="text-sm font-semibold text-slate-900">
                     {user?.name || "Root Admin"}
                   </span>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
                      {user?.role || "System Authority"}
                   </span>
                </div>
@@ -99,7 +99,7 @@ const AppLayout = ({ children }) => {
 
         {/* Global Main Workspace */}
         <main className="flex-1 min-w-0 bg-slate-50">
-          <div className="p-4 md:p-8 w-full max-w-7xl mx-auto">
+          <div className="p-4 md:p-6 w-full max-w-7xl mx-auto">
             <AnimatePresence mode="wait">
                <motion.div
                  key={location.pathname}

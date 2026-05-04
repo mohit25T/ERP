@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { api, gstApi } from "../../api/erpApi";
 import { validateGSTIN } from "../../utils/gstValidator";
 import AppLayout from "../../components/layout/AppLayout";
 import Modal from "../../components/common/Modal";
+import HammerLoader from "../../components/common/HammerLoader";
 import { 
   Building2, Plus, Globe, ShoppingCart, Database, 
   Search, Filter, Download, Trash2, Anchor, 
@@ -126,7 +128,7 @@ const Suppliers = () => {
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100">
+              <div className="w-12 h-12 bg-white rounded-md flex items-center justify-center shadow-sm border border-slate-100">
                  <Building2 className="w-6 h-6 text-primary" />
               </div>
               <div>
@@ -143,7 +145,7 @@ const Suppliers = () => {
 
         {/* Global Sourcing Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-           <div className="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+           <div className="p-5 bg-white rounded-md border border-slate-100 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
                  <p className="text-sm font-semibold text-slate-500">Active Suppliers</p>
                  <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
@@ -158,7 +160,7 @@ const Suppliers = () => {
                </div>
            </div>
            
-           <div className="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+           <div className="p-5 bg-white rounded-md border border-slate-100 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
                  <p className="text-sm font-semibold text-slate-500">Total Procurement</p>
                  <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
@@ -173,7 +175,7 @@ const Suppliers = () => {
                </div>
            </div>
 
-           <div className="p-5 bg-primary/5 rounded-2xl border border-primary/10 shadow-sm flex flex-col justify-between">
+           <div className="p-5 bg-primary/5 rounded-md border border-primary/10 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
                  <p className="text-sm font-semibold text-primary">Risk Exposure</p>
                  <div className="p-2 bg-primary/20 rounded-lg text-primary">
@@ -190,7 +192,7 @@ const Suppliers = () => {
         </div>
 
         {/* Data Table Section */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-20">
+        <div className="bg-white rounded-md border border-slate-200 shadow-sm overflow-hidden mb-20">
            <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
               <div className="relative w-full max-w-sm">
                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -205,12 +207,12 @@ const Suppliers = () => {
               <div className="flex items-center gap-2 w-full sm:w-auto">
                  <button 
                     onClick={() => setShowFilters(!showFilters)}
-                    className={`p-2.5 rounded-lg border transition-colors ${showFilters ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                    className={`p-2.5 rounded-md border transition-colors ${showFilters ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                     title="Filters"
                  >
                     <Filter className="w-4 h-4" />
                  </button>
-                 <button className="p-2.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors" title="Export">
+                 <button className="p-2.5 rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors" title="Export">
                     <Download className="w-4 h-4" />
                  </button>
               </div>
@@ -226,7 +228,7 @@ const Suppliers = () => {
                           <button 
                              key={state}
                              onClick={() => setFilterState(state)}
-                             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all border capitalize ${filterState === state ? 'bg-primary/10 text-primary border-primary/20' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}
+                             className={`px-4 py-2 rounded-md text-sm font-semibold transition-all border capitalize ${filterState === state ? 'bg-primary/10 text-primary border-primary/20' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}
                           >
                              {state}
                           </button>
@@ -247,12 +249,7 @@ const Suppliers = () => {
 
            <div className="overflow-x-auto">
               {loading ? (
-                <div className="p-12 pl-24 text-center">
-                  <div className="inline-flex items-center justify-center p-4 bg-slate-50 rounded-full mb-4">
-                    <Building2 className="w-6 h-6 text-slate-400 animate-pulse" />
-                  </div>
-                  <p className="text-sm font-medium text-slate-500">Loading supplier data...</p>
-                </div>
+                <HammerLoader />
               ) : filteredSuppliers.length === 0 ? (
                 <div className="p-20 flex flex-col items-center justify-center text-slate-500">
                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100">
@@ -272,8 +269,15 @@ const Suppliers = () => {
                       </tr>
                    </thead>
                    <tbody>
-                      {filteredSuppliers.map((s) => (
-                        <tr key={s._id}>
+                      <AnimatePresence mode="popLayout">
+                        {filteredSuppliers.map((s, index) => (
+                          <motion.tr 
+                            key={s._id}
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2, delay: index * 0.02 }}
+                            className="group erp-row-hover"
+                          >
                            <td>
                               <div className="flex flex-col">
                                  <span className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">{s.state || "Global"}</span>
@@ -303,13 +307,14 @@ const Suppliers = () => {
                            </td>
                            <td className="text-center">
                               <div className="flex items-center justify-center gap-2 transition-all">
-                                 <Link to={`/statements/${s._id}?type=supplier`} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors" title="Statement"><FileText className="w-4 h-4" /></Link>
-                                 <button onClick={() => handleOpenModal(s)} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors" title="Edit"><Edit2 className="w-4 h-4" /></button>
-                                 <button onClick={() => handleDelete(s._id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                                 <Link to={`/statements/${s._id}?type=supplier`} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-md transition-colors" title="Statement"><FileText className="w-4 h-4" /></Link>
+                                 <button onClick={() => handleOpenModal(s)} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-md transition-colors" title="Edit"><Edit2 className="w-4 h-4" /></button>
+                                 <button onClick={() => handleDelete(s._id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
                               </div>
                            </td>
-                        </tr>
+                        </motion.tr>
                       ))}
+                      </AnimatePresence>
                    </tbody>
                 </table>
               )}
@@ -338,7 +343,7 @@ const Suppliers = () => {
                  <label className="text-xs font-semibold text-slate-500 block mb-1.5">GSTIN</label>
                  <div className="relative">
                     <input value={formData.gstin} onChange={e => setFormData({...formData, gstin: e.target.value.toUpperCase()})} placeholder="GSTIN-REF-XX" className="erp-input uppercase pr-10" />
-                    <button type="button" onClick={handleFetchDetails} disabled={fetchLoading} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-colors">
+                    <button type="button" onClick={handleFetchDetails} disabled={fetchLoading} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-md transition-colors">
                        {fetchLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                     </button>
                  </div>

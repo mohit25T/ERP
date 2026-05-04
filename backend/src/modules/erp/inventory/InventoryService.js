@@ -12,7 +12,7 @@ class InventoryService {
     const field = isScrap ? "scrapStock" : "totalStock";
     const previousStock = product[field] || 0;
     const change = type === "IN" ? quantity : -quantity;
-    
+
     // Check for insufficient stock on OUT operations
     if (type === "OUT" && (product[field] || 0) < quantity) {
       throw new Error(`Insufficient ${isScrap ? 'Scrap' : ''} stock for ${product.name}. Available: ${product[field]}, Needed: ${quantity}`);
@@ -51,7 +51,7 @@ class InventoryService {
       session
     });
   }
- 
+
   /**
    * Wrapper for backward compatibility: increaseStock
    */
@@ -67,14 +67,14 @@ class InventoryService {
       session
     });
   }
- 
+
   /**
    * Specific logic for Reserve Stock (doesn't change totalStock, just moves to reservedStock)
    */
   static async reserveStock(productId, quantity, options = {}, session = null) {
     const product = await Product.findById(productId).session(session);
     if (!product) throw new Error("Product not found");
-    
+
     const isScrap = options.isScrap || false;
     const stockField = isScrap ? "scrapStock" : "totalStock";
     const reservedField = isScrap ? "reservedScrapStock" : "reservedStock";
@@ -83,11 +83,11 @@ class InventoryService {
     if (available < quantity) {
       throw new Error(`Insufficient available ${isScrap ? 'scrap ' : ''}stock for reservation. Available: ${available}, Needed: ${quantity}`);
     }
- 
+
     const previousStock = product[reservedField] || 0;
     product[reservedField] = (product[reservedField] || 0) + quantity;
     await product.save({ session });
- 
+
     await InventoryLog.create([{
       product: productId,
       quantity,
@@ -100,28 +100,31 @@ class InventoryService {
       newStock: product[reservedField]
     }], { session });
   }
- 
+
   /**
    * Specific logic for Release Reserved Stock
    */
   static async releaseReservedStock(productId, quantity, options = {}, session = null) {
     const product = await Product.findById(productId).session(session);
     if (!product) throw new Error("Product not found");
- 
-    const previousStock = product.reservedStock || 0;
-    product.reservedStock = Math.max(0, (product.reservedStock || 0) - quantity);
+
+    const isScrap = options.isScrap || false;
+    const reservedField = isScrap ? "reservedScrapStock" : "reservedStock";
+
+    const previousStock = product[reservedField] || 0;
+    product[reservedField] = Math.max(0, (product[reservedField] || 0) - quantity);
     await product.save({ session });
- 
+
     await InventoryLog.create([{
       product: productId,
       quantity,
       type: "OUT", // Outward from reserved pool
-      targetField: "reservedStock",
+      targetField: reservedField,
       referenceType: options.referenceType,
       referenceId: options.referenceId,
       reason: options.reason || "Reservation Release",
       previousStock,
-      newStock: product.reservedStock
+      newStock: product[reservedField]
     }], { session });
   }
 }

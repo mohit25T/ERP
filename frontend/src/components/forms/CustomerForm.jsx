@@ -83,11 +83,11 @@ const CustomerForm = ({ initialData, onSubmit, onCancel, loading }) => {
             <Zap className="w-4 h-4 text-indigo-500" />
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Client Classification Protocol</label>
          </div>
-         <div className="flex bg-slate-100/50 p-1.5 rounded-[1.5rem] border border-slate-200/50">
+         <div className="flex bg-slate-100/50 p-1.5 rounded-md border border-slate-200/50">
            <button
               type="button"
               onClick={() => setFormData(p => ({ ...p, type: 'regular' }))}
-              className={`flex-1 py-4 px-6 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500 flex items-center justify-center gap-2 ${formData.type === 'regular' ? 'bg-white text-indigo-600 shadow-xl shadow-slate-200/50 scale-[1.02] z-10' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`flex-1 py-4 px-6 rounded-md text-[10px] font-black uppercase tracking-widest transition-all duration-500 flex items-center justify-center gap-2 ${formData.type === 'regular' ? 'bg-white text-indigo-600 shadow-xl shadow-slate-200/50 scale-[1.02] z-10' : 'text-slate-400 hover:text-slate-600'}`}
            >
               <ShieldCheck className={`w-3.5 h-3.5 ${formData.type === 'regular' ? 'text-indigo-600' : 'text-slate-300'}`} />
               Regular Enterprise
@@ -95,7 +95,7 @@ const CustomerForm = ({ initialData, onSubmit, onCancel, loading }) => {
            <button
               type="button"
               onClick={() => setFormData(p => ({ ...p, type: 'scrap_buyer' }))}
-              className={`flex-1 py-4 px-6 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500 flex items-center justify-center gap-2 ${formData.type === 'scrap_buyer' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/20 scale-[1.02] z-10' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`flex-1 py-4 px-6 rounded-md text-[10px] font-black uppercase tracking-widest transition-all duration-500 flex items-center justify-center gap-2 ${formData.type === 'scrap_buyer' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/20 scale-[1.02] z-10' : 'text-slate-400 hover:text-slate-600'}`}
            >
               <Activity className={`w-3.5 h-3.5 ${formData.type === 'scrap_buyer' ? 'text-rose-400' : 'text-slate-300'}`} />
               Scrap Material Salvager

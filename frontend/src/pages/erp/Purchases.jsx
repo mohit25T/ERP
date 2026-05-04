@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import AppLayout from "../../components/layout/AppLayout";
 import { 
   ShoppingCart, Search, Package2, Calendar, IndianRupee, Truck, 
@@ -7,6 +8,7 @@ import {
   ArrowUpRight, ShieldCheck, Zap, Download, Anchor, Box
 } from "lucide-react";
 import Modal from "../../components/common/Modal";
+import HammerLoader from "../../components/common/HammerLoader";
 import { api, paymentApi } from "../../api/erpApi";
 import unitsUtil from "../../utils/units";
 
@@ -173,7 +175,7 @@ const Purchases = () => {
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100">
+              <div className="w-12 h-12 bg-white rounded-md flex items-center justify-center shadow-sm border border-slate-100">
                  <ShoppingCart className="w-6 h-6 text-primary" />
               </div>
               <div>
@@ -190,7 +192,7 @@ const Purchases = () => {
 
         {/* Global Financial Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-           <div className="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+           <div className="p-5 bg-white rounded-md border border-slate-100 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
                  <p className="text-sm font-semibold text-slate-500">Total Capital Outflow</p>
                  <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
@@ -205,7 +207,7 @@ const Purchases = () => {
               </div>
            </div>
            
-           <div className="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+           <div className="p-5 bg-white rounded-md border border-slate-100 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
                  <p className="text-sm font-semibold text-slate-500">Pending Deliveries</p>
                  <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
@@ -220,7 +222,7 @@ const Purchases = () => {
               </div>
            </div>
 
-           <div className="p-5 bg-primary/5 rounded-2xl border border-primary/10 shadow-sm flex flex-col justify-between">
+           <div className="p-5 bg-primary/5 rounded-md border border-primary/10 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
                  <p className="text-sm font-semibold text-primary">Creditor Balance</p>
                  <div className="p-2 bg-primary/20 rounded-lg text-primary">
@@ -237,7 +239,7 @@ const Purchases = () => {
         </div>
 
         {/* Data Table Section */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-20">
+        <div className="bg-white rounded-md border border-slate-200 shadow-sm overflow-hidden mb-20">
            <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
               <div className="relative w-full max-w-sm">
                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -252,12 +254,12 @@ const Purchases = () => {
               <div className="flex items-center gap-2 w-full sm:w-auto">
                  <button 
                     onClick={() => setShowFilters(!showFilters)}
-                    className={`p-2.5 rounded-lg border transition-colors ${showFilters ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                    className={`p-2.5 rounded-md border transition-colors ${showFilters ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                     title="Filters"
                  >
                     <Filter className="w-4 h-4" />
                  </button>
-                 <button className="p-2.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors" title="Export">
+                 <button className="p-2.5 rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors" title="Export">
                     <Download className="w-4 h-4" />
                  </button>
               </div>
@@ -273,7 +275,7 @@ const Purchases = () => {
                           <button 
                              key={status}
                              onClick={() => setFilterStatus(status)}
-                             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all border capitalize ${filterStatus === status ? 'bg-primary/10 text-primary border-primary/20' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}
+                             className={`px-4 py-2 rounded-md text-sm font-semibold transition-all border capitalize ${filterStatus === status ? 'bg-primary/10 text-primary border-primary/20' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}
                           >
                              {status}
                           </button>
@@ -294,12 +296,7 @@ const Purchases = () => {
 
            <div className="overflow-x-auto">
               {loading ? (
-                <div className="p-12 pl-24 text-center">
-                  <div className="inline-flex items-center justify-center p-4 bg-slate-50 rounded-full mb-4">
-                    <ShoppingCart className="w-6 h-6 text-slate-400 animate-pulse" />
-                  </div>
-                  <p className="text-sm font-medium text-slate-500">Loading purchase data...</p>
-                </div>
+                <HammerLoader />
               ) : filteredPurchases.length === 0 ? (
                 <div className="p-20 flex flex-col items-center justify-center text-slate-500">
                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100">
@@ -321,11 +318,17 @@ const Purchases = () => {
                       </tr>
                    </thead>
                    <tbody>
-                      {filteredPurchases.map((p) => (
-                        <tr key={p._id}>
+                      <AnimatePresence mode="popLayout">
+                        {filteredPurchases.map((p, index) => (
+                          <motion.tr 
+                            key={p._id}
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2, delay: index * 0.02 }}
+                          >
                            <td>
                               <div className="flex items-center gap-3">
-                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${p.status === 'received' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
+                                 <div className={`w-10 h-10 rounded-md flex items-center justify-center ${p.status === 'received' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
                                     <Box className="w-5 h-5" />
                                  </div>
                                  <div className="flex flex-col">
@@ -409,18 +412,19 @@ const Purchases = () => {
                                  {p.status === 'pending' && (
                                     <button 
                                        onClick={() => handleUpdateStatus(p._id, "received")} 
-                                       className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-600 text-white text-[10px] font-bold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
+                                       className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-600 text-white text-[10px] font-bold rounded-md hover:bg-emerald-700 transition-colors shadow-sm"
                                        title="Mark as Received"
                                     >
                                        <CheckCircle2 className="w-3 h-3" /> Inward Stock
                                     </button>
                                  )}
-                                 <button onClick={() => fetchPaymentHistory(p._id)} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors border border-transparent hover:border-slate-200" title="Payment Timeline"><History className="w-4 h-4" /></button>
-                                 <button onClick={() => handleDeletePurchase(p._id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-slate-200" title="Delete Order"><Trash2 className="w-4 h-4" /></button>
+                                 <button onClick={() => fetchPaymentHistory(p._id)} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-md transition-colors border border-transparent hover:border-slate-200" title="Payment Timeline"><History className="w-4 h-4" /></button>
+                                 <button onClick={() => handleDeletePurchase(p._id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors border border-transparent hover:border-slate-200" title="Delete Order"><Trash2 className="w-4 h-4" /></button>
                               </div>
                            </td>
-                        </tr>
+                        </motion.tr>
                       ))}
+                      </AnimatePresence>
                    </tbody>
                 </table>
               )}
@@ -505,7 +509,7 @@ const Purchases = () => {
               </div>
            </div>
            
-           <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+           <div className="p-4 bg-slate-50 rounded-md border border-slate-200">
               <div className="flex justify-between items-center">
                  <div>
                     <p className="text-xs font-semibold text-slate-500 mb-0.5">Total Amount (Incl. GST)</p>
@@ -526,10 +530,10 @@ const Purchases = () => {
 
       <Modal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} title="Record Payment">
         <div className="p-6 space-y-6">
-           <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center">
+           <div className="p-4 bg-slate-50 rounded-md border border-slate-200 flex justify-between items-center">
               <div className="flex items-center gap-3">
-                 <div className="p-2 bg-white rounded-lg border border-slate-100">
-                     <Wallet className="w-5 h-5 text-emerald-600" />
+                 <div className="p-2 bg-white rounded-md border border-slate-100">
+                      <Wallet className="w-5 h-5 text-emerald-600" />
                  </div>
                  <div>
                     <p className="text-xs font-semibold text-slate-500">Remaining Balance</p>
@@ -548,61 +552,59 @@ const Purchases = () => {
                        value={paymentAmount}
                        onChange={(e) => setPaymentAmount(e.target.value)}
                        placeholder="0.00"
-                    />
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1.5">
-                       {['25', '50', '100'].map(p => (
-                          <button key={p} onClick={() => handlePercentChange(p)} className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md text-xs font-bold transition-all">{p}%</button>
-                       ))}
+                     />
+                     <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1.5">
+                        {['25', '50', '100'].map(p => (
+                           <button key={p} onClick={() => handlePercentChange(p)} className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md text-xs font-bold transition-all">{p}%</button>
+                        ))}
+                     </div>
+                  </div>
+               </div>
+               <div>
+                  <label className="text-xs font-semibold text-slate-500 block mb-1.5">Payment Date</label>
+                  <input type="date" className="erp-input" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} />
+               </div>
+               <div>
+                  <label className="text-xs font-semibold text-slate-500 block mb-1.5">Reference Note</label>
+                  <input className="erp-input" placeholder="UTR / Ref ID" value={paymentNote} onChange={(e) => setPaymentNote(e.target.value)} />
+               </div>
+            </div>
+ 
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+               <button disabled={formLoading} onClick={() => setIsPaymentModalOpen(false)} className="erp-button-secondary">Cancel</button>
+               <button disabled={formLoading} onClick={handleAddPayment} className="erp-button-primary">
+                  {formLoading ? "Processing..." : `Confirm Payment`}
+               </button>
+            </div>
+         </div>
+       </Modal>
+ 
+       <Modal isOpen={isHistoryModalOpen} onClose={() => setIsHistoryModalOpen(false)} title="Payment Timeline">
+         <div className="p-6">
+            <div className="space-y-6 relative before:absolute before:left-5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
+               {paymentHistory.map((event, idx) => (
+                 <div key={idx} className="relative pl-12">
+                    <div className={`absolute left-1.5 top-0.5 w-7 h-7 rounded-full border-4 border-white flex items-center justify-center shadow-sm ${event.type === 'milestone' ? 'bg-slate-200 text-slate-600' : 'bg-emerald-500 text-white'}`}>
+                       {event.type === 'milestone' ? <Box className="w-3 h-3" /> : <CreditCard className="w-3 h-3" />}
+                    </div>
+                    <div>
+                       <p className="text-xs font-semibold text-slate-500 mb-0.5">{new Date(event.date).toLocaleDateString()} — {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                       <h4 className={`text-base font-bold ${event.type === 'milestone' ? 'text-slate-900' : 'text-emerald-600'}`}>
+                          {event.type === 'milestone' ? event.description : `Payment: ₹${event.amount.toLocaleString('en-IN', { minimumFractionDigits: 1 })}`}
+                       </h4>
+                       {event.description && event.type !== 'milestone' && <p className="text-xs font-medium text-slate-500 mt-1">Ref: {event.description}</p>}
                     </div>
                  </div>
-              </div>
-              <div>
-                 <label className="text-xs font-semibold text-slate-500 block mb-1.5">Payment Date</label>
-                 <input type="date" className="erp-input" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} />
-              </div>
-              <div>
-                 <label className="text-xs font-semibold text-slate-500 block mb-1.5">Reference Note</label>
-                 <input className="erp-input" placeholder="UTR / Ref ID" value={paymentNote} onChange={(e) => setPaymentNote(e.target.value)} />
-              </div>
-           </div>
-
-           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-              <button disabled={formLoading} onClick={() => setIsPaymentModalOpen(false)} className="erp-button-secondary">Cancel</button>
-              <button disabled={formLoading} onClick={handleAddPayment} className="erp-button-primary">
-                 {formLoading ? "Processing..." : `Confirm Payment`}
-              </button>
-           </div>
-        </div>
-      </Modal>
-
-      <Modal isOpen={isHistoryModalOpen} onClose={() => setIsHistoryModalOpen(false)} title="Payment Timeline">
-        <div className="p-6">
-           <div className="space-y-6 relative before:absolute before:left-5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
-              {paymentHistory.map((event, idx) => (
-                <div key={idx} className="relative pl-12">
-                   <div className={`absolute left-1.5 top-0.5 w-7 h-7 rounded-full border-4 border-white flex items-center justify-center shadow-sm ${event.type === 'milestone' ? 'bg-slate-200 text-slate-600' : 'bg-emerald-500 text-white'}`}>
-                      {event.type === 'milestone' ? <Box className="w-3 h-3" /> : <CreditCard className="w-3 h-3" />}
-                   </div>
-                   <div>
-                      <p className="text-xs font-semibold text-slate-500 mb-0.5">{new Date(event.date).toLocaleDateString()} — {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                      <h4 className={`text-base font-bold ${event.type === 'milestone' ? 'text-slate-900' : 'text-emerald-600'}`}>
-                         {event.type === 'milestone' ? event.description : `Payment: ₹${event.amount.toLocaleString('en-IN', { minimumFractionDigits: 1 })}`}
-                      </h4>
-                      {event.description && event.type !== 'milestone' && <p className="text-xs font-medium text-slate-500 mt-1">Ref: {event.description}</p>}
-                   </div>
-                </div>
-              ))}
-           </div>
-           <div className="flex justify-end pt-6 mt-6 border-t border-slate-100">
-              <button onClick={() => setIsHistoryModalOpen(false)} className="erp-button-secondary">Close Options</button>
-           </div>
-        </div>
-      </Modal>
-
-    </AppLayout>
-  );
-};
-
-const ChevronRight = ({ className }) => <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>;
-
-export default Purchases;
+               ))}
+            </div>
+            <div className="flex justify-end pt-6 mt-6 border-t border-slate-100">
+               <button onClick={() => setIsHistoryModalOpen(false)} className="erp-button-secondary">Close Options</button>
+            </div>
+         </div>
+       </Modal>
+ 
+     </AppLayout>
+   );
+ };
+ 
+ export default Purchases;

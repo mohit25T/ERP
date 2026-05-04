@@ -8,6 +8,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { authApi, gstApi, complianceApi } from "../api/erpApi";
 import AppLayout from "../components/layout/AppLayout";
+import HammerLoader from "../components/common/HammerLoader";
 
 const Settings = () => {
    const { user, logout, setUser } = useAuth();
@@ -78,6 +79,7 @@ const Settings = () => {
       current: false,
       new: false,
       confirm: false,
+      financial: false,
    });
 
    const [notificationSettings, setNotificationSettings] = useState({
@@ -217,16 +219,17 @@ const Settings = () => {
 
    return (
       <AppLayout>
-         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+         {loading && <HammerLoader message="Synchronizing Enterprise Flux..." />}
+         <div className="space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
 
             {/* Elite Governance Header */}
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
                <div className="flex items-center gap-6">
-                  <div className="w-14 h-14 bg-slate-900 rounded-[2.5rem] flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-xl border border-slate-800">
+                  <div className="w-14 h-14 bg-slate-900 rounded-md flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-xl border border-slate-800">
                      <SettingsIcon className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                     <h2 className="text-3xl font-black text-slate-900 tracking-tightest leading-none mb-2 italic">System <span className="text-slate-400 not-italic">Governance</span></h2>
+                     <h2 className="text-3xl font-black text-slate-900 tracking-tightest leading-none mb-2 italic">System <span className="text-primary not-italic">Governance</span></h2>
                      <div className="flex items-center gap-3">
                         <ShieldCheck className="w-4 h-4 text-indigo-500" />
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Global Intelligence Config & Enterprise Authorization</span>
@@ -234,13 +237,13 @@ const Settings = () => {
                   </div>
                </div>
 
-               <button onClick={logout} className="erp-button-secondary !py-5 !px-8 border-rose-100 text-rose-600 hover:bg-rose-50 group">
+               <button onClick={logout} className="erp-button-secondary !py-4 !px-6 border-rose-100 text-rose-600 hover:bg-rose-50 group rounded-md">
                   <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                   Terminate Session
                </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                {/* Advanced Tab Navigation */}
                <div className="lg:col-span-1 space-y-3">
                   {[
@@ -257,10 +260,10 @@ const Settings = () => {
                      <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`w-full group flex flex-col p-6 rounded-[2rem] transition-all duration-500 border relative overflow-hidden ${activeTab === tab.id ? "bg-slate-900 border-slate-900 shadow-xl shadow-slate-900/10 text-white scale-105 z-10" : "bg-white border-slate-100 text-slate-400 hover:border-slate-300"}`}
+                        className={`w-full group flex flex-col p-4 rounded-md transition-all duration-500 border relative overflow-hidden ${activeTab === tab.id ? "bg-slate-900 border-slate-900 shadow-xl shadow-slate-900/10 text-white z-10" : "bg-white border-slate-100 text-slate-400 hover:border-slate-300"}`}
                      >
                         <div className="flex items-center gap-4 mb-2">
-                           <tab.icon className={`w-6 h-6 ${activeTab === tab.id ? "text-indigo-400" : "text-slate-300 group-hover:text-slate-900"}`} />
+                           <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? "text-indigo-400" : "text-slate-300 group-hover:text-slate-900"}`} />
                            <span className="text-[11px] font-black uppercase tracking-widest">{tab.label}</span>
                         </div>
                         <span className={`text-[10px] font-bold text-left italic transition-colors ${activeTab === tab.id ? "text-white/40" : "text-slate-300 group-hover:text-slate-400"}`}>{tab.desc}</span>
@@ -272,10 +275,10 @@ const Settings = () => {
                {/* Configuration Workspace */}
                <div className="lg:col-span-3">
                   {activeTab === "profile" && (
-                     <form onSubmit={updateProfile} className="bg-white p-12 rounded-[2rem] border border-slate-100 shadow-sm space-y-10 animate-in fade-in zoom-in-95 duration-500">
+                     <form onSubmit={updateProfile} className="bg-white p-8 rounded-md border border-slate-100 shadow-sm space-y-8 animate-in fade-in zoom-in-95 duration-500">
                         <div className="flex items-center justify-between border-b border-slate-50 pb-8">
                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600"><Building2 className="w-6 h-6" /></div>
+                              <div className="w-12 h-12 bg-indigo-50 rounded-md flex items-center justify-center text-indigo-600"><Building2 className="w-6 h-6" /></div>
                               <div>
                                  <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase italic">Entity Registry</h3>
                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Configure your core business identity datasets</p>
@@ -284,20 +287,20 @@ const Settings = () => {
                            <Activity className="w-6 h-6 text-slate-100 animate-pulse" />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                            <div className="space-y-3">
                               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Legal Proprietor Name</label>
-                              <input name="name" className="erp-input !py-5 !bg-slate-50 focus:!bg-white" value={profileData.name} onChange={handleProfileChange} />
+                              <input name="name" className="erp-input !py-4 !bg-slate-50 focus:!bg-white" value={profileData.name} onChange={handleProfileChange} />
                            </div>
                            <div className="space-y-3">
                               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Trade Label / Company</label>
-                              <input name="companyName" className="erp-input !py-5 !bg-slate-50" value={profileData.companyName} onChange={handleProfileChange} />
+                              <input name="companyName" className="erp-input !py-4 !bg-slate-50" value={profileData.companyName} onChange={handleProfileChange} />
                            </div>
                            <div className="space-y-3">
                               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">GSTIN Master UID</label>
                               <div className="relative">
-                                 <input name="gstin" className="erp-input !py-5 !bg-indigo-50 !text-indigo-600 !font-black !tracking-[0.2em] uppercase pr-16" value={profileData.gstin} onChange={handleProfileChange} placeholder="27XXXXX0000X1Z5" />
-                                 <button type="button" onClick={handleGstLookup} disabled={loading} className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-200 active:scale-90 transition-all">
+                                 <input name="gstin" className="erp-input !py-4 !bg-indigo-50 !text-indigo-600 !font-black !tracking-[0.2em] uppercase pr-16" value={profileData.gstin} onChange={handleProfileChange} placeholder="27XXXXX0000X1Z5" />
+                                 <button type="button" onClick={handleGstLookup} disabled={loading} className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-indigo-600 text-white rounded-md shadow-lg shadow-indigo-200 active:scale-90 transition-all">
                                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                                  </button>
                               </div>
@@ -305,11 +308,11 @@ const Settings = () => {
                            <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-3">
                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fiscal State</label>
-                                 <input name="state" className="erp-input !py-5 uppercase !font-black" value={profileData.state} onChange={handleProfileChange} />
+                                 <input name="state" className="erp-input !py-4 uppercase !font-black" value={profileData.state} onChange={handleProfileChange} />
                               </div>
                               <div className="space-y-3">
                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Postal Pincode</label>
-                                 <input name="pincode" className="erp-input !py-5 uppercase !font-black" value={profileData.pincode} onChange={handleProfileChange} placeholder="360001" maxLength="6" />
+                                 <input name="pincode" className="erp-input !py-4 uppercase !font-black" value={profileData.pincode} onChange={handleProfileChange} placeholder="360001" maxLength="6" />
                               </div>
                            </div>
                         </div>
@@ -320,7 +323,7 @@ const Settings = () => {
                         </div>
 
                         <div className="pt-8 flex justify-end">
-                           <button disabled={loading} className="erp-button-primary !py-6 !bg-slate-900 !rounded-[2.5rem] hover:!bg-black group">
+                           <button disabled={loading} className="erp-button-primary !py-6 !bg-slate-900 !rounded-md hover:!bg-black group">
                               <Save className="w-5 h-5 group-hover:scale-110 transition-transform" />
                               {loading ? "Capturing Flux..." : "Commit Entity Update"}
                            </button>
@@ -328,10 +331,10 @@ const Settings = () => {
                      </form>
                   )}
 
-                  {activeTab === "bank" && (
-                     <form onSubmit={updateProfile} className="bg-white p-12 rounded-[2rem] border border-slate-100 shadow-sm space-y-10 animate-in fade-in zoom-in-95 duration-500">
+                   {activeTab === "bank" && (
+                     <form onSubmit={updateProfile} className="bg-white p-8 rounded-md border border-slate-100 shadow-sm space-y-8 animate-in fade-in zoom-in-95 duration-500">
                         <div className="flex items-center gap-4">
-                           <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600"><CreditCard className="w-6 h-6" /></div>
+                           <div className="w-12 h-12 bg-emerald-50 rounded-md flex items-center justify-center text-emerald-600"><CreditCard className="w-6 h-6" /></div>
                            <div>
                               <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase italic">Settlement Configuration</h3>
                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Authorize banking nodes for financial clearance</p>
@@ -341,25 +344,25 @@ const Settings = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                            <div className="space-y-3">
                               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Bank Institution</label>
-                              <input name="bankName" className="erp-input !py-5 uppercase" value={bankDetails.bankName} onChange={handleBankChange} placeholder="ICICI BANK" />
+                              <input name="bankName" className="erp-input !py-4 uppercase" value={bankDetails.bankName} onChange={handleBankChange} placeholder="ICICI BANK" />
                            </div>
                            <div className="space-y-3">
                               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Account Identifier</label>
-                              <input name="accountNumber" className="erp-input !py-5 !font-mono !text-indigo-600" value={bankDetails.accountNumber} onChange={handleBankChange} />
+                              <input name="accountNumber" className="erp-input !py-4 !font-mono !text-indigo-600" value={bankDetails.accountNumber} onChange={handleBankChange} />
                            </div>
                            <div className="space-y-3">
                               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">IFSC Protocol UID</label>
-                              <input name="ifscCode" className="erp-input !py-5 uppercase !font-black !tracking-widest" value={bankDetails.ifscCode} onChange={handleBankChange} />
+                              <input name="ifscCode" className="erp-input !py-4 uppercase !font-black !tracking-widest" value={bankDetails.ifscCode} onChange={handleBankChange} />
                            </div>
                            <div className="flex items-end pb-1">
-                              <div className="p-6 bg-slate-50 border border-slate-100 rounded-3xl flex items-center gap-4 w-full">
+                              <div className="p-4 bg-slate-50 border border-slate-100 rounded-md flex items-center gap-4 w-full">
                                  <ShieldCheck className="w-6 h-6 text-emerald-500" />
                                  <span className="text-[9px] font-black uppercase text-slate-400">Encrypted Financial Node Connected</span>
                               </div>
                            </div>
                         </div>
 
-                        <button type="submit" disabled={loading} className="w-full erp-button-primary !py-7 !bg-emerald-600 !rounded-[2.5rem] hover:!bg-emerald-700 shadow-emerald-500/20">
+                        <button type="submit" disabled={loading} className="w-full erp-button-primary !py-6 !bg-emerald-600 !rounded-md hover:!bg-emerald-700 shadow-emerald-500/20">
                            <Shield className="w-5 h-5" />
                            {loading ? "Synchronizing Node..." : "Authorize Financial Protocol"}
                         </button>
@@ -367,16 +370,16 @@ const Settings = () => {
                   )}
 
                   {activeTab === "invoice" && (
-                     <form onSubmit={updateProfile} className="bg-white p-12 rounded-[2rem] border border-slate-100 shadow-sm space-y-12 animate-in fade-in zoom-in-95 duration-500">
+                     <form onSubmit={updateProfile} className="bg-white p-10 rounded-md border border-slate-100 shadow-sm space-y-12 animate-in fade-in zoom-in-95 duration-500">
                         <div className="flex items-center justify-between border-b border-slate-50 pb-8">
                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600"><Layout className="w-6 h-6" /></div>
+                              <div className="w-12 h-12 bg-indigo-50 rounded-md flex items-center justify-center text-indigo-600"><Layout className="w-6 h-6" /></div>
                               <div>
                                  <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase italic">Invoice Architecture</h3>
                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Global Grid Config (Miracle-Style)</p>
                               </div>
                            </div>
-                           <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-3xl border border-slate-100">
+                           <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-md border border-slate-100">
                               <span className="text-[10px] font-black uppercase text-slate-400 mr-2">Logo Branding</span>
                               <button type="button" onClick={() => setInvoiceSettings({ ...invoiceSettings, showLogo: !invoiceSettings.showLogo })} className={`w-14 h-7 rounded-full transition-all relative ${invoiceSettings.showLogo ? 'bg-indigo-600' : 'bg-slate-300'}`}>
                                  <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${invoiceSettings.showLogo ? 'left-8' : 'left-1'}`}></div>
@@ -392,12 +395,12 @@ const Settings = () => {
                            </div>
                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                               <div className="md:col-span-1">
-                                 <div className={`aspect-square rounded-[2rem] border-2 border-dashed flex flex-col items-center justify-center relative overflow-hidden transition-all ${profileData.companyLogo ? 'border-emerald-200 bg-emerald-50' : 'border-slate-100 bg-slate-50 hover:border-indigo-200 hover:bg-white'}`}>
+                                 <div className={`aspect-square rounded-md border-2 border-dashed flex flex-col items-center justify-center relative overflow-hidden transition-all ${profileData.companyLogo ? 'border-emerald-200 bg-emerald-50' : 'border-slate-100 bg-slate-50 hover:border-indigo-200 hover:bg-white'}`}>
                                     {profileData.companyLogo ? (
                                        <>
                                           <img src={profileData.companyLogo} alt="Logo Preview" className="w-full h-full object-contain p-6" />
                                           <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                             <button type="button" onClick={removeLogo} className="p-3 bg-rose-600 text-white rounded-2xl shadow-xl active:scale-95 transition-all"><Trash2 className="w-5 h-5" /></button>
+                                             <button type="button" onClick={removeLogo} className="p-3 bg-rose-600 text-white rounded-md shadow-xl active:scale-95 transition-all"><Trash2 className="w-5 h-5" /></button>
                                           </div>
                                        </>
                                     ) : (
@@ -409,16 +412,16 @@ const Settings = () => {
                                     )}
                                  </div>
                               </div>
-                              <div className="md:col-span-2 flex flex-col justify-center space-y-6 p-8 bg-slate-50/50 rounded-[2.5rem] border border-slate-50">
+                              <div className="md:col-span-2 flex flex-col justify-center space-y-6 p-8 bg-slate-50/50 rounded-md border border-slate-50">
                                  <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm"><ImageIcon className="w-5 h-5 text-indigo-400" /></div>
+                                    <div className="w-10 h-10 bg-white rounded-md flex items-center justify-center shadow-sm"><ImageIcon className="w-5 h-5 text-indigo-400" /></div>
                                     <div>
                                        <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1">Vector/Raster Compatibility</p>
                                        <p className="text-[9px] font-black text-slate-400 uppercase italic leading-relaxed">System supports PNG, JPG, and SVG formats. Recommended dimensions: 512x512px for maximum clarity on printed PDF docs.</p>
                                     </div>
                                  </div>
                                  <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm"><Zap className="w-5 h-5 text-amber-400" /></div>
+                                    <div className="w-10 h-10 bg-white rounded-md flex items-center justify-center shadow-sm"><Zap className="w-5 h-5 text-amber-400" /></div>
                                     <div>
                                        <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1">Persistence Engine</p>
                                        <p className="text-[9px] font-black text-slate-400 uppercase italic leading-relaxed">Your brand node is securely cached and synchronized across all enterprise billing terminals instantly.</p>
@@ -437,7 +440,7 @@ const Settings = () => {
                                     <div key={key} className="space-y-3 group">
                                        <div className="flex justify-between items-center px-1">
                                           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:text-slate-900 transition-colors">{key.toUpperCase()} COLUMN LABEL</label>
-                                          <button type="button" onClick={() => setInvoiceSettings({ ...invoiceSettings, columns: { ...invoiceSettings.columns, [key]: { ...col, show: !col.show } } })} className={`p-1.5 rounded-lg transition-all ${col.show ? 'text-indigo-600 bg-indigo-50' : 'text-slate-300 bg-slate-50'}`}>
+                                          <button type="button" onClick={() => setInvoiceSettings({ ...invoiceSettings, columns: { ...invoiceSettings.columns, [key]: { ...col, show: !col.show } } })} className={`p-1.5 rounded-md transition-all ${col.show ? 'text-indigo-600 bg-indigo-50' : 'text-slate-300 bg-slate-50'}`}>
                                              {col.show ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                                           </button>
                                        </div>
@@ -453,17 +456,17 @@ const Settings = () => {
                            <textarea rows="4" className="erp-input h-32 resize-none !text-[11px] !leading-relaxed" value={invoiceSettings.footerText} onChange={(e) => setInvoiceSettings({ ...invoiceSettings, footerText: e.target.value })} />
                         </div>
 
-                        <button type="submit" className="erp-button-primary !py-7 !bg-slate-900 !rounded-[2.5rem] hover:!bg-black group">
+                        <button type="submit" className="erp-button-primary !py-7 !bg-slate-900 !rounded-md hover:!bg-black group">
                            <Activity className="w-5 h-5 group-hover:rotate-180 transition-transform duration-700" />
                            Deploy Architecture Config
                         </button>
                      </form>
                   )}
 
-                  {activeTab === "security" && (
-                     <form onSubmit={changePassword} className="bg-white p-12 rounded-[2rem] border border-slate-100 shadow-sm space-y-6 animate-in fade-in zoom-in-95 duration-500">
+                   {activeTab === "security" && (
+                     <form onSubmit={changePassword} className="bg-white p-8 rounded-md border border-slate-100 shadow-sm space-y-8 animate-in fade-in zoom-in-95 duration-500">
                         <div className="flex items-center gap-4">
-                           <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600"><Lock className="w-6 h-6" /></div>
+                           <div className="w-12 h-12 bg-indigo-50 rounded-md flex items-center justify-center text-indigo-600"><Lock className="w-6 h-6" /></div>
                            <div>
                               <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase italic">Auth Governance</h3>
                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Manage system access & secure credentials</p>
@@ -471,15 +474,15 @@ const Settings = () => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <div className="p-6 bg-slate-50 rounded-[1.5rem] border border-slate-100 flex items-center gap-6 group hover:border-slate-300 transition-all">
-                              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform"><Database className="w-6 h-6 text-slate-300" /></div>
+                           <div className="p-5 bg-slate-50 rounded-md border border-slate-100 flex items-center gap-6 group hover:border-slate-300 transition-all">
+                              <div className="w-12 h-12 bg-white rounded-md flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform"><Database className="w-6 h-6 text-slate-300" /></div>
                               <div>
                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Data Encryption</p>
                                  <p className="text-sm font-black text-slate-900 uppercase italic">Active AES-256</p>
                               </div>
                            </div>
-                           <div className="p-6 bg-indigo-50 rounded-[1.5rem] border border-indigo-100 flex items-center gap-6">
-                              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm"><ShieldCheck className="w-6 h-6 text-indigo-500" /></div>
+                           <div className="p-5 bg-indigo-50 rounded-md border border-indigo-100 flex items-center gap-6">
+                              <div className="w-12 h-12 bg-white rounded-md flex items-center justify-center shadow-sm"><ShieldCheck className="w-6 h-6 text-indigo-500" /></div>
                               <div>
                                  <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Security Status</p>
                                  <p className="text-sm font-black text-indigo-900 uppercase italic">Threat: LOW_INTEL</p>
@@ -487,13 +490,13 @@ const Settings = () => {
                            </div>
                         </div>
 
-                        <div className="space-y-10">
+                        <div className="space-y-8">
                            <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] pl-2 border-l-4 border-slate-900">Credential Synchronization</h4>
-                           <div className="space-y-8">
+                           <div className="space-y-6">
                               <div className="space-y-3">
                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Current Master Password</label>
                                  <div className="relative">
-                                    <input type={showPasswords.current ? "text" : "password"} name="currentPassword" required className="erp-input !py-5 pr-16" value={passwordData.currentPassword} onChange={handlePasswordChange} />
+                                    <input type={showPasswords.current ? "text" : "password"} name="currentPassword" required className="erp-input !py-4 pr-16" value={passwordData.currentPassword} onChange={handlePasswordChange} />
                                     <button type="button" onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300">
                                        {showPasswords.current ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                     </button>
@@ -502,17 +505,17 @@ const Settings = () => {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                  <div className="space-y-3">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Secure Cipher</label>
-                                    <input type={showPasswords.new ? "text" : "password"} name="newPassword" required className="erp-input !py-5" value={passwordData.newPassword} onChange={handlePasswordChange} />
+                                    <input type={showPasswords.new ? "text" : "password"} name="newPassword" required className="erp-input !py-4" value={passwordData.newPassword} onChange={handlePasswordChange} />
                                  </div>
                                  <div className="space-y-3">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirm Cipher</label>
-                                    <input type={showPasswords.confirm ? "text" : "password"} name="confirmPassword" required className="erp-input !py-5" value={passwordData.confirmPassword} onChange={handlePasswordChange} />
+                                    <input type={showPasswords.confirm ? "text" : "password"} name="confirmPassword" required className="erp-input !py-4" value={passwordData.confirmPassword} onChange={handlePasswordChange} />
                                  </div>
                               </div>
                            </div>
                         </div>
 
-                        <button type="submit" className="erp-button-primary w-full !py-7 !bg-slate-900 !rounded-[2.5rem] hover:!bg-black">
+                        <button type="submit" className="erp-button-primary w-full !py-6 !bg-slate-900 !rounded-md hover:!bg-black">
                            <Lock className="w-5 h-5" />
                            Commit Security Update
                         </button>
@@ -520,9 +523,9 @@ const Settings = () => {
                   )}
 
                   {activeTab === "notifications" && (
-                     <form onSubmit={updateProfile} className="bg-white p-12 rounded-[2rem] border border-slate-100 shadow-sm space-y-6 animate-in fade-in zoom-in-95 duration-500">
+                     <form onSubmit={updateProfile} className="bg-white p-10 rounded-md border border-slate-100 shadow-sm space-y-6 animate-in fade-in zoom-in-95 duration-500">
                         <div className="flex items-center gap-4">
-                           <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600"><Bell className="w-6 h-6" /></div>
+                           <div className="w-12 h-12 bg-amber-50 rounded-md flex items-center justify-center text-amber-600"><Bell className="w-6 h-6" /></div>
                            <div>
                               <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase italic">Alert Intelligence</h3>
                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Configure telemetry & notification ecosystem</p>
@@ -536,7 +539,7 @@ const Settings = () => {
                                  { key: 'lowStock', label: 'STOCK ATTRITION ALERT', desc: 'Critical re-order level triggers' },
                                  { key: 'newOrder', label: 'SALES NODE CREATION', desc: 'Real-time billing telemetry' },
                               ].map((item) => (
-                                 <div key={item.key} className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-xl transition-all">
+                                 <div key={item.key} className="p-6 bg-slate-50 rounded-md border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-xl transition-all">
                                     <div className="space-y-1">
                                        <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{item.label}</p>
                                        <p className="text-[9px] font-black text-slate-400 uppercase italic opacity-40">{item.desc}</p>
@@ -553,7 +556,7 @@ const Settings = () => {
                                  { key: 'securityAlerts', label: 'AUTH THREAT DETECT', desc: 'Login from unauthorized geographical nodes' },
                                  { key: 'channelEmail', label: 'EMAIL RELAY PROTOCOL', desc: 'Primary asynchronous delivery channel' },
                               ].map((item) => (
-                                 <div key={item.key} className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-xl transition-all">
+                                 <div key={item.key} className="p-6 bg-slate-50 rounded-md border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-xl transition-all">
                                     <div className="space-y-1">
                                        <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{item.label}</p>
                                        <p className="text-[9px] font-black text-slate-400 uppercase italic opacity-40">{item.desc}</p>
@@ -566,7 +569,7 @@ const Settings = () => {
                            </div>
                         </div>
 
-                        <button type="submit" className="erp-button-primary !py-7 !bg-amber-600 !rounded-[2.5rem] hover:!bg-amber-700 shadow-amber-500/20">
+                        <button type="submit" className="erp-button-primary !py-7 !bg-amber-600 !rounded-md hover:!bg-amber-700 shadow-amber-500/20">
                            <Save className="w-5 h-5" />
                            Commit Ecosystem Preferences
                         </button>
@@ -574,19 +577,19 @@ const Settings = () => {
                   )}
 
                   {activeTab === "modules" && (
-                     <form onSubmit={updateProfile} className="bg-white p-12 rounded-[2rem] border border-slate-100 shadow-sm space-y-6 animate-in fade-in zoom-in-95 duration-500">
+                     <form onSubmit={updateProfile} className="bg-white p-10 rounded-md border border-slate-100 shadow-sm space-y-6 animate-in fade-in zoom-in-95 duration-500">
                         <div className="flex items-center gap-4">
-                           <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600"><Activity className="w-6 h-6" /></div>
+                           <div className="w-12 h-12 bg-indigo-50 rounded-md flex items-center justify-center text-indigo-600"><Activity className="w-6 h-6" /></div>
                            <div>
                               <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase italic">Module Governance</h3>
                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Toggle enterprise-wide operational modules</p>
                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                           <div className="p-6 bg-slate-50 rounded-[1.5rem] border border-slate-100 space-y-6 group hover:border-slate-300 transition-all">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                           <div className="p-6 bg-slate-50 rounded-md border border-slate-100 space-y-6 group hover:border-slate-300 transition-all">
                               <div className="flex items-center justify-between">
-                                 <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform"><Boxes className="w-6 h-6 text-indigo-600" /></div>
+                                 <div className="w-14 h-14 bg-white rounded-md flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform"><Boxes className="w-6 h-6 text-indigo-600" /></div>
                                  <button type="button" onClick={() => setActiveModules({ ...activeModules, erp: !activeModules.erp })} className={`w-14 h-7 rounded-full transition-all relative ${activeModules.erp ? 'bg-indigo-600' : 'bg-slate-300'}`}>
                                     <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${activeModules.erp ? 'left-8' : 'left-1'}`}></div>
                                  </button>
@@ -597,9 +600,9 @@ const Settings = () => {
                               </div>
                            </div>
 
-                           <div className="p-6 bg-slate-50 rounded-[1.5rem] border border-slate-100 space-y-6 group hover:border-slate-300 transition-all">
+                           <div className="p-6 bg-slate-50 rounded-md border border-slate-100 space-y-6 group hover:border-slate-300 transition-all">
                               <div className="flex items-center justify-between">
-                                 <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform"><Wallet className="w-6 h-6 text-emerald-600" /></div>
+                                 <div className="w-14 h-14 bg-white rounded-md flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform"><Wallet className="w-6 h-6 text-emerald-600" /></div>
                                  <div className="flex items-center gap-3">
                                     <button type="button" onClick={handleAccountingToggle} className={`w-14 h-7 rounded-full transition-all relative ${activeModules.accounting ? 'bg-emerald-600' : 'bg-slate-300'}`}>
                                        <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${activeModules.accounting ? 'left-8' : 'left-1'}`}></div>
@@ -616,7 +619,7 @@ const Settings = () => {
                            </div>
                         </div>
 
-                        <button type="submit" className="erp-button-primary w-full !py-8 !bg-slate-900 !rounded-[2.5rem] hover:!bg-black shadow-2xl flex items-center justify-center gap-4 group transition-all duration-500 hover:scale-[1.01] active:scale-95 border border-slate-700">
+                        <button type="submit" className="erp-button-primary w-full !py-8 !bg-slate-900 !rounded-md shadow-2xl flex items-center justify-center gap-4 group transition-all duration-500 hover:scale-[1.01] active:scale-95 border border-slate-700">
                            <ShieldCheck className="w-6 h-6 text-emerald-400 group-hover:scale-110 transition-transform" />
                            <span className="text-sm font-black uppercase tracking-[0.1em]">Commit Module Architecture</span>
                         </button>
@@ -714,17 +717,17 @@ const GstComplianceGateway = () => {
    };
 
    return (
-      <form onSubmit={handleSubmit} className="bg-white p-12 rounded-[2rem] border border-slate-100 shadow-sm space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-md border border-slate-100 shadow-sm space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
          <div className="flex items-center justify-between border-b border-slate-50 pb-8">
             <div className="flex items-center gap-4">
-               <div className="w-14 h-14 bg-slate-900 rounded-3xl flex items-center justify-center text-white shadow-xl rotate-3 group-hover:rotate-0 transition-transform"><ShieldCheck className="w-8 h-8" /></div>
+               <div className="w-14 h-14 bg-slate-900 rounded-md flex items-center justify-center text-white shadow-xl rotate-3 group-hover:rotate-0 transition-transform"><ShieldCheck className="w-8 h-8" /></div>
                <div>
                   <h3 className="text-2xl font-black text-slate-900 tracking-tightest uppercase italic">GST Compliance <span className="text-indigo-600">Gateway</span></h3>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Global NIC Proxy & Encrypted Credential Vault</p>
                </div>
             </div>
             <div className="flex items-center gap-4">
-               <button type="button" onClick={() => setShowSecrets(!showSecrets)} className="p-4 bg-slate-50 text-slate-400 rounded-2xl hover:text-slate-900 transition-colors shadow-sm">
+               <button type="button" onClick={() => setShowSecrets(!showSecrets)} className="p-4 bg-slate-50 text-slate-400 rounded-md hover:text-slate-900 transition-colors shadow-sm">
                   {showSecrets ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                </button>
             </div>
@@ -769,10 +772,10 @@ const GstComplianceGateway = () => {
          {/* NIC Credentials */}
          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-4">
             {/* E-Invoice */}
-            <div className="space-y-8 p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 hover:border-indigo-200 transition-colors">
+            <div className="space-y-8 p-8 bg-slate-50 rounded-md border border-slate-100 hover:border-indigo-200 transition-colors">
                <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                     <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg"><Zap className="w-5 h-5" /></div>
+                     <div className="w-10 h-10 bg-indigo-600 rounded-md flex items-center justify-center text-white shadow-lg"><Zap className="w-5 h-5" /></div>
                      <div>
                         <h4 className="text-sm font-black text-slate-900 uppercase italic tracking-tighter">E-Invoice Portal</h4>
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">NIC Integration Credentials</p>
@@ -796,13 +799,13 @@ const GstComplianceGateway = () => {
             </div>
 
             {/* E-Way Bill */}
-            <div className="space-y-8 p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 hover:border-emerald-200 transition-colors">
+            <div className="space-y-8 p-8 bg-slate-50 rounded-md border border-slate-100 hover:border-emerald-200 transition-colors">
                <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                     <div className="w-10 h-10 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg"><Globe className="w-5 h-5" /></div>
+                     <div className="w-10 h-10 bg-emerald-600 rounded-md flex items-center justify-center text-white shadow-lg"><Truck className="w-5 h-5" /></div>
                      <div>
-                        <h4 className="text-sm font-black text-slate-900 uppercase italic tracking-tighter">E-Way Bill Node</h4>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Movement Authorization Access</p>
+                        <h4 className="text-sm font-black text-slate-900 uppercase italic tracking-tighter">E-Way Bill Portal</h4>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">NIC Integration Credentials</p>
                      </div>
                   </div>
                   <button type="button" onClick={() => setFormData({ ...formData, isEWayBillEnabled: !formData.isEWayBillEnabled })} className={`w-10 h-5 rounded-full relative transition-all duration-300 ${formData.isEWayBillEnabled ? 'bg-emerald-600 shadow-inner' : 'bg-slate-200'}`}>
@@ -812,25 +815,21 @@ const GstComplianceGateway = () => {
 
                <div className="space-y-6">
                   <div className="space-y-2">
-                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Operational Username</label>
+                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">System Username</label>
                      <input name="eWayBillUsername" className="erp-input !py-4 !bg-white" value={formData.eWayBillUsername} onChange={handleChange} />
                   </div>
                   <div className="space-y-2">
-                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Access Password</label>
+                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Portal Password</label>
                      <input type={showSecrets ? "text" : "password"} name="eWayBillPassword" className="erp-input !py-4 !bg-white" value={formData.eWayBillPassword} onChange={handleChange} placeholder="••••••••••••" />
                   </div>
                </div>
             </div>
          </div>
 
-         <div className="pt-8 flex justify-end gap-6">
-            <div className="flex-grow p-6 bg-slate-50 border border-slate-100 rounded-[2rem] flex items-center gap-4">
-               <Database className="w-6 h-6 text-slate-300" />
-               <span className="text-[10px] font-black uppercase text-slate-400 leading-tight">All credentials are encrypted using <span className="text-slate-900">AES-256-GCM</span> prior to persistence. Data is strictly proxied for IRN/EWB generation.</span>
-            </div>
-            <button disabled={loading} className="erp-button-primary !py-7 !px-12 !bg-slate-900 !rounded-[2.5rem] hover:!bg-black group shadow-xl">
-               <ShieldCheck className="w-6 h-6 text-emerald-400 group-hover:scale-110 transition-transform" />
-               {loading ? "Capturing Flux..." : "Commit Compliance Config"}
+         <div className="flex justify-end pt-4">
+            <button type="submit" disabled={loading} className="px-12 py-6 bg-slate-900 text-white text-xs font-black uppercase tracking-widest rounded-md hover:bg-black transition-all shadow-2xl flex items-center gap-4 group">
+               <ShieldCheck className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" />
+               {loading ? "Capturing Flux..." : "Commit Compliance Setup"}
             </button>
          </div>
       </form>

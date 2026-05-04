@@ -45,6 +45,10 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
+  // Financial Integrity Protocol: Enforce secondary master key for sensitive fiscal mutations
+  const financialKey = localStorage.getItem("financial_key") || "erp123";
+  config.headers["x-financial-key"] = financialKey;
+
   // Cache Busting: Appends a timestamp to all all requests to bypass aggressive browser/proxy caches
   if (config.method?.toLowerCase() === 'get') {
     config.params = { ...config.params, _t: Date.now() };

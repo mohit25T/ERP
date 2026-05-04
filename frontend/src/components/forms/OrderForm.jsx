@@ -276,9 +276,13 @@ const OrderForm = ({ onSubmit, onCancel, loading, initialData }) => {
               {products
                 .filter(p => formData.saleType === 'scrap' || p.type !== 'raw_material')
                 .map(p => {
+                  const displayStock = unitsUtil.convertFromPieces(p.totalStock || 0, p.unit);
+                  const displayScrap = unitsUtil.convertFromPieces(p.scrapStock || 0, p.unit);
+                  const scrapMassKg = p.type === 'raw_material' ? (p.scrapStock || 0) : ((p.scrapStock || 0) * (p.unitWeightGrams || 0)) / 1000;
+
                   const avlText = formData.saleType === 'scrap' 
-                    ? `${p.scrapStock || 0} ${p.unit || 'KG'}${p.unit !== 'kg' && p.unitWeightGrams > 0 ? ` (≈${((p.scrapStock * p.unitWeightGrams) / 1000).toFixed(2)} KG)` : ''}`
-                    : `${p.totalStock} ${p.unit || 'KG'}`;
+                    ? `${displayScrap.toLocaleString(undefined, { minimumFractionDigits: 3 })} ${p.unit?.toUpperCase() || 'KG'}${p.unit !== 'kg' && scrapMassKg > 0 ? ` (≈${scrapMassKg.toLocaleString(undefined, { minimumFractionDigits: 2 })} KG)` : ''}`
+                    : `${displayStock.toLocaleString()} ${p.unit?.toUpperCase() || 'KG'}`;
                   return (
                     <option key={p._id} value={p._id}>
                       {p.name.toUpperCase()} (AVL: {avlText})
@@ -357,7 +361,7 @@ const OrderForm = ({ onSubmit, onCancel, loading, initialData }) => {
       </div>
 
       {/* DYNAMIC VALUATION NODE */}
-      <div className="bg-[#0f172a] rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between border border-slate-800 shadow-2xl relative overflow-hidden group">
+      <div className="bg-[#0f172a] rounded-md p-8 flex flex-col md:flex-row items-center justify-between border border-slate-800 shadow-2xl relative overflow-hidden group">
         <div className="absolute top-0 -right-8 p-12 opacity-[0.03] group-hover:rotate-12 transition-transform duration-1000">
           <ShoppingCart className="w-32 h-32 text-white" />
         </div>
@@ -385,10 +389,10 @@ const OrderForm = ({ onSubmit, onCancel, loading, initialData }) => {
       </div>
 
       {/* LOGISTICS TELEMETRY (E-WAY BILL) */}
-      <div className={`transition-all duration-700 ${formData.ewayBillData.active ? 'bg-indigo-50/50 border-indigo-100' : 'bg-slate-50 border-slate-100'} p-8 rounded-[3rem] border space-y-8`}>
+      <div className={`transition-all duration-700 ${formData.ewayBillData.active ? 'bg-indigo-50/50 border-indigo-100' : 'bg-slate-50 border-slate-100'} p-8 rounded-md border space-y-8`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
-            <div className={`p-4 rounded-[1.25rem] shadow-xl transition-all duration-500 ${formData.ewayBillData.active ? 'bg-indigo-600 text-white scale-110 shadow-indigo-200' : 'bg-slate-200 text-slate-400'}`}>
+            <div className={`p-4 rounded-md shadow-xl transition-all duration-500 ${formData.ewayBillData.active ? 'bg-indigo-600 text-white scale-110 shadow-indigo-200' : 'bg-slate-200 text-slate-400'}`}>
               <Truck className="w-6 h-6" />
             </div>
             <div>
@@ -443,7 +447,7 @@ const OrderForm = ({ onSubmit, onCancel, loading, initialData }) => {
               </div>
             </div>
 
-            <div className="lg:col-span-4 bg-indigo-600/5 rounded-[2rem] p-6 border border-indigo-100 space-y-6">
+            <div className="lg:col-span-4 bg-indigo-600/5 rounded-md p-6 border border-indigo-100 space-y-6">
               <div className="flex items-center gap-2 px-1">
                 <Activity className="w-3.5 h-3.5 text-indigo-600" />
                 <span className="text-[9px] font-black text-indigo-600 uppercase tracking-[0.2em] italic">High-Priority Telemetry</span>

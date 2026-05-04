@@ -246,14 +246,14 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
 
       {/* MANUFACTURING BLUEPRINT (BOM) */}
       {formData.type === "finished_good" && (
-        <div className="mt-12 p-8 bg-slate-900 rounded-[3rem] border border-slate-800 space-y-8 shadow-2xl shadow-slate-900/40 group relative overflow-hidden">
+        <div className="mt-12 p-8 bg-slate-900 rounded-md border border-slate-800 space-y-8 shadow-2xl shadow-slate-900/40 group relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:rotate-12 transition-transform duration-1000">
              <Layers className="w-40 h-40 text-white" />
           </div>
           
           <div className="flex items-center justify-between border-b border-white/5 pb-6 relative z-10">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-indigo-600 rounded-2xl shadow-xl shadow-indigo-600/20">
+              <div className="p-3 bg-indigo-600 rounded-md shadow-xl shadow-indigo-600/20">
                 <Layers className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -264,14 +264,14 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
             <button
               type="button"
               onClick={handleAddIngredient}
-              className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300"
+              className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-md text-[10px] font-black uppercase tracking-widest transition-all duration-300"
             >
               <Plus className="w-4 h-4" /> Add Component
             </button>
           </div>
 
           {formData.bom.length === 0 ? (
-            <div className="bg-white/5 rounded-[2rem] p-12 text-center border border-dashed border-white/10">
+            <div className="bg-white/5 rounded-md p-12 text-center border border-dashed border-white/10">
               <Info className="w-10 h-10 text-white/10 mx-auto mb-4" />
               <p className="text-[11px] text-white/40 font-black uppercase tracking-widest">Recipe protocol not initialized</p>
               <p className="text-[9px] text-white/20 mt-2 italic">Add raw materials to track production yield analytics</p>
@@ -279,12 +279,12 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
           ) : (
             <div className="space-y-4 relative z-10">
               {formData.bom.map((item, idx) => (
-                <div key={idx} className="grid grid-cols-12 gap-3 bg-white/5 p-5 rounded-3xl border border-white/5 group/row hover:bg-white/10 transition-all">
+                <div key={idx} className="grid grid-cols-12 gap-3 bg-white/5 p-5 rounded-md border border-white/5 group/row hover:bg-white/10 transition-all">
                   <div className="col-span-6 space-y-2">
                     <label className="text-[8px] font-black text-white/20 uppercase tracking-widest ml-1">Master Material Source</label>
                     <select
                       required
-                      className="w-full h-12 bg-slate-950/50 border border-white/5 rounded-2xl text-[10px] font-black text-white outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all uppercase px-4 cursor-pointer"
+                      className="w-full h-12 bg-slate-950/50 border border-white/5 rounded-md text-[10px] font-black text-white outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all uppercase px-4 cursor-pointer"
                       value={item.material?._id || item.material}
                       onChange={(e) => handleIngredientChange(idx, "material", e.target.value)}
                     >

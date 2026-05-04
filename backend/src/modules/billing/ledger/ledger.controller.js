@@ -17,7 +17,8 @@ export const createLedgerEntry = async (req, res) => {
       const totalPaid = previousPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
       
       const outstanding = totalInvoiced - totalPaid;
-      if (Number(amount) > outstanding) {
+      // Skip outstanding check for returns/adjustments
+      if (category !== 'Credit Note' && category !== 'Adjustment' && Number(amount) > outstanding) {
         return res.status(400).json({ 
           error: `Cannot record receipt of ₹${amount}. Customer total account outstanding is only ₹${outstanding.toLocaleString()}.` 
         });
@@ -32,7 +33,8 @@ export const createLedgerEntry = async (req, res) => {
       const totalPaid = previousPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
       
       const outstanding = totalInvoiced - totalPaid;
-      if (Number(amount) > outstanding) {
+      // Skip outstanding check for returns/adjustments
+      if (category !== 'Debit Note' && category !== 'Adjustment' && Number(amount) > outstanding) {
         return res.status(400).json({ 
           error: `Cannot record payment of ₹${amount}. Supplier total account outstanding is only ₹${outstanding.toLocaleString()}.` 
         });

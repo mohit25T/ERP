@@ -175,18 +175,21 @@ export const dispatchOrder = async (req, res) => {
         throw new Error(`Cannot dispatch more than reserved (${order.reservedQty}). Please reserve more first or adjust order.`);
       }
 
+      const normalizedDispatch = await UnitService.normalize(dispatchQty, order.unit);
+
       // 1. Sync Inventory (Physical OUT, Reserved RELEASE)
-      await InventoryService.decreaseStock(order.product, dispatchQty, {
+      await InventoryService.decreaseStock(order.product, normalizedDispatch, {
         reason: `Dispatch for Order #${order._id.toString().slice(-6)}`,
         referenceType: "order",
         referenceId: order._id,
         targetField: order.saleType === 'scrap' ? 'scrapStock' : 'totalStock'
       }, session);
 
-      await InventoryService.releaseReservedStock(order.product, dispatchQty, {
+      await InventoryService.releaseReservedStock(order.product, normalizedDispatch, {
         reason: `Dispatch fulfillment`,
         referenceType: "order",
-        referenceId: order._id
+        referenceId: order._id,
+        isScrap: order.saleType === 'scrap'
       }, session);
 
       // 2. Update Order Totals
@@ -236,17 +239,42 @@ export const updateOrderStatus = async (req, res) => {
       // Handle Cancellation: Release any remaining reservations
       if (status === 'cancelled' && order.status !== 'cancelled') {
         if (order.reservedQty > 0) {
-          await InventoryService.releaseReservedStock(order.product, order.reservedQty, {
+          const normalizedRelease = await UnitService.normalize(order.reservedQty, order.unit);
+          await InventoryService.releaseReservedStock(order.product, normalizedRelease, {
             referenceType: "order",
             referenceId: orderId,
-            reason: "Reservation release on order cancellation"
+            reason: "Reservation release on order cancellation",
+            isScrap: order.saleType === 'scrap'
           }, session);
           order.reservedQty = 0;
         }
       }
 
-      // Note: Physical stock updates are now handled via dispatchOrder.
-      // updateOrderStatus is for administrative state changes.
+      // Miracle Fulfillment Protocol: Auto-dispatch remaining reserved stock on Shipped/Completed
+      if (['shipped', 'completed'].includes(status) && order.reservedQty > 0) {
+        const dispatchQtyRaw = order.reservedQty;
+        const normalizedDispatch = await UnitService.normalize(dispatchQtyRaw, order.unit);
+        
+        // 1. Decrease Physical Stock
+        await InventoryService.decreaseStock(order.product, normalizedDispatch, {
+          reason: `Auto-fulfillment on status update to ${status} (#${orderId.toString().slice(-6)})`,
+          referenceType: "order",
+          referenceId: orderId,
+          targetField: order.saleType === 'scrap' ? 'scrapStock' : 'totalStock'
+        }, session);
+
+        // 2. Release Reservation
+        await InventoryService.releaseReservedStock(order.product, normalizedDispatch, {
+          reason: `Auto-fulfillment fulfillment`,
+          referenceType: "order",
+          referenceId: orderId,
+          isScrap: order.saleType === 'scrap'
+        }, session);
+
+        // 3. Update Order record
+        order.shippedQty += dispatchQtyRaw;
+        order.reservedQty = 0;
+      }
 
       order.status = status;
       await order.save({ session });

@@ -325,14 +325,25 @@ export const getCompanyStatement = async (req, res) => {
     const companyName = adminUser?.companyName || "Our Company Statement";
 
     const combined = [
-      ...ledgerEntries.map(l => ({
-        date: l.date || new Date(),
-        type: l.type === "income" ? "Credit" : "Debit",
-        ref: l._id,
-        debit: l.type === "expense" ? Number(l.amount || 0) : 0,
-        credit: l.type === "income" ? Number(l.amount || 0) : 0,
-        description: l.description || `${l.type === "income" ? "Receipt" : "Payment"} — ${l.customer?.name || l.supplier?.company || "External"}`
-      }))
+      ...ledgerEntries.map(l => {
+        const isCreditNote = l.category === 'Credit Note';
+        const isDebitNote = l.category === 'Debit Note';
+        
+        let typeLabel = l.type === "income" ? "Credit" : "Debit";
+        if (isCreditNote) typeLabel = "CN (Sales Ret)";
+        if (isDebitNote) typeLabel = "DN (Pur Ret)";
+
+        return {
+          date: l.date || new Date(),
+          type: typeLabel,
+          ref: l._id,
+          // For a Credit Note (issued to customer), it's like a reduction in income (Debit Magnitude)
+          debit: (l.type === "expense" || isCreditNote) ? Number(l.amount || 0) : 0,
+          // For a Debit Note (issued to supplier), it's like a reduction in expense (Credit Magnitude)
+          credit: (l.type === "income" || isDebitNote) ? Number(l.amount || 0) : 0,
+          description: l.description || `${l.category || (l.type === "income" ? "Receipt" : "Payment")} — ${l.customer?.name || l.supplier?.company || "External"}`
+        };
+      })
     ];
 
     combined.sort((a, b) => {
@@ -347,6 +358,12 @@ export const getCompanyStatement = async (req, res) => {
       return { ...item, balance: Number(runningBalance.toFixed(2)) };
     });
 
+    // Fallback: If timeline is empty, check if we have any pending invoices to at least show metadata
+    if (timeline.length === 0) {
+      const recentOrders = await Order.find().limit(5).populate("customer").lean();
+      // We don't add them to timeline to maintain ledger integrity, but we could if needed.
+    }
+
     // Disable Caching for fresh financial data
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
 
@@ -355,8 +372,8 @@ export const getCompanyStatement = async (req, res) => {
       companyAddress: adminUser?.address,
       companyGstin: adminUser?.gstin,
       timeline,
-      totalDebit: Number(ledgerEntries.reduce((sum, i) => sum + (i.type === 'expense' ? i.amount : 0), 0).toFixed(2)),
-      totalCredit: Number(ledgerEntries.reduce((sum, i) => sum + (i.type === 'income' ? i.amount : 0), 0).toFixed(2)),
+      totalDebit: Number(timeline.reduce((sum, i) => sum + i.debit, 0).toFixed(2)),
+      totalCredit: Number(timeline.reduce((sum, i) => sum + i.credit, 0).toFixed(2)),
       totalBalance: Number(runningBalance.toFixed(2))
     });
   } catch (err) {

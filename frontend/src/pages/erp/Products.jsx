@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { productApi, bomApi } from "../../api/erpApi";
+import { motion, AnimatePresence } from "framer-motion";
+import { productApi, bomApi, inventoryApi } from "../../api/erpApi";
 import unitsUtil from "../../utils/units";
 import AppLayout from "../../components/layout/AppLayout";
+import HammerLoader from "../../components/common/HammerLoader";
 import Modal from "../../components/common/Modal";
 import ProductForm from "../../components/forms/ProductForm";
 import InventoryHistory from "../../components/modals/InventoryHistory";
@@ -29,6 +31,9 @@ const Products = () => {
    const [prodQuantity, setProdQuantity] = useState(1);
    const [editingProduct, setEditingProduct] = useState(null);
    const [formLoading, setFormLoading] = useState(false);
+   const [scrapView, setScrapView] = useState("total"); // total | batch
+   const [scrapLogs, setScrapLogs] = useState([]);
+   const [scrapLogsLoading, setScrapLogsLoading] = useState(false);
 
    const fetchProducts = async () => {
       try {
@@ -46,9 +51,27 @@ const Products = () => {
       }
    };
 
+   const fetchScrapLogs = async () => {
+      try {
+         setScrapLogsLoading(true);
+         const res = await inventoryApi.getScrapLogs();
+         setScrapLogs(res.data);
+      } catch (err) {
+         console.error("Failed to fetch scrap logs", err);
+      } finally {
+         setScrapLogsLoading(false);
+      }
+   };
+
    useEffect(() => {
       fetchProducts();
    }, []);
+
+   useEffect(() => {
+      if (activeTab === 'scrap' && scrapView === 'batch') {
+         fetchScrapLogs();
+      }
+   }, [activeTab, scrapView]);
 
    const handleOpenEdit = (product) => {
       setEditingProduct(product);
@@ -158,7 +181,7 @@ const Products = () => {
 
             {/* Filters */}
             {showFilters && (
-               <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-wrap gap-6 items-end animate-in fade-in slide-in-from-top-2">
+               <div className="p-4 bg-white rounded-md border border-slate-200 shadow-sm flex flex-wrap gap-6 items-end animate-in fade-in slide-in-from-top-2">
                   <div className="space-y-2">
                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Stock Level Filter</p>
                      <div className="flex flex-wrap gap-2">
@@ -171,7 +194,7 @@ const Products = () => {
                            <button
                               key={stock.id}
                               onClick={() => setFilterStock(stock.id)}
-                              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all border ${filterStock === stock.id ? 'bg-primary/10 text-primary border-primary/20' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}
+                              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all border ${filterStock === stock.id ? 'bg-primary/10 text-primary border-primary/20' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}
                            >
                               {stock.label}
                            </button>
@@ -192,10 +215,10 @@ const Products = () => {
 
             {/* Stats Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-               <div className="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+               <div className="p-5 bg-white rounded-md border border-slate-100 shadow-sm flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-4">
                      <p className="text-sm font-semibold text-slate-500">Total Value</p>
-                     <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                     <div className="p-2 bg-primary/10 rounded-md text-primary">
                         <Database className="w-4 h-4" />
                      </div>
                   </div>
@@ -207,10 +230,10 @@ const Products = () => {
                   </div>
                </div>
 
-               <div className="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+               <div className="p-5 bg-white rounded-md border border-slate-100 shadow-sm flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-4">
                      <p className="text-sm font-semibold text-slate-500">Low Stock</p>
-                     <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
+                     <div className="p-2 bg-amber-50 rounded-md text-amber-600">
                         <AlertCircle className="w-4 h-4" />
                      </div>
                   </div>
@@ -222,10 +245,10 @@ const Products = () => {
                   </div>
                </div>
 
-               <div className="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+               <div className="p-5 bg-white rounded-md border border-slate-100 shadow-sm flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-4">
                      <p className="text-sm font-semibold text-slate-500">Scrap Volume</p>
-                     <div className="p-2 bg-rose-50 rounded-lg text-rose-600">
+                     <div className="p-2 bg-rose-50 rounded-md text-rose-600">
                         <Trash2 className="w-4 h-4" />
                      </div>
                   </div>
@@ -234,8 +257,12 @@ const Products = () => {
                         {(products.reduce((acc, p) => {
                            const weightPerPiece = p.unitWeightGrams || 0;
                            const scrapQty = p.scrapStock || 0;
-                           // If it's already a scrap product (type='scrap'), its totalStock is the mass in kg
-                           const massKg = p.type === 'scrap' ? p.stock : (scrapQty * weightPerPiece) / 1000;
+                           const isWeightBased = ['kg', 'gram', 'mts', 'dagina', 'ton', 'tons'].includes(p.unit?.toLowerCase());
+
+                           if (p.type === 'scrap') return acc + (p.stock || 0);
+                           if (isWeightBased) return acc + scrapQty;
+
+                           const massKg = (scrapQty * weightPerPiece) / 1000;
                            return acc + massKg;
                         }, 0) / 1000).toFixed(2)}T
                      </h3>
@@ -245,10 +272,10 @@ const Products = () => {
                   </div>
                </div>
 
-               <div className="p-5 bg-primary/5 rounded-2xl border border-primary/10 shadow-sm flex flex-col justify-between">
+               <div className="p-5 bg-primary/5 rounded-md border border-primary/10 shadow-sm flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-4">
                      <p className="text-sm font-semibold text-primary">Catalog Size</p>
-                     <div className="p-2 bg-primary/20 rounded-lg text-primary">
+                     <div className="p-2 bg-primary/20 rounded-md text-primary">
                         <PackageOpen className="w-4 h-4" />
                      </div>
                   </div>
@@ -262,7 +289,7 @@ const Products = () => {
             </div>
 
             {/* Data Table Section */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-20">
+            <div className="bg-white rounded-md border border-slate-200 shadow-sm overflow-hidden mb-20">
                <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                   <div className="relative w-full max-w-sm">
                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -275,6 +302,22 @@ const Products = () => {
                      />
                   </div>
                   <div className="flex items-center gap-2 w-full sm:w-auto">
+                     {activeTab === 'scrap' && (
+                        <div className="flex bg-slate-50 p-1 rounded-lg border border-slate-200 mr-2">
+                           <button
+                              onClick={() => setScrapView("total")}
+                              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${scrapView === 'total' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                           >
+                              Total Summary
+                           </button>
+                           <button
+                              onClick={() => setScrapView("batch")}
+                              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${scrapView === 'batch' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                           >
+                              Batch Wise
+                           </button>
+                        </div>
+                     )}
                      <button
                         onClick={() => setShowFilters(!showFilters)}
                         className={`p-2.5 rounded-lg border transition-colors ${showFilters ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
@@ -294,13 +337,63 @@ const Products = () => {
                </div>
 
                <div className="overflow-x-auto">
-                  {loading ? (
-                     <div className="p-12 pl-24 text-center">
-                        <div className="inline-flex items-center justify-center p-4 bg-slate-50 rounded-full mb-4">
-                           <Activity className="w-6 h-6 text-slate-400 animate-spin" />
-                        </div>
-                        <p className="text-sm font-medium text-slate-500">Loading inventory data...</p>
-                     </div>
+                  {loading || (activeTab === 'scrap' && scrapView === 'batch' && scrapLogsLoading) ? (
+                     <HammerLoader />
+                  ) : activeTab === 'scrap' && scrapView === 'batch' ? (
+                     <table className="erp-table">
+                        <thead>
+                           <tr>
+                              <th>Date / Batch</th>
+                              <th>Material</th>
+                              <th>Reason</th>
+                              <th className="text-center">Scrap Added</th>
+                              <th>Reference</th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                           <AnimatePresence mode="popLayout">
+                              {scrapLogs.map((log, idx) => (
+                                 <motion.tr
+                                    key={log._id || idx}
+                                    initial={{ opacity: 0, y: 5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.2, delay: idx * 0.02 }}
+                                 >
+                                    <td>
+                                       <div className="flex flex-col">
+                                          <span className="text-sm font-bold text-slate-900">{new Date(log.createdAt).toLocaleDateString()}</span>
+                                          <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mt-0.5">
+                                             {log.batchReference?.batchNumber || "General Adj"}
+                                          </span>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div className="flex flex-col">
+                                          <span className="text-sm font-bold text-slate-800">{log.material?.name}</span>
+                                          <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">Material Node</span>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <span className="text-xs font-semibold text-slate-500 italic">"{log.reason}"</span>
+                                    </td>
+                                    <td className="text-center">
+                                       <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg border border-amber-100 font-black tabular-nums">
+                                          +{log.quantity} <span className="text-[10px] opacity-60">KG</span>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div className="flex items-center gap-2">
+                                          <div className={`w-2 h-2 rounded-full ${log.batchReference ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
+                                          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                             {log.batchReference?.status || "Legacy"}
+                                          </span>
+                                       </div>
+                                    </td>
+                                 </motion.tr>
+                              ))}
+                           </AnimatePresence>
+                        </tbody>
+                     </table>
                   ) : filteredProducts.length === 0 ? (
                      <div className="p-20 flex flex-col items-center justify-center text-slate-500">
                         <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100">
@@ -314,97 +407,141 @@ const Products = () => {
                         <thead>
                            <tr>
                               <th>SKU</th>
-                              <th>Product Details</th>
-                              <th className="text-right">Price</th>
-                              <th className="text-center">Stock</th>
+                              {activeTab !== 'scrap' && (
+                                 <>
+                                    <th>Product Details</th>
+                                    <th className="text-right">Price</th>
+                                    <th className="text-center">Stock</th>
+                                 </>
+                              )}
                               <th className="text-center">Scrap</th>
-                              <th className="text-center">Actions</th>
+                              {activeTab !== 'scrap' && <th className="text-center">Actions</th>}
                            </tr>
                         </thead>
                         <tbody>
-                           {filteredProducts.map((p) => {
-                              const isStockWarning = p.stock < (p.minStock || 10);
+                           <AnimatePresence mode="popLayout">
+                              {filteredProducts.map((p, index) => {
+                                 const isStockWarning = p.stock < (p.minStock || 10);
 
-                              // Unit-aware conversions for high-fidelity display
-                              const displayStock = unitsUtil.convertFromPieces(p.stock, p.unit);
-                              const displayScrap = unitsUtil.convertFromPieces(p.scrapStock || 0, p.unit);
-                              const displayPrice = p.price * (unitsUtil.CONVERSIONS[p.unit?.toLowerCase()] || 1);
+                                 const displayStock = unitsUtil.convertFromPieces(p.stock, p.unit);
+                                 const displayScrap = unitsUtil.convertFromPieces(p.scrapStock || 0, p.unit);
+                                 const displayPrice = p.price * (unitsUtil.CONVERSIONS[p.unit?.toLowerCase()] || 1);
 
-                              return (
-                                 <tr key={p._id}>
-                                    <td>
-                                       <div className="flex flex-col gap-1.5">
-                                          {p.sku && p.sku.trim() !== "" ? (
-                                             <span className="text-sm font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 w-fit">
-                                                {p.sku}
-                                             </span>
-                                          ) : (
-                                             <span className="text-xs font-semibold text-rose-600 bg-rose-50 px-2 py-1 rounded-md border border-rose-100 w-fit flex items-center gap-1">
-                                                <AlertCircle className="w-3 h-3" />
-                                                No SKU
-                                             </span>
-                                          )}
-                                          <div className="flex items-center gap-1.5 mt-1">
-                                             <div className={`w-2 h-2 rounded-full ${p.type === 'raw_material' ? 'bg-indigo-500' : 'bg-emerald-500'}`}></div>
-                                             <span className="text-xs font-medium text-slate-500">HSN: {p.hsnCode || "—"}</span>
+                                 const scrapQty = p.scrapStock || 0;
+                                 let scrapMassKg = 0;
+
+                                 if (p.type === 'scrap') {
+                                    scrapMassKg = (p.stock || 0);
+                                 } else if (p.type === 'raw_material' || p.unit?.toLowerCase() === 'dagina' || p.unit?.toLowerCase() === 'kg') {
+                                    scrapMassKg = scrapQty;
+                                 } else {
+                                    const weightPerPiece = p.unitWeightGrams || 0;
+                                    scrapMassKg = (scrapQty * weightPerPiece) / 1000;
+                                 }
+
+                                 return (
+                                    <motion.tr
+                                       key={p._id}
+                                       initial={{ opacity: 0, y: 5 }}
+                                       animate={{ opacity: 1, y: 0 }}
+                                       transition={{ duration: 0.2, delay: index * 0.02 }}
+                                    >
+                                       <td>
+                                          <div className="flex flex-col gap-1.5">
+                                             {p.sku && p.sku.trim() !== "" ? (
+                                                <span className="text-sm font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 w-fit">
+                                                   {p.sku}
+                                                </span>
+                                             ) : (
+                                                <span className="text-xs font-semibold text-rose-600 bg-rose-50 px-2 py-1 rounded-md border border-rose-100 w-fit flex items-center gap-1">
+                                                   <AlertCircle className="w-3 h-3" />
+                                                   No SKU
+                                                </span>
+                                             )}
+                                             {activeTab !== 'scrap' && (
+                                                <div className="flex items-center gap-1.5 mt-1">
+                                                   <div className={`w-2 h-2 rounded-full ${p.type === 'raw_material' ? 'bg-indigo-500' : 'bg-emerald-500'}`}></div>
+                                                   <span className="text-xs font-medium text-slate-500">HSN: {p.hsnCode || "—"}</span>
+                                                </div>
+                                             )}
                                           </div>
-                                       </div>
-                                    </td>
-                                    <td>
-                                       <div className="flex flex-col">
-                                          <span className="text-sm font-bold text-slate-900">{p.name}</span>
-                                          <span className="text-xs font-medium text-slate-500 mt-1">{p.category || "Uncategorized"}</span>
-                                       </div>
-                                    </td>
-                                    <td className="text-right">
-                                       <div className="flex flex-col items-end gap-1">
-                                          <span className="text-base font-bold text-slate-900">₹{displayPrice?.toLocaleString('en-IN', { minimumFractionDigits: 1 })}</span>
-                                          <span className="text-xs font-medium text-slate-500">{p.gstRate || 18}% GST</span>
-                                       </div>
-                                    </td>
-                                    <td className="text-center">
-                                       <div className="flex flex-col items-center gap-1.5">
-                                          <div className={`px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1.5 ${isStockWarning ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-slate-50 text-slate-700 border border-slate-200'}`}>
-                                             {isStockWarning ? <ArrowDown className="w-3.5 h-3.5" /> : <Box className="w-3.5 h-3.5 opacity-50" />}
-                                             {displayStock.toLocaleString()} <span className="opacity-60 text-xs font-medium">{p.unit || 'KG'}</span>
+                                       </td>
+                                       {activeTab !== 'scrap' && (
+                                          <>
+                                             <td>
+                                                <div className="flex flex-col">
+                                                   <span className="text-sm font-bold text-slate-900">{p.name}</span>
+                                                   <span className="text-xs font-medium text-slate-500 mt-1">{p.category || "Uncategorized"}</span>
+                                                </div>
+                                             </td>
+                                             <td className="text-right">
+                                                <div className="flex flex-col items-end gap-1">
+                                                   <span className="text-base font-bold text-slate-900">₹{displayPrice?.toLocaleString('en-IN', { minimumFractionDigits: 1 })}</span>
+                                                   <span className="text-xs font-medium text-slate-500">{p.gstRate || 18}% GST</span>
+                                                </div>
+                                             </td>
+                                             <td className="text-center">
+                                                <div className="flex flex-col items-center gap-1.5">
+                                                   <div className={`px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1.5 ${isStockWarning ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-slate-50 text-slate-700 border border-slate-200'}`}>
+                                                      {isStockWarning ? <ArrowDown className="w-3.5 h-3.5" /> : <Box className="w-3.5 h-3.5 opacity-50" />}
+                                                      {displayStock.toLocaleString()} <span className="opacity-60 text-xs font-medium">{p.unit?.toUpperCase() || 'PCS'}</span>
+                                                   </div>
+                                                   {isStockWarning && <span className="text-[10px] font-semibold text-rose-500">Low Stock</span>}
+                                                </div>
+                                             </td>
+                                          </>
+                                       )}
+                                       <td className="text-center">
+                                          <div className="flex flex-col items-center gap-1">
+                                             {activeTab === 'scrap' ? (
+                                                <>
+                                                   <div className={`${scrapMassKg > 0 ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'text-slate-400'} px-3 py-1.5 rounded-lg text-sm font-black flex items-center gap-1`}>
+                                                      {scrapMassKg.toLocaleString(undefined, { minimumFractionDigits: 3 })} <span className="opacity-60 text-[10px] uppercase font-bold">KG</span>
+                                                   </div>
+                                                   <div className="flex items-center gap-1 text-slate-400 font-bold text-[10px] mt-0.5">
+                                                      <span>{displayScrap.toLocaleString()}</span>
+                                                      <span className="opacity-60 text-[9px] uppercase">{p.unit?.toUpperCase() || 'PCS'}</span>
+                                                   </div>
+                                                </>
+                                             ) : (
+                                                <>
+                                                   <div className={`${displayScrap > 0 ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'text-slate-400'} px-2.5 py-1 rounded-md text-sm font-bold flex items-center gap-1`}>
+                                                      {displayScrap.toLocaleString()} <span className="opacity-60 text-[10px] uppercase">{p.unit?.toUpperCase() || 'PCS'}</span>
+                                                   </div>
+                                                   {scrapMassKg > 0 && p.unit?.toLowerCase() !== 'kg' && (
+                                                      <div className="flex items-center gap-1 text-slate-400 font-bold text-[10px]">
+                                                         <span>≈ {scrapMassKg.toLocaleString(undefined, { minimumFractionDigits: 3 })}</span>
+                                                         <span className="opacity-60 text-[9px] uppercase">KG</span>
+                                                      </div>
+                                                   )}
+                                                </>
+                                             )}
                                           </div>
-                                          {isStockWarning && <span className="text-[10px] font-semibold text-rose-500">Low Stock</span>}
-                                       </div>
-                                    </td>
-                                    <td className="text-center">
-                                       <div className="flex flex-col items-center gap-1">
-                                          <div className={`${displayScrap > 0 ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'text-slate-400'} px-2.5 py-1 rounded-md text-sm font-bold flex items-center gap-1`}>
-                                             {displayScrap.toLocaleString()} <span className="opacity-60 text-[10px] uppercase">{p.unit || 'KG'}</span>
-                                          </div>
-                                          {p.unit !== 'kg' && p.unit !== 'gram' && (p.unitWeightGrams > 0) && (
-                                             <div className="flex items-center gap-1 text-slate-400 font-bold text-[10px]">
-                                                <span>≈ {((p.scrapStock * p.unitWeightGrams) / 1000).toFixed(3)}</span>
-                                                <span className="opacity-60 text-[9px] uppercase">KG</span>
+                                       </td>
+                                       {activeTab !== 'scrap' && (
+                                          <td className="text-center">
+                                             <div className="flex items-center justify-center gap-1">
+                                                <button onClick={() => { setSelectedProduct(p); setHistoryModalOpen(true); }} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors" title="History">
+                                                   <History className="w-4 h-4" />
+                                                </button>
+                                                {boms.some(b => b.product?._id === p._id || b.product === p._id) && (
+                                                   <button onClick={() => handleOpenBOM(p)} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="BOM / Recipe">
+                                                      <Layers className="w-4 h-4" />
+                                                   </button>
+                                                )}
+                                                <button onClick={() => handleOpenEdit(p)} className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Edit">
+                                                   <Edit2 className="w-4 h-4" />
+                                                </button>
+                                                <button onClick={() => handleDelete(p._id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete">
+                                                   <Trash2 className="w-4 h-4" />
+                                                </button>
                                              </div>
-                                          )}
-                                       </div>
-                                    </td>
-                                    <td className="text-center">
-                                       <div className="flex items-center justify-center gap-1">
-                                          <button onClick={() => { setSelectedProduct(p); setHistoryModalOpen(true); }} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors" title="History">
-                                             <History className="w-4 h-4" />
-                                          </button>
-                                          {boms.some(b => b.product?._id === p._id || b.product === p._id) && (
-                                             <button onClick={() => handleOpenBOM(p)} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="BOM / Recipe">
-                                                <Layers className="w-4 h-4" />
-                                             </button>
-                                          )}
-                                          <button onClick={() => handleOpenEdit(p)} className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Edit">
-                                             <Edit2 className="w-4 h-4" />
-                                          </button>
-                                          <button onClick={() => handleDelete(p._id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete">
-                                             <Trash2 className="w-4 h-4" />
-                                          </button>
-                                       </div>
-                                    </td>
-                                 </tr>
-                              );
-                           })}
+                                          </td>
+                                       )}
+                                    </motion.tr>
+                                 );
+                              })}
+                           </AnimatePresence>
                         </tbody>
                      </table>
                   )}

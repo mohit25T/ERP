@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { inventoryApi } from "../../api/erpApi";
-
-
+import unitsUtil from "../../utils/units";
+import Modal from "../common/Modal";
+import { Package, History, Receipt } from "lucide-react";
 
 const InventoryHistory = ({ isOpen, onClose, product }) => {
   const [logs, setLogs] = useState([]);
@@ -12,6 +13,11 @@ const InventoryHistory = ({ isOpen, onClose, product }) => {
       fetchLogs();
     }
   }, [isOpen, product]);
+
+  if (!isOpen || !product) return null;
+
+  const displayStock = unitsUtil.convertFromPieces(product.stock || 0, product.unit);
+  const displayScrap = unitsUtil.convertFromPieces(product.scrapStock || 0, product.unit);
 
   const fetchLogs = async () => {
     try {
@@ -25,7 +31,6 @@ const InventoryHistory = ({ isOpen, onClose, product }) => {
     }
   };
 
-  if (!isOpen) return null;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Stock Ledger: ${product.name}`}>
@@ -38,7 +43,7 @@ const InventoryHistory = ({ isOpen, onClose, product }) => {
                   </div>
                   <div>
                      <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Marketable Yield</p>
-                     <h4 className="text-xl font-black text-blue-900 tabular-nums">{product.stock} {product.unit}</h4>
+                     <h4 className="text-xl font-black text-blue-900 tabular-nums">{displayStock.toLocaleString()} {product.unit?.toUpperCase()}</h4>
                   </div>
                </div>
             </div>
@@ -49,7 +54,7 @@ const InventoryHistory = ({ isOpen, onClose, product }) => {
                   </div>
                   <div>
                      <p className="text-[10px] font-black text-amber-400 uppercase tracking-widest">Scrap / Waste</p>
-                     <h4 className="text-xl font-black text-amber-900 tabular-nums">{product.scrapStock || 0} {product.unit}</h4>
+                     <h4 className="text-xl font-black text-amber-900 tabular-nums">{displayScrap.toLocaleString()} {product.unit?.toUpperCase()}</h4>
                   </div>
                </div>
             </div>
@@ -92,17 +97,17 @@ const InventoryHistory = ({ isOpen, onClose, product }) => {
                         </td>
                         <td className="px-6 py-4 text-center">
                            <span className={`px-3 py-1 rounded-full text-[10px] font-black tabular-nums ${log.change > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                              {log.change > 0 ? '+' : ''}{log.change}
+                              {log.change > 0 ? '+' : ''}{unitsUtil.convertFromPieces(log.change, product.unit).toLocaleString()}
                            </span>
                         </td>
                         <td className="px-6 py-4 text-right pr-8">
-                           <span className="text-xs font-black text-gray-900 tabular-nums">{log.finalStock}</span>
+                           <span className="text-xs font-black text-gray-900 tabular-nums">{unitsUtil.convertFromPieces(log.finalStock, product.unit).toLocaleString()}</span>
                         </td>
-                    </tr>
-                 ))}
-              </tbody>
-           </table>
-        </div>
+                     </tr>
+                  ))}
+               </tbody>
+            </table>
+         </div>
       </div>
     </Modal>
   );

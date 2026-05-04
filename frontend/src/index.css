@@ -33,7 +33,7 @@
   --input: 214.3 31.8% 91.4%;
   --ring: 221.2 83.2% 53.3%;
   
-  --radius: 0.75rem;
+  --radius: 0.35rem;
 }
 
 @layer base {
@@ -59,9 +59,9 @@
 }
 
 @layer components {
-  /* Soft, clean card styling */
+  /* Sharp, efficient card styling */
   .glass-card {
-    @apply bg-white border border-slate-100 shadow-sm rounded-xl transition-all duration-300;
+    @apply bg-white border border-slate-100 shadow-sm rounded-md transition-all duration-300;
   }
   
   /* Modern soft gradient bg */
@@ -70,7 +70,7 @@
   }
 
   .erp-input {
-    @apply w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 placeholder:text-slate-400 placeholder:font-normal appearance-none;
+    @apply w-full px-4 py-2 bg-white border border-slate-200 rounded-md text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 placeholder:text-slate-400 placeholder:font-normal appearance-none;
   }
   
   select.erp-input {
@@ -82,19 +82,19 @@
   }
   
   .erp-button-primary {
-    @apply bg-indigo-600 text-white font-semibold text-sm py-2.5 px-5 rounded-xl shadow-sm hover:shadow-md hover:bg-indigo-700 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2;
+    @apply bg-indigo-600 text-white font-semibold text-sm py-2 px-4 rounded-md shadow-sm hover:shadow-md hover:bg-indigo-700 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2;
   }
 
   .erp-button-secondary {
-    @apply bg-white border border-slate-200 text-slate-700 font-semibold text-sm py-2.5 px-5 rounded-xl hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2;
+    @apply bg-white border border-slate-200 text-slate-700 font-semibold text-sm py-2 px-4 rounded-md hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2;
   }
 
   .status-badge {
-    @apply px-3 py-1 rounded-full text-xs font-semibold tracking-wider;
+    @apply px-3 py-0.5 rounded-md text-[10px] font-bold tracking-wider;
   }
 
   .sidebar-link {
-    @apply flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-300;
+    @apply flex items-center px-4 py-2.5 text-sm font-semibold rounded-md transition-all duration-300;
   }
 
   .sidebar-link-active {
@@ -110,16 +110,44 @@
   }
 
   .erp-table th {
-    @apply px-4 py-3.5 bg-slate-50/80 text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100;
+    @apply px-3 py-2.5 bg-slate-50/80 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100;
   }
 
   .erp-table td {
-    @apply px-4 py-4 text-sm font-medium text-slate-700;
+    @apply px-3 py-2 text-[13px] font-medium text-slate-700;
   }
 
   .erp-row-hover {
     @apply transition-all duration-300 border-b border-slate-50 hover:bg-slate-50/80 cursor-pointer;
   }
+}
+
+@keyframes hammer-strike {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(-35deg); }
+  30% { transform: rotate(95deg); }
+  35% { transform: rotate(75deg); }
+  40% { transform: rotate(95deg); }
+  60% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes anvil-shake {
+  0%, 29% { transform: translateY(0); }
+  30% { transform: translateY(3px); }
+  35% { transform: translateY(0); }
+  40% { transform: translateY(1px); }
+  45% { transform: translateY(0); }
+  100% { transform: translateY(0); }
+}
+
+.animate-hammer {
+  transform-origin: bottom right;
+  animation: hammer-strike 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-anvil {
+  animation: anvil-shake 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 ::-webkit-scrollbar {
