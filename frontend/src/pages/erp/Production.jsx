@@ -4,6 +4,7 @@ import { productApi, productionApi, bomApi, inventoryApi } from "../../api/erpAp
 import AppLayout from "../../components/layout/AppLayout";
 import Modal from "../../components/common/Modal";
 import HammerLoader from "../../components/common/HammerLoader";
+import unitsUtil from "../../utils/units";
 import {
    Factory, Plus, TrendingUp, Activity, Search, Filter,
    Trash2, Edit3, Play, CheckCircle2, AlertTriangle,
@@ -262,60 +263,75 @@ const Production = () => {
    );
 
    return (
-      <AppLayout>
+      <AppLayout fullWidth>
          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
 
-            {/* Page Header */}
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-               <div>
-                  <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                     <Factory className="w-6 h-6 text-indigo-600" /> Production
-                  </h1>
-                  <p className="text-sm text-slate-500 mt-1">Manage manufacturing batches, BOMs, and yield.</p>
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+               <div className="flex items-center gap-6">
+                  <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-sm border border-indigo-500/10">
+                     <Factory className="w-7 h-7 text-indigo-600" />
+                  </div>
+                  <div>
+                     <h2 className="text-3xl font-black text-slate-900 tracking-tightest leading-none mb-2 italic uppercase">Production <span className="text-primary not-italic">Execution Terminal</span></h2>
+                     <div className="flex items-center gap-3">
+                        <ShieldCheck className="w-4 h-4 text-indigo-500" />
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Operational Yield Optimization & Batch Fabrication Management</span>
+                     </div>
+                  </div>
                </div>
-               <button onClick={() => setIsModalOpen(true)} className="erp-button-primary">
-                  <Plus className="w-4 h-4 mr-2" /> New Batch
+               <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="erp-button-primary !py-5 !bg-indigo-600 !rounded-md hover:!bg-indigo-700 group shadow-xl shadow-indigo-900/20"
+               >
+                  <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
+                  Initialize New Batch
                </button>
             </div>
 
             {/* Global Operational Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-               <div className="bg-white rounded-md border border-slate-100 p-5 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
+               <div className="bg-white p-6 rounded-2xl border border-slate-100 transition-all duration-500 shadow-sm hover:border-indigo-200 relative overflow-hidden group">
                   <div className="flex items-center justify-between mb-4">
-                     <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Output Yield (24H)</h3>
-                     <div className="p-2.5 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-lg">
+                     <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center transition-transform group-hover:scale-110">
                         <TrendingUp className="w-5 h-5" />
                      </div>
+                     <div className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-md text-[8px] font-black uppercase tracking-widest border border-emerald-100 shadow-sm shadow-emerald-500/5">Peak Efficiency</div>
                   </div>
-                  <div className="mt-auto">
-                     <h3 className="text-3xl font-bold text-slate-900 tracking-tight">{(insights?.summary?.readyAssets || 0).toLocaleString()} <span className="text-sm text-slate-400 font-medium">Units</span></h3>
-                     <p className="text-xs text-emerald-600 font-semibold mt-2 flex items-center gap-1">Optimal Yield Efficiency</p>
+                  <div>
+                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Output Yield (24H)</p>
+                     <h3 className="text-2xl font-black italic tracking-tightest tabular-nums text-slate-900">
+                        {(insights?.summary?.readyAssets || 0).toLocaleString()} <span className="text-xs text-slate-400 not-italic ml-1">Units</span>
+                     </h3>
                   </div>
                </div>
 
-               <div className="bg-white rounded-md border border-slate-100 p-5 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
+               <div className="bg-white p-6 rounded-2xl border border-slate-100 transition-all duration-500 shadow-sm hover:border-indigo-200 relative overflow-hidden group">
                   <div className="flex items-center justify-between mb-4">
-                     <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Active Batches (WIP)</h3>
-                     <div className="p-2.5 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-lg">
+                     <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center transition-transform group-hover:scale-110">
                         <Activity className="w-5 h-5" />
                      </div>
+                     <div className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-md text-[8px] font-black uppercase tracking-widest border border-indigo-100 shadow-sm shadow-indigo-500/5">Active Workflow</div>
                   </div>
-                  <div className="mt-auto">
-                     <h3 className="text-3xl font-bold text-slate-900 tracking-tight">{productions.filter(p => p.status === 'in_progress').length} <span className="text-sm text-slate-400 font-medium">Batches</span></h3>
-                     <p className="text-xs text-indigo-600 font-semibold mt-2 flex items-center gap-1">In Fabrication</p>
+                  <div>
+                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Active Batches (WIP)</p>
+                     <h3 className="text-2xl font-black italic tracking-tightest tabular-nums text-slate-900">
+                        {productions.filter(p => p.status === 'in_progress').length} <span className="text-xs text-slate-400 not-italic ml-1">Batches</span>
+                     </h3>
                   </div>
                </div>
 
-               <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow">
+               <div className="bg-white p-6 rounded-2xl border border-slate-100 transition-all duration-500 shadow-sm hover:border-indigo-200 relative overflow-hidden group">
                   <div className="flex items-center justify-between mb-4">
-                     <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Avg Scrap Rate</h3>
-                     <div className="p-2.5 bg-amber-50 border border-amber-100 text-amber-600 rounded-lg">
+                     <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center transition-transform group-hover:scale-110">
                         <Recycle className="w-5 h-5" />
                      </div>
+                     <div className="px-3 py-1 bg-amber-50 text-amber-600 rounded-md text-[8px] font-black uppercase tracking-widest border border-amber-100 shadow-sm shadow-amber-500/5">Wastage Matrix</div>
                   </div>
-                  <div className="mt-auto">
-                     <h3 className="text-3xl font-bold text-slate-900 tracking-tight">{(insights?.scrapEfficiency || 0).toFixed(1)}%</h3>
-                     <p className="text-xs text-amber-600 font-semibold mt-2 flex items-center gap-1">Verified Output</p>
+                  <div>
+                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Avg Scrap Rate</p>
+                     <h3 className="text-2xl font-black italic tracking-tightest tabular-nums text-slate-900">
+                        {(insights?.scrapEfficiency || 0).toFixed(1)}% <span className="text-xs text-slate-400 not-italic ml-1">Archive Flux</span>
+                     </h3>
                   </div>
                </div>
             </div>
@@ -354,10 +370,10 @@ const Production = () => {
                   </div>
                </div>
 
-                <div className="overflow-x-auto">
-                   {loading ? (
-                      <HammerLoader />
-                   ) : activeView === "batches" ? (
+               <div className="overflow-x-auto">
+                  {loading ? (
+                     <HammerLoader />
+                  ) : activeView === "batches" ? (
                      <table className="erp-table">
                         <thead>
                            <tr>
@@ -371,49 +387,49 @@ const Production = () => {
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                            <AnimatePresence mode="popLayout">
-                             {filteredBatches.map((b, index) => (
-                                <motion.tr 
-                                  key={b._id} 
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ duration: 0.2, delay: index * 0.03 }}
-                                  className="erp-row-hover transition-colors"
-                                >
-                                   <td>
-                                      <div className="flex flex-col">
-                                         <span className="text-sm font-semibold text-slate-900">BN-{b.batchNumber ? b.batchNumber.slice(-6).toUpperCase() : (b._id ? b._id.slice(-6).toUpperCase() : "VOID")}</span>
-                                         <span className="text-xs text-slate-500">{new Date(b.createdAt).toLocaleDateString()}</span>
-                                      </div>
-                                   </td>
-                                   <td>
-                                      <div className="flex flex-col">
-                                         <span className="text-sm font-semibold text-slate-900">{b.product?.name || "Unknown Product"}</span>
-                                         <span className="text-xs text-slate-500">{b.product?.category || "Uncategorized"}</span>
-                                      </div>
-                                   </td>
-                                   <td>
-                                      <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold border ${b.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                         b.status === 'in_progress' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                            'bg-amber-50 text-amber-700 border-amber-200'
-                                         }`}>
-                                         {b.status === 'in_progress' ? 'IN FABRICATION' : b.status === "completed" ? "CLOSED" : "PENDING"}
-                                      </span>
-                                   </td>
-                                   <td>
-                                      <div className="flex flex-col">
-                                         <span className="text-sm font-semibold text-slate-900">
-                                            {b.status === 'completed' ? (b.outputQuantity ?? b.quantity) : b.quantity}
-                                            {b.status === 'completed' && <span className="text-[10px] text-slate-400 font-medium ml-1">/ {b.quantity}</span>}
-                                            <span className="text-xs font-normal text-slate-500 ml-1">{b.product?.unit}</span>
-                                         </span>
-                                      </div>
-                                   </td>
-                                   <td>
-                                      {b.status === 'completed' && (b.scrapWeight > 0 || b.scrapQuantity > 0) ? (
-                                         <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-rose-600">
-                                               -{b.scrapQuantity} <span className="text-[10px] font-medium uppercase tracking-tighter">{b.scrapUnit || 'pcs'} loss</span>
-                                            </span>
+                              {filteredBatches.map((b, index) => (
+                                 <motion.tr
+                                    key={b._id}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.2, delay: index * 0.03 }}
+                                    className="erp-row-hover transition-colors"
+                                 >
+                                    <td>
+                                       <div className="flex flex-col">
+                                          <span className="text-sm font-semibold text-slate-900">BN-{b.batchNumber ? b.batchNumber.slice(-6).toUpperCase() : (b._id ? b._id.slice(-6).toUpperCase() : "VOID")}</span>
+                                          <span className="text-xs text-slate-500">{new Date(b.createdAt).toLocaleDateString()}</span>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <div className="flex flex-col">
+                                          <span className="text-sm font-semibold text-slate-900">{b.product?.name || "Unknown Product"}</span>
+                                          <span className="text-xs text-slate-500">{b.product?.category || "Uncategorized"}</span>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold border ${b.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                          b.status === 'in_progress' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                             'bg-amber-50 text-amber-700 border-amber-200'
+                                          }`}>
+                                          {b.status === 'in_progress' ? 'IN FABRICATION' : b.status === "completed" ? "CLOSED" : "PENDING"}
+                                       </span>
+                                    </td>
+                                    <td>
+                                       <div className="flex flex-col">
+                                          <span className="text-sm font-semibold text-slate-900">
+                                             {b.status === 'completed' ? (b.outputQuantity ?? b.quantity) : b.quantity}
+                                             {b.status === 'completed' && <span className="text-[10px] text-slate-400 font-medium ml-1">/ {b.quantity}</span>}
+                                             <span className="text-xs font-normal text-slate-500 ml-1">{b.product?.unit}</span>
+                                          </span>
+                                       </div>
+                                    </td>
+                                    <td>
+                                       {b.status === 'completed' && (b.scrapWeight > 0 || b.scrapQuantity > 0) ? (
+                                          <div className="flex flex-col">
+                                             <span className="text-sm font-bold text-rose-600">
+                                                -{b.scrapQuantity} <span className="text-[10px] font-medium uppercase tracking-tighter">{b.scrapUnit || 'pcs'} loss</span>
+                                             </span>
                                              {b.scrapUnit === 'pcs' && (b.product?.unitWeightGrams > 0) && (
                                                 <>
                                                    <span className="text-[10px] font-medium text-rose-400">
@@ -431,26 +447,26 @@ const Production = () => {
                                                    (+{(b.scrapWeight - b.scrapQuantity).toFixed(2)} kg yield loss)
                                                 </span>
                                              )}
-                                         </div>
-                                      ) : (
-                                         <span className="text-xs text-slate-300">—</span>
-                                      )}
-                                   </td>
-                                   <td className="text-right">
-                                      <div className="flex items-center justify-end gap-2">
-                                         {b.status === 'pending' && <button onClick={() => handleEdit(b)} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-indigo-600 rounded-md transition-colors" title="Edit Batch"><Edit3 className="w-4 h-4" /></button>}
-                                         {b.status === 'pending' && <button onClick={() => handleStart(b._id)} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-indigo-600 rounded-md transition-colors" title="Start Production"><Activity className="w-4 h-4" /></button>}
-                                         {b.status === 'in_progress' && <button onClick={() => { setCompleteBatch(b); setProducedQty(b.quantity); setScrapQuantity(0); setScrapPieces(0); setIsCompleteModalOpen(true); }} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-emerald-600 rounded-md transition-colors" title="Complete Batch"><CheckCircle2 className="w-4 h-4" /></button>}
-                                         <button onClick={() => handleDelete(b._id)} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-rose-500 rounded-md transition-colors"><Trash2 className="w-4 h-4" /></button>
-                                      </div>
-                                   </td>
-                                </motion.tr>
-                             ))}
+                                          </div>
+                                       ) : (
+                                          <span className="text-xs text-slate-300">—</span>
+                                       )}
+                                    </td>
+                                    <td className="text-right">
+                                       <div className="flex items-center justify-end gap-2">
+                                          {b.status === 'pending' && <button onClick={() => handleEdit(b)} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-indigo-600 rounded-md transition-colors" title="Edit Batch"><Edit3 className="w-4 h-4" /></button>}
+                                          {b.status === 'pending' && <button onClick={() => handleStart(b._id)} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-indigo-600 rounded-md transition-colors" title="Start Production"><Activity className="w-4 h-4" /></button>}
+                                          {b.status === 'in_progress' && <button onClick={() => { setCompleteBatch(b); setProducedQty(b.quantity); setScrapQuantity(0); setScrapPieces(0); setIsCompleteModalOpen(true); }} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-emerald-600 rounded-md transition-colors" title="Complete Batch"><CheckCircle2 className="w-4 h-4" /></button>}
+                                          <button onClick={() => handleDelete(b._id)} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-rose-500 rounded-md transition-colors"><Trash2 className="w-4 h-4" /></button>
+                                       </div>
+                                    </td>
+                                 </motion.tr>
+                              ))}
                            </AnimatePresence>
                            {filteredBatches.length === 0 && (
-                               <tr>
-                                  <td colSpan="6" className="py-8 text-center text-sm text-slate-500 uppercase font-black tracking-widest opacity-50">No Active Data Stream</td>
-                               </tr>
+                              <tr>
+                                 <td colSpan="6" className="py-8 text-center text-sm text-slate-500 uppercase font-black tracking-widest opacity-50">No Active Data Stream</td>
+                              </tr>
                            )}
                         </tbody>
                      </table>
@@ -534,7 +550,7 @@ const Production = () => {
                                  const factor = unitsUtil.CONVERSIONS[item.unit?.toLowerCase()] || 1;
                                  return acc + (qty * factor * 1000);
                               }, 0);
-                              
+
                               const inputWeightGrams = normalizedInputGrams;
                               const outputWeightGrams = parseFloat(newWeight) || 0;
                               const lossGrams = inputWeightGrams - outputWeightGrams;

@@ -1,5 +1,6 @@
 
 import React from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, ShieldCheck } from "lucide-react";
 
@@ -19,7 +20,7 @@ const Modal = ({ isOpen, onClose, title, children, size = "xl" }) => {
     "5xl": "max-w-5xl"
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
         <>
@@ -29,17 +30,17 @@ const Modal = ({ isOpen, onClose, title, children, size = "xl" }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-[150] bg-slate-900/60 backdrop-blur-md"
+            className="fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-md"
           />
           
           {/* Modal Intelligence Layer */}
-          <div className="fixed inset-0 z-[160] flex items-center justify-center p-6 pointer-events-none">
+          <div className="fixed inset-0 z-[210] flex items-center justify-center p-6 pointer-events-none">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 30 }}
               transition={{ duration: 0.6, cubicBezier: [0.16, 1, 0.3, 1] }}
-              className={`bg-white rounded-md shadow-3xl shadow-slate-900/20 w-full ${sizeClasses[size] || "max-w-xl"} overflow-hidden pointer-events-auto border border-slate-100 flex flex-col max-h-[95vh]`}
+              className={`bg-white rounded-2xl shadow-3xl shadow-slate-900/20 w-full ${sizeClasses[size] || "max-w-xl"} overflow-hidden pointer-events-auto border border-slate-100 flex flex-col max-h-[95vh]`}
             >
               {/* Modal Control Header */}
               <div className="flex items-center justify-between px-10 pt-12 pb-8 border-b border-slate-50 bg-slate-50/30">
@@ -49,7 +50,7 @@ const Modal = ({ isOpen, onClose, title, children, size = "xl" }) => {
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-3 text-slate-400 hover:text-slate-900 hover:bg-white rounded-md transition-all shadow-inner active:scale-90"
+                  className="p-3 text-slate-400 hover:text-slate-900 hover:bg-white rounded-xl transition-all shadow-inner active:scale-90"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -71,6 +72,8 @@ const Modal = ({ isOpen, onClose, title, children, size = "xl" }) => {
       )}
     </AnimatePresence>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default Modal;

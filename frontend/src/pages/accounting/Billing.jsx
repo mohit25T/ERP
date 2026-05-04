@@ -126,18 +126,18 @@ const Billing = () => {
   const totalTax = filteredInvoices.reduce((acc, inv) => acc + (inv.gstAmount || 0), 0);
 
   return (
-    <AppLayout>
+    <AppLayout fullWidth>
       <div className="space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
 
         {/* Corporate Header Node */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div className="flex items-center gap-6">
-            <div className="w-14 h-14 bg-slate-900 rounded-md flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-xl border border-slate-800">
-              <Landmark className="w-7 h-7 text-white" />
+            <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-sm border border-indigo-500/10">
+              <Landmark className="w-7 h-7 text-indigo-600" />
             </div>
             <div>
-              <h2 className="text-4xl font-black text-slate-900 tracking-tightest leading-none mb-2 italic">
-                Fiscal <span className="text-primary not-italic">Terminal</span>
+              <h2 className="text-3xl font-black text-slate-900 tracking-tightest leading-none mb-2 italic uppercase">
+                Fiscal <span className="text-primary not-italic text-indigo-600">Terminal</span>
               </h2>
               <div className="flex items-center gap-3">
                 <ShieldCheck className="w-4 h-4 text-indigo-500" />
@@ -148,35 +148,34 @@ const Billing = () => {
 
           <div className="flex items-center gap-4">
             <div className="relative group">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
               <input
-                className="pl-12 pr-6 py-4 bg-white border border-slate-100 rounded-md text-[10px] font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-slate-900/5 focus:border-slate-300 w-80 transition-all shadow-sm"
+                className="pl-12 pr-6 py-4 bg-white border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 w-80 transition-all shadow-sm"
                 placeholder="Universal Document Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button className="p-4 bg-white border border-slate-100 rounded-md shadow-sm hover:border-slate-300 transition-all active:scale-95 group">
-              <Filter className="w-5 h-5 text-slate-400 group-hover:text-slate-900" />
+            <button className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm hover:border-indigo-200 transition-all active:scale-95 group">
+              <Filter className="w-5 h-5 text-slate-400 group-hover:text-indigo-600" />
             </button>
           </div>
         </div>
 
-        {/* Financial Highlights */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="relative group p-6 bg-white border border-slate-100 rounded-md shadow-sm hover:shadow-2xl hover:shadow-slate-900/10 transition-all duration-700 hover:-translate-y-2 overflow-hidden">
+          <div className="relative group p-6 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-2xl hover:shadow-indigo-600/10 transition-all duration-700 hover:-translate-y-1 overflow-hidden group">
             <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity group-hover:scale-125 duration-700">
               <TrendingUp className="w-32 h-32 rotate-12" />
             </div>
             <div className="relative z-10">
-              <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-md flex items-center justify-center mb-8 shadow-inner">
-                <TrendingUp className="w-7 h-7 text-emerald-600" />
+              <div className="w-12 h-12 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110">
+                <TrendingUp className="w-6 h-6 text-emerald-600" />
               </div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Gross Billings</p>
-              <h3 className="text-3xl font-black text-slate-900 tracking-tightest italic leading-none">₹{totalBilled.toLocaleString('en-IN')}</h3>
-              <div className="mt-8 flex items-center gap-2 bg-emerald-50 w-fit px-3 py-1 rounded-md">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Gross Billings</p>
+              <h3 className="text-2xl font-black text-slate-900 tracking-tightest italic leading-none tabular-nums">₹{totalBilled.toLocaleString('en-IN')}</h3>
+              <div className="mt-6 flex items-center gap-2 bg-emerald-50 w-fit px-3 py-1 rounded-md border border-emerald-100">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Active Revenue Stream</span>
+                <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Active Revenue Stream</span>
               </div>
             </div>
           </div>

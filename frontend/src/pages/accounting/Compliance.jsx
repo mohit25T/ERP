@@ -38,17 +38,17 @@ const Compliance = () => {
   });
 
   return (
-    <AppLayout>
+    <AppLayout fullWidth>
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
         
         {/* Compliance Radar Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
            <div className="flex items-center gap-6">
-              <div className="w-14 h-14 bg-indigo-500/10 rounded-[2.5rem] flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-sm border border-indigo-500/10">
+              <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-sm border border-indigo-500/10">
                  <ShieldCheck className="w-7 h-7 text-indigo-600" />
               </div>
               <div>
-                 <h2 className="text-3xl font-black text-slate-900 tracking-tightest leading-none mb-2 italic">Compliance <span className="text-indigo-600 not-italic">Radar</span></h2>
+                 <h2 className="text-3xl font-black text-slate-900 tracking-tightest leading-none mb-2 italic uppercase">Regulatory <span className="text-primary not-italic text-indigo-600">Terminal</span></h2>
                  <div className="flex items-center gap-3">
                     <Activity className="w-4 h-4 text-emerald-500 animate-pulse" />
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Internal Audit Vault & Operational Accountability</span>
@@ -67,8 +67,8 @@ const Compliance = () => {
         {/* Audit Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
            <div className="p-6 bg-white rounded-[1.5rem] border border-slate-100 shadow-sm relative overflow-hidden group">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Total Interactions</p>
-              <h3 className="text-2xl font-black text-slate-900 tracking-tightest tabular-nums italic">{logs.length} Actions</h3>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Interactions</p>
+              <h3 className="text-2xl font-black text-slate-900 tracking-tightest tabular-nums italic uppercase">{logs.length} Actions</h3>
               <div className="flex items-center gap-2 mt-4 text-emerald-500 font-bold text-[10px] uppercase tracking-widest">
                  <History className="w-3.5 h-3.5" />
                  <span>Registry Health: 100%</span>
@@ -153,7 +153,7 @@ const Compliance = () => {
                            </td>
                            <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
-                                 <div className={`w-2 h-2 rounded-full ${log.action.includes('error') ? 'bg-rose-500' : 'bg- emerald-500 animate-pulse'}`}></div>
+                                 <div className={`w-2 h-2 rounded-full ${log.action.includes('error') ? 'bg-rose-500' : 'bg-emerald-500 animate-pulse'}`}></div>
                                  <span className="text-[11px] font-black text-slate-900 uppercase tracking-tightest italic group-hover:text-indigo-600 transition-colors">{log.action.replace(/_/g, " ")}</span>
                               </div>
                            </td>
