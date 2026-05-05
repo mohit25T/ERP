@@ -148,63 +148,63 @@ const Billing = () => {
 
           <div className="flex items-center gap-4">
             <div className="relative group">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
               <input
-                className="pl-12 pr-6 py-4 bg-white border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 w-80 transition-all shadow-sm"
+                className="pl-10 pr-4 py-2.5 bg-white border border-slate-100 rounded-lg text-[9px] font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 w-72 transition-all shadow-sm"
                 placeholder="Universal Document Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm hover:border-indigo-200 transition-all active:scale-95 group">
-              <Filter className="w-5 h-5 text-slate-400 group-hover:text-indigo-600" />
+            <button className="p-2.5 bg-white border border-slate-100 rounded-lg shadow-sm hover:border-indigo-200 transition-all active:scale-95 group">
+              <Filter className="w-4 h-4 text-slate-400 group-hover:text-indigo-600" />
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="relative group p-6 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-2xl hover:shadow-indigo-600/10 transition-all duration-700 hover:-translate-y-1 overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity group-hover:scale-125 duration-700">
-              <TrendingUp className="w-32 h-32 rotate-12" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="relative group p-4 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-2xl hover:shadow-indigo-600/10 transition-all duration-700 hover:-translate-y-1 overflow-hidden">
+            <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity group-hover:scale-125 duration-700">
+              <TrendingUp className="w-24 h-24 rotate-12" />
             </div>
             <div className="relative z-10">
-              <div className="w-12 h-12 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110">
-                <TrendingUp className="w-6 h-6 text-emerald-600" />
+              <div className="w-10 h-10 bg-indigo-50 border border-indigo-100 rounded-lg flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
+                <TrendingUp className="w-5 h-5 text-emerald-600" />
               </div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Gross Billings</p>
-              <h3 className="text-2xl font-black text-slate-900 tracking-tightest italic leading-none tabular-nums">₹{totalBilled.toLocaleString('en-IN')}</h3>
-              <div className="mt-6 flex items-center gap-2 bg-emerald-50 w-fit px-3 py-1 rounded-md border border-emerald-100">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Gross Billings</p>
+              <h3 className="text-xl font-black text-slate-900 tracking-tightest italic leading-none tabular-nums">₹{totalBilled.toLocaleString('en-IN')}</h3>
+              <div className="mt-4 flex items-center gap-2 bg-emerald-50 w-fit px-2.5 py-1 rounded-md border border-emerald-100">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
                 <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Active Revenue Stream</span>
               </div>
             </div>
           </div>
 
-          <div className="relative group p-6 bg-white border border-slate-100 rounded-md shadow-sm hover:shadow-2xl hover:shadow-slate-900/10 transition-all duration-700 hover:-translate-y-2 overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity group-hover:scale-125 duration-700">
-              <Activity className="w-32 h-32 -rotate-12" />
+          <div className="relative group p-4 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-2xl hover:shadow-slate-900/10 transition-all duration-700 hover:-translate-y-2 overflow-hidden">
+            <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity group-hover:scale-125 duration-700">
+              <Activity className="w-24 h-24 -rotate-12" />
             </div>
             <div className="relative z-10">
-              <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-md flex items-center justify-center mb-8 shadow-inner">
-                <Zap className="w-7 h-7 text-indigo-600" />
+              <div className="w-10 h-10 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center mb-4 shadow-inner">
+                <Zap className="w-5 h-5 text-indigo-600" />
               </div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Tax Liability</p>
-              <h3 className="text-3xl font-black text-slate-900 tracking-tightest italic leading-none">₹{totalTax.toLocaleString('en-IN')}</h3>
-              <p className="mt-8 text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 w-fit px-3 py-1 rounded-md">Calculated from {filteredInvoices.length} entries</p>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Tax Liability</p>
+              <h3 className="text-xl font-black text-slate-900 tracking-tightest italic leading-none">₹{totalTax.toLocaleString('en-IN')}</h3>
+              <p className="mt-4 text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 w-fit px-2.5 py-1 rounded-md">Calculated from {filteredInvoices.length} entries</p>
             </div>
           </div>
 
-          <div className="relative group p-6 bg-slate-900 rounded-md shadow-2xl shadow-slate-900/20 text-white overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
-              <Calendar className="w-32 h-32" />
+          <div className="relative group p-4 bg-slate-900 rounded-xl shadow-2xl shadow-slate-900/20 text-white overflow-hidden">
+            <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform duration-700">
+              <Calendar className="w-24 h-24" />
             </div>
             <div className="relative z-10">
-               <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-md flex items-center justify-center mb-8 border border-white/10 shadow-inner">
-                <Calendar className="w-7 h-7 text-white" />
+               <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-lg flex items-center justify-center mb-4 border border-white/10 shadow-inner">
+                <Calendar className="w-5 h-5 text-white" />
               </div>
-              <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2">E-Way Threshold Monitor</p>
-              <h3 className="text-3xl font-black text-white tracking-tightest italic leading-none">₹50,000 / Per Con.</h3>
-              <button className="mt-8 w-full py-4 bg-white text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-md shadow-lg hover:bg-primary hover:text-white transition-all duration-500">
+              <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-0.5">E-Way Threshold Monitor</p>
+              <h3 className="text-xl font-black text-white tracking-tightest italic leading-none">₹50,000 / Per Con.</h3>
+              <button className="mt-4 w-full py-2.5 bg-white text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg hover:bg-primary hover:text-white transition-all duration-500">
                 Verify Legal Protocol
               </button>
             </div>
@@ -212,24 +212,24 @@ const Billing = () => {
         </div>
 
         {/* Invoice List */}
-        <div className="bg-white rounded-md border border-slate-100 shadow-sm overflow-hidden mb-12">
-          <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
-            <div className="flex items-center gap-6">
-              <div className="w-12 h-12 bg-slate-900 rounded-md flex items-center justify-center text-white shadow-lg">
-                <FileText className="w-6 h-6" />
+        <div className="bg-white rounded-md border border-slate-100 shadow-sm overflow-hidden mb-4">
+          <div className="p-4 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center text-white shadow-lg">
+                <FileText className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-2xl font-black text-slate-900 tracking-tightest leading-none mb-1.5 uppercase italic">Generated Tax Ledgers</h3>
+                <h3 className="text-lg font-black text-slate-900 tracking-tightest leading-none mb-1 uppercase italic">Generated Tax Ledgers</h3>
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-60">Synchronized Document Stream</p>
               </div>
             </div>
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-md border border-emerald-100">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Network Secure</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100">
+                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Network Secure</span>
               </div>
-              <div className="h-10 w-px bg-slate-100"></div>
-              <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest bg-white px-5 py-2.5 rounded-md border border-slate-100 shadow-sm">Registry Volume: {filteredInvoices.length}</span>
+              <div className="h-8 w-px bg-slate-100"></div>
+              <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest bg-white px-4 py-2 rounded-lg border border-slate-100 shadow-sm">Volume: {filteredInvoices.length}</span>
             </div>
           </div>
 

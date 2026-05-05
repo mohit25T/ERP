@@ -67,12 +67,12 @@ const TransactionModal = ({ isOpen, onClose, onRefresh, parties }) => {
                      </button>
                   </div>
 
-                  <form onSubmit={handleSubmit} className="p-8 space-y-6">
-                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
+                  <form onSubmit={handleSubmit} className="p-5 space-y-4">
+                     <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Flow Direction</label>
                            <select
-                              className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all cursor-pointer"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-xs font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all cursor-pointer"
                               value={formData.type}
                               onChange={(e) => setFormData({ ...formData, type: e.target.value, partyId: "" })}
                            >
@@ -80,10 +80,10 @@ const TransactionModal = ({ isOpen, onClose, onRefresh, parties }) => {
                               <option value="expense">Outward Flow (Payment)</option>
                            </select>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Statutory Category</label>
                            <select
-                              className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all cursor-pointer"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-xs font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all cursor-pointer"
                               value={formData.category}
                               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                            >
@@ -98,11 +98,11 @@ const TransactionModal = ({ isOpen, onClose, onRefresh, parties }) => {
                         </div>
                      </div>
 
-                     <div className="space-y-2">
+                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Entity Selection (Required)</label>
                         <select
                            required
-                           className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all cursor-pointer"
+                           className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-xs font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all cursor-pointer"
                            value={formData.partyId}
                            onChange={(e) => setFormData({ ...formData, partyId: e.target.value })}
                         >
@@ -115,51 +115,51 @@ const TransactionModal = ({ isOpen, onClose, onRefresh, parties }) => {
                         </select>
                      </div>
 
-                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
+                     <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Magnitude (T)</label>
                            <input
                               required
                               type="number"
-                              className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-black italic outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-xs font-black italic outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all"
                               placeholder="0.00"
                               value={formData.amount}
                               onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                            />
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Execution Timestamp</label>
                            <input
                               type="date"
-                              className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-xs font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all"
                               value={formData.date}
                               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                            />
                         </div>
                      </div>
 
-                     <div className="space-y-2">
+                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Narration Summary</label>
                         <textarea
-                           className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all min-h-[80px] resize-none"
+                           className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-xs font-bold outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all min-h-[70px] resize-none"
                            placeholder="Technical description of fiscal movement..."
                            value={formData.description}
                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         />
                      </div>
 
-                     <div className="flex gap-3 pt-4">
+                     <div className="flex gap-3 pt-3">
                         <button
                            type="button"
                            onClick={onClose}
-                           className="px-6 py-3.5 bg-slate-100 text-slate-600 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-all focus:outline-none active:scale-95"
+                           className="px-5 py-2.5 bg-slate-100 text-slate-600 font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-slate-200 transition-all focus:outline-none active:scale-95"
                         >
                            Cancel
                         </button>
                         <button
                            type="submit"
                            disabled={loading}
-                           className="flex-1 py-3.5 bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-2"
+                           className="flex-1 py-2.5 bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest rounded-lg shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-2"
                         >
                            {loading ? "Recording Protocol..." : "Commit Transaction"}
                         </button>
@@ -312,13 +312,15 @@ const Accounting = () => {
                </div>
 
                <div className="flex items-center gap-4">
-                  <button
-                     onClick={() => setIsModalOpen(true)}
-                     className="erp-button-primary !py-5 !bg-indigo-600 !rounded-xl hover:!bg-indigo-700 group shadow-xl shadow-indigo-900/20"
-                  >
-                     <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
-                     Initialize Protocol
-                  </button>
+                  {(activeTab === 'creditnotes' || activeTab === 'debitnotes') && (
+                     <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="erp-button-primary !py-5 !bg-indigo-600 !rounded-xl hover:!bg-indigo-700 group shadow-xl shadow-indigo-900/20"
+                     >
+                        <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
+                        Initialize Protocol
+                     </button>
+                  )}
                   <div className="px-6 py-4 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
                      <Clock className="w-4 h-4 text-indigo-500" />
                      <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Real-time Flux Monitoring</span>

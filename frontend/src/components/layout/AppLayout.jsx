@@ -41,7 +41,7 @@ const AppLayout = ({ children, fullWidth = false }) => {
       <div className="relative flex flex-col flex-1 min-w-0 md:overflow-y-auto overflow-x-hidden print:block print:overflow-visible">
 
         {/* Top Header */}
-        <header className="sticky top-0 z-[100] flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md border-b border-slate-200 transition-all duration-300">
+        <header className="sticky top-0 z-[100] flex items-center justify-between px-4 py-2.5 bg-white/80 backdrop-blur-md border-b border-slate-200 transition-all duration-300">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -99,7 +99,7 @@ const AppLayout = ({ children, fullWidth = false }) => {
 
         {/* Global Main Workspace */}
         <main className="flex-1 min-w-0 bg-slate-50">
-          <div className={`p-4 md:p-6 w-full mx-auto ${fullWidth ? 'max-w-full' : ''}`}>
+          <div className={`p-4 md:p-5 w-full mx-auto ${fullWidth ? 'max-w-full' : ''}`}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}

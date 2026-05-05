@@ -264,21 +264,21 @@ const Production = () => {
 
    return (
       <AppLayout fullWidth>
-         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
 
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-               <div className="flex items-center gap-6">
-                  <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-sm border border-indigo-500/10">
-                     <Factory className="w-7 h-7 text-indigo-600" />
-                  </div>
-                  <div>
-                     <h2 className="text-3xl font-black text-slate-900 tracking-tightest leading-none mb-2 italic uppercase">Production <span className="text-primary not-italic">Execution Terminal</span></h2>
-                     <div className="flex items-center gap-3">
-                        <ShieldCheck className="w-4 h-4 text-indigo-500" />
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Operational Yield Optimization & Batch Fabrication Management</span>
-                     </div>
-                  </div>
-               </div>
+             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+                <div className="flex items-center gap-4">
+                   <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-sm border border-indigo-500/10">
+                      <Factory className="w-6 h-6 text-indigo-600" />
+                   </div>
+                   <div>
+                      <h2 className="text-2xl font-black text-slate-900 tracking-tightest leading-none mb-1.5 italic uppercase">Production <span className="text-primary not-italic">Execution Terminal</span></h2>
+                      <div className="flex items-center gap-3">
+                         <ShieldCheck className="w-4 h-4 text-indigo-500" />
+                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Operational Yield Optimization & Batch Fabrication Management</span>
+                      </div>
+                   </div>
+                </div>
                <button
                   onClick={() => setIsModalOpen(true)}
                   className="erp-button-primary !py-5 !bg-indigo-600 !rounded-md hover:!bg-indigo-700 group shadow-xl shadow-indigo-900/20"
@@ -289,47 +289,47 @@ const Production = () => {
             </div>
 
             {/* Global Operational Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-               <div className="bg-white p-6 rounded-2xl border border-slate-100 transition-all duration-500 shadow-sm hover:border-indigo-200 relative overflow-hidden group">
-                  <div className="flex items-center justify-between mb-4">
-                     <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center transition-transform group-hover:scale-110">
-                        <TrendingUp className="w-5 h-5" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+               <div className="bg-white p-4 rounded-xl border border-slate-100 transition-all duration-500 shadow-sm hover:border-indigo-200 relative overflow-hidden group">
+                  <div className="flex items-center justify-between mb-3">
+                     <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center transition-transform group-hover:scale-110">
+                        <TrendingUp className="w-4.5 h-4.5" />
                      </div>
-                     <div className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-md text-[8px] font-black uppercase tracking-widest border border-emerald-100 shadow-sm shadow-emerald-500/5">Peak Efficiency</div>
+                     <div className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[8px] font-black uppercase tracking-widest border border-emerald-100 shadow-sm shadow-emerald-500/5">Peak Efficiency</div>
                   </div>
                   <div>
-                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Output Yield (24H)</p>
-                     <h3 className="text-2xl font-black italic tracking-tightest tabular-nums text-slate-900">
+                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Output Yield (24H)</p>
+                     <h3 className="text-xl font-black italic tracking-tightest tabular-nums text-slate-900">
                         {(insights?.summary?.readyAssets || 0).toLocaleString()} <span className="text-xs text-slate-400 not-italic ml-1">Units</span>
                      </h3>
                   </div>
                </div>
 
-               <div className="bg-white p-6 rounded-2xl border border-slate-100 transition-all duration-500 shadow-sm hover:border-indigo-200 relative overflow-hidden group">
-                  <div className="flex items-center justify-between mb-4">
-                     <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center transition-transform group-hover:scale-110">
-                        <Activity className="w-5 h-5" />
+               <div className="bg-white p-4 rounded-xl border border-slate-100 transition-all duration-500 shadow-sm hover:border-indigo-200 relative overflow-hidden group">
+                  <div className="flex items-center justify-between mb-3">
+                     <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center transition-transform group-hover:scale-110">
+                        <Activity className="w-4.5 h-4.5" />
                      </div>
-                     <div className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-md text-[8px] font-black uppercase tracking-widest border border-indigo-100 shadow-sm shadow-indigo-500/5">Active Workflow</div>
+                     <div className="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[8px] font-black uppercase tracking-widest border border-indigo-100 shadow-sm shadow-indigo-500/5">Active Workflow</div>
                   </div>
                   <div>
-                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Active Batches (WIP)</p>
-                     <h3 className="text-2xl font-black italic tracking-tightest tabular-nums text-slate-900">
+                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Active Batches (WIP)</p>
+                     <h3 className="text-xl font-black italic tracking-tightest tabular-nums text-slate-900">
                         {productions.filter(p => p.status === 'in_progress').length} <span className="text-xs text-slate-400 not-italic ml-1">Batches</span>
                      </h3>
                   </div>
                </div>
 
-               <div className="bg-white p-6 rounded-2xl border border-slate-100 transition-all duration-500 shadow-sm hover:border-indigo-200 relative overflow-hidden group">
-                  <div className="flex items-center justify-between mb-4">
-                     <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center transition-transform group-hover:scale-110">
-                        <Recycle className="w-5 h-5" />
+               <div className="bg-white p-4 rounded-xl border border-slate-100 transition-all duration-500 shadow-sm hover:border-indigo-200 relative overflow-hidden group">
+                  <div className="flex items-center justify-between mb-3">
+                     <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center transition-transform group-hover:scale-110">
+                        <Recycle className="w-4.5 h-4.5" />
                      </div>
-                     <div className="px-3 py-1 bg-amber-50 text-amber-600 rounded-md text-[8px] font-black uppercase tracking-widest border border-amber-100 shadow-sm shadow-amber-500/5">Wastage Matrix</div>
+                     <div className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded text-[8px] font-black uppercase tracking-widest border border-amber-100 shadow-sm shadow-amber-500/5">Wastage Matrix</div>
                   </div>
                   <div>
-                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Avg Scrap Rate</p>
-                     <h3 className="text-2xl font-black italic tracking-tightest tabular-nums text-slate-900">
+                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Avg Scrap Rate</p>
+                     <h3 className="text-xl font-black italic tracking-tightest tabular-nums text-slate-900">
                         {(insights?.scrapEfficiency || 0).toFixed(1)}% <span className="text-xs text-slate-400 not-italic ml-1">Archive Flux</span>
                      </h3>
                   </div>
@@ -337,8 +337,8 @@ const Production = () => {
             </div>
 
             {/* Unified Command Container */}
-            <div className="bg-white rounded-md border border-slate-100 shadow-sm overflow-hidden mb-8">
-               <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="bg-white rounded-md border border-slate-100 shadow-sm overflow-hidden mb-4">
+               <div className="p-3 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-3">
                   <div className="flex bg-slate-50 p-1 rounded-lg border border-slate-100">
                      <button onClick={() => setActiveView("batches")} className={`px-4 py-2 rounded-md text-sm font-semibold transition-colors ${activeView === 'batches' ? 'bg-white text-indigo-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>Production Batches</button>
                      <button onClick={() => setActiveView("scrap")} className={`px-4 py-2 rounded-md text-sm font-semibold transition-colors ${activeView === 'scrap' ? 'bg-white text-rose-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-rose-600'}`}>Scrap Logs</button>
@@ -748,7 +748,7 @@ const Production = () => {
                   )}
                </div>
 
-               <div className="flex gap-3 pt-4 border-t border-slate-100">
+               <div className="flex gap-3 pt-3 border-t border-slate-100">
                   <button type="button" onClick={() => setIsCompleteModalOpen(false)} className="px-4 py-2 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
                      Cancel
                   </button>
