@@ -211,33 +211,50 @@ const Accounting = () => {
    const fetchData = async () => {
       try {
          setLoading(true);
-         const summaryRes = await paymentApi.getSummary();
-         setSummary(summaryRes.data);
+         
+         // 1. Determine tab-specific fetch
+         const tabFetch = activeTab === "receivables" ? api.get("/orders") :
+                        activeTab === "payables" ? api.get("/purchases") :
+                        Promise.resolve({ data: [] });
 
+         // 2. Execute all protocols in parallel for maximum performance
+         const [summaryRes, ledgerRes, tabRes] = await Promise.all([
+            paymentApi.getSummary(),
+            ledgerApi.getAll(),
+            tabFetch
+         ]);
+
+         const summaryData = summaryRes.data || {};
+         const ledgerData = Array.isArray(ledgerRes.data) ? ledgerRes.data : [];
+         
+         // 3. Calculate Global Statistics
+         const stats = {
+            creditNotes: ledgerData.filter(l => l.category === 'Credit Note' || l.description?.toLowerCase().includes('credit note')).reduce((acc, curr) => acc + (curr.amount || 0), 0),
+            debitNotes: ledgerData.filter(l => l.category === 'Debit Note' || l.description?.toLowerCase().includes('debit note')).reduce((acc, curr) => acc + (curr.amount || 0), 0),
+            journal: ledgerData.reduce((acc, curr) => acc + (curr.amount || 0), 0)
+         };
+
+         // 4. Atomic State Synchronization (Prevents UI Flickering)
+         setSummary(prev => ({ ...prev, ...summaryData, ...stats }));
+
+         // 5. Configure Tab-Specific Dataset
+         let finalDetails = [];
          if (activeTab === "receivables") {
-            const res = await api.get("/orders");
-            const data = Array.isArray(res.data) ? res.data : [];
-            setDetails(data.filter(o => o.paymentStatus !== "paid" && !["cancelled", "refunded"].includes(o.status)));
+            const data = Array.isArray(tabRes.data) ? tabRes.data : [];
+            finalDetails = data.filter(o => o.paymentStatus !== "paid" && !["cancelled", "refunded"].includes(o.status));
          } else if (activeTab === "payables") {
-            const res = await api.get("/purchases");
-            const data = Array.isArray(res.data) ? res.data : [];
-            setDetails(data.filter(p => p.paymentStatus !== "paid" && p.status !== "cancelled"));
+            const data = Array.isArray(tabRes.data) ? tabRes.data : [];
+            finalDetails = data.filter(p => p.paymentStatus !== "paid" && p.status !== "cancelled");
          } else if (activeTab === "creditnotes") {
-            // Note: In this system, Credit Notes are often mapped to specific 'income' ledger entries with 'Adjustment' or 'Return' category
-            const res = await ledgerApi.getAll();
-            const data = Array.isArray(res.data) ? res.data : [];
-            setDetails(data.filter(l => l.category === 'Credit Note' || l.description?.toLowerCase().includes('credit note')));
+            finalDetails = ledgerData.filter(l => l.category === 'Credit Note' || l.description?.toLowerCase().includes('credit note'));
          } else if (activeTab === "debitnotes") {
-            const res = await ledgerApi.getAll();
-            const data = Array.isArray(res.data) ? res.data : [];
-            setDetails(data.filter(l => l.category === 'Debit Note' || l.description?.toLowerCase().includes('debit note')));
+            finalDetails = ledgerData.filter(l => l.category === 'Debit Note' || l.description?.toLowerCase().includes('debit note'));
          } else {
-            const res = await ledgerApi.getAll();
-            const data = Array.isArray(res.data) ? res.data : [];
-            setDetails(data);
+            finalDetails = ledgerData;
          }
+         setDetails(finalDetails);
       } catch (err) {
-         console.error(err);
+         console.error("Treasury Sync Error:", err);
       } finally {
          setLoading(false);
       }
@@ -333,9 +350,9 @@ const Accounting = () => {
                {[
                   { id: 'receivables', label: 'Receivables', val: summary?.totalReceivable || 0, icon: ArrowUpCircle },
                   { id: 'payables', label: 'Payables', val: summary?.totalPayable || 0, icon: ArrowDownCircle },
-                  { id: 'creditnotes', label: 'Credit Notes', val: details.filter(d => d.category === 'Credit Note').length || 0, icon: Receipt },
-                  { id: 'debitnotes', label: 'Debit Notes', val: details.filter(d => d.category === 'Debit Note').length || 0, icon: FileText },
-                  { id: 'journal', label: 'Journal', val: details.length || 0, icon: BookOpen },
+                  { id: 'creditnotes', label: 'Credit Notes', val: summary?.creditNotes || 0, icon: Receipt },
+                  { id: 'debitnotes', label: 'Debit Notes', val: summary?.debitNotes || 0, icon: FileText },
+                  { id: 'journal', label: 'Journal', val: summary?.journal || 0, icon: BookOpen },
                   { id: 'ledger', label: 'Cash Dynamics', val: 'Archive', icon: ArrowRightLeft },
                ].map((tab) => (
                   <div
