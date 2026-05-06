@@ -1,21 +1,36 @@
 import PDFDocument from "pdfkit";
 import axios from "axios";
+import sharp from "sharp";
 
 class PdfService {
   /**
    * Helper to fetch image buffer from URL or base64
+   * Converts all incoming images to PNG using sharp for PDFKit compatibility
    */
   static async fetchImageBuffer(url) {
     if (!url) return null;
     try {
+      let buffer;
       if (url.startsWith("data:image")) {
-        const base64Data = url.split(",")[1];
-        return Buffer.from(base64Data, "base64");
+        const [header, base64Data] = url.split(",");
+        buffer = Buffer.from(base64Data, "base64");
+      } else {
+        const response = await axios.get(url, { responseType: "arraybuffer", timeout: 5000 });
+        buffer = Buffer.from(response.data);
       }
-      const response = await axios.get(url, { responseType: "arraybuffer" });
-      return Buffer.from(response.data);
+
+      if (!buffer) return null;
+
+      // Convert any format (AVIF, SVG, WebP, etc.) to PNG for PDFKit
+      const pngBuffer = await sharp(buffer)
+        .png()
+        .toBuffer();
+
+      return pngBuffer;
     } catch (err) {
-      console.error("[PDF LOGO ERROR]:", err.message);
+      console.error("[PDF IMAGE PROCESSING ERROR]:", err.message);
+      // Fallback: If sharp conversion fails, return original buffer and let PDFKit try its best
+      // or return null if it was likely an unsupported format that sharp also couldn't handle
       return null;
     }
   }
@@ -75,28 +90,63 @@ class PdfService {
       const logoBuffer = await this.fetchImageBuffer(user.companyLogo);
       if (logoBuffer) {
         try {
+          const meta = await sharp(logoBuffer).metadata();
+          const imgWidth = meta.width || 300;
+          const imgHeight = meta.height || 300;
+
+          // Scale down if image is too large for the page
+          let scale = 1;
+          const maxW = contentWidth * 0.8;
+          const maxH = pageHeight * 0.5;
+          if (imgWidth > maxW || imgHeight > maxH) {
+            scale = Math.min(maxW / imgWidth, maxH / imgHeight);
+          }
+
+          const renderW = imgWidth * scale;
+          const renderH = imgHeight * scale;
+
           doc.save();
-          doc.opacity(1); // Ultra-low opacity for document-wide watermark
-          doc.image(logoBuffer, (pageWidth - 300) / 2, (pageHeight - 300) / 2, {
-            width: 300,
-            height: 300
+          doc.opacity(0.5); // User requested 0.5 opacity for the watermark
+          doc.image(logoBuffer, (pageWidth - renderW) / 2, (pageHeight - renderH) / 2, {
+            width: renderW,
+            height: renderH
           });
-          doc.restore();
         } catch (err) {
           console.warn("Global watermark rendering failed:", err.message);
+        } finally {
+          doc.restore(); // CRITICAL: Always restore opacity to 1.0 for the rest of the text
         }
       }
     }
 
     // --- Header Section ---
-    drawBox(margin, 20, contentWidth, 60);
+    let headerH = 70;
+    const hasLogo = user.companyLogo && user.invoiceSettings?.showLogo !== false;
+    // if (hasLogo) headerH = 110;
 
-    doc.fontSize(16).font("Helvetica-Bold").text(user.companyName || user.name, margin, 32, { align: "center", width: contentWidth });
-    doc.fontSize(8).font("Helvetica").text(user.address || "", margin, 50, { align: "center", width: contentWidth });
-    doc.text(`PH: ${user.mobile || ""} EMAIL: ${user.email || ""}`, margin, 60, { align: "center", width: contentWidth });
+    drawBox(margin, 20, contentWidth, headerH);
+
+    let currentHeaderY = 32;
+
+    // if (hasLogo) {
+    //   const headerLogoBuffer = await this.fetchImageBuffer(user.companyLogo);
+    //   if (headerLogoBuffer) {
+    //     try {
+    //       // Center the logo above the name
+    //       doc.image(headerLogoBuffer, (pageWidth - 60) / 2, 25, { height: 45 });
+    //       currentHeaderY = 75; // Push text down to make room for logo
+    //     } catch (err) {
+    //       console.warn("Header logo rendering failed:", err.message);
+    //     }
+    //   }
+    // }
+
+    doc.fontSize(16).font("Helvetica-Bold").text(user.companyName || user.name, margin, currentHeaderY, { align: "center", width: contentWidth });
+    doc.fontSize(8).font("Helvetica").text(user.address || "", margin, currentHeaderY + 18, { align: "center", width: contentWidth });
+    doc.text(`PH: ${user.mobile || ""} EMAIL: ${user.email || ""}`, margin, currentHeaderY + 30, { align: "center", width: contentWidth });
 
     // --- E-Invoice Info (IRN/Ack) ---
-    let currentY = 80;
+    let currentY = 20 + headerH + 5;
     drawBox(margin, currentY, contentWidth, 50);
     doc.fontSize(8).font("Helvetica-Bold");
     doc.text("IRN No.:", margin + 5, currentY + 5);

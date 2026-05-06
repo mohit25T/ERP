@@ -62,8 +62,17 @@ const AppLayout = ({ children, fullWidth = false }) => {
               <LayoutGrid className="w-5 h-5" />
             </button>
 
-            <div className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              <span className="text-foreground">{getPageTitle()}</span>
+            <div className="flex items-center gap-3">
+              {user?.companyLogo ? (
+                <img src={user.companyLogo} alt="Logo" className="w-7 h-7 object-contain md:hidden" />
+              ) : (
+                <div className="w-7 h-7 bg-primary rounded flex items-center justify-center text-primary-foreground font-black text-[10px] md:hidden shadow-sm">
+                  {user?.companyName?.charAt(0) || 'E'}
+                </div>
+              )}
+              <div className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                <span className="text-foreground">{getPageTitle()}</span>
+              </div>
             </div>
           </div>
 
@@ -83,13 +92,17 @@ const AppLayout = ({ children, fullWidth = false }) => {
             <div className="flex items-center gap-1 text-muted-foreground">
               <button 
                 onClick={toggleTheme}
-                className="p-2 hover:bg-muted hover:text-foreground rounded-md transition-colors"
+                className="p-2 hover:bg-muted hover:text-foreground rounded-md transition-all active:scale-95"
                 title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
               >
                 {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
               </button>
               <NotificationBell />
-              <Link to="/settings" className="p-2 hover:bg-muted hover:text-foreground rounded-md transition-colors">
+              <Link 
+                to="/settings" 
+                className="p-2 hover:bg-muted hover:text-foreground rounded-md transition-all active:scale-95"
+                title="System Settings"
+              >
                 <SettingsIcon className="w-4 h-4" />
               </Link>
             </div>
@@ -99,9 +112,10 @@ const AppLayout = ({ children, fullWidth = false }) => {
             {/* Authorized User Profile */}
             <Link
               to="/settings"
-              className="flex items-center gap-2 hover:bg-muted/50 p-1 px-2 rounded border border-transparent hover:border-border transition-colors"
+              className="flex items-center gap-2 hover:bg-muted/50 p-1 px-2 rounded border border-transparent hover:border-border transition-all active:scale-[0.98]"
+              title="User Profile & Account"
             >
-              <div className="w-7 h-7 rounded bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shadow-sm">
+              <div className="w-7 h-7 rounded bg-primary text-primary-foreground flex items-center justify-center text-xs font-black shadow-sm">
                 {user?.name?.charAt(0).toUpperCase() || 'A'}
               </div>
               <div className="hidden sm:flex flex-col">

@@ -3,6 +3,7 @@ import { staffApi, payrollApi } from "../../api/erpApi";
 import AppLayout from "../../components/layout/AppLayout";
 import Modal from "../../components/common/Modal";
 import HammerLoader from "../../components/common/HammerLoader";
+import { motion, AnimatePresence } from "framer-motion";
 import {
    Users, ShieldCheck, UserCheck, Banknote, Search,
    UserPlus, Plus, ChevronRight, Clock, CheckCircle2,
@@ -33,15 +34,16 @@ const Payroll = () => {
    const fetchData = async () => {
       try {
          setLoading(true);
-         if (activeTab === "staff") {
-            const res = await staffApi.getAll();
-            setStaff(res.data);
-         } else {
-            const res = await payrollApi.getAll(selectedMonth, selectedYear);
-            setPayrollEntries(res.data);
+         // Synchronize Associate Registry regardless of tab to ensure modals are populated
+         const staffRes = await staffApi.getAll();
+         setStaff(staffRes.data);
+
+         if (activeTab === "payroll") {
+            const payrollRes = await payrollApi.getAll(selectedMonth, selectedYear);
+            setPayrollEntries(payrollRes.data);
          }
       } catch (err) {
-         console.error(err);
+         console.error("[PAYROLL FETCH ERROR]:", err);
       } finally {
          setLoading(false);
       }
@@ -236,12 +238,12 @@ const Payroll = () => {
                            </thead>
                            <tbody className="divide-y divide-slate-50">
                               {filteredPayrollEntries.map((p, index) => (
-                                 <motion.tr 
-                                   key={p._id} 
-                                   initial={{ opacity: 0, y: 10 }}
-                                   animate={{ opacity: 1, y: 0 }}
-                                   transition={{ duration: 0.3, delay: index * 0.03 }}
-                                   className="group erp-row-hover transition-all duration-500"
+                                 <motion.tr
+                                    key={p._id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.3, delay: index * 0.03 }}
+                                    className="group erp-row-hover transition-all duration-500"
                                  >
                                     <td className="px-10 py-5">
                                        <div className="flex items-center gap-6">
