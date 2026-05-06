@@ -7,7 +7,7 @@ import {
 
 /**
  * ProductForm: The Asset Intelligence Node
- * High-fidelity catalog management for master inventory governance.
+ * Refined for enterprise density and dark mode support.
  */
 const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
   const [formData, setFormData] = useState({
@@ -102,44 +102,44 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-10 animate-in fade-in zoom-in-95 duration-700">
+    <form onSubmit={handleSubmit} className="space-y-8">
       
       {/* Classification Protocol */}
-      <div className="space-y-4">
-         <div className="flex items-center gap-2 mb-2">
-            <Zap className="w-4 h-4 text-indigo-500" />
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Asset Classification Protocol</label>
+      <div className="space-y-3">
+         <div className="flex items-center gap-2">
+            <Zap className="w-3.5 h-3.5 text-primary" />
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Asset Classification</label>
          </div>
-         <div className="flex bg-slate-100/50 p-1.5 rounded-[1.5rem] border border-slate-200/50">
+         <div className="flex bg-muted/50 p-1 rounded-md border border-border">
            <button
               type="button"
               onClick={() => setFormData(p => ({ ...p, type: 'finished_good' }))}
-              className={`flex-1 py-4 px-6 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500 flex items-center justify-center gap-2 ${formData.type === 'finished_good' ? 'bg-white text-indigo-600 shadow-xl shadow-slate-200/50 scale-[1.02] z-10' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`flex-1 py-2 px-4 rounded text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${formData.type === 'finished_good' ? 'bg-card text-primary shadow-sm border border-border' : 'text-muted-foreground hover:text-foreground'}`}
            >
-              <Package className={`w-3.5 h-3.5 ${formData.type === 'finished_good' ? 'text-indigo-600' : 'text-slate-300'}`} />
+              <Package className={`w-3.5 h-3.5 ${formData.type === 'finished_good' ? 'text-primary' : 'text-muted-foreground'}`} />
               Finished Good
            </button>
            <button
               type="button"
               onClick={() => setFormData(p => ({ ...p, type: 'raw_material' }))}
-              className={`flex-1 py-4 px-6 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500 flex items-center justify-center gap-2 ${formData.type === 'raw_material' ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/20 scale-[1.02] z-10' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`flex-1 py-2 px-4 rounded text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${formData.type === 'raw_material' ? 'bg-foreground text-background shadow-sm border border-border' : 'text-muted-foreground hover:text-foreground'}`}
            >
-              <Database className={`w-3.5 h-3.5 ${formData.type === 'raw_material' ? 'text-emerald-400' : 'text-slate-300'}`} />
+              <Database className={`w-3.5 h-3.5 ${formData.type === 'raw_material' ? 'text-primary' : 'text-muted-foreground'}`} />
               Raw Material
            </button>
          </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* PRODUCT CORE */}
-        <div className="md:col-span-2 space-y-2.5">
-          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Product Asset Nomenclature</label>
+        <div className="md:col-span-2 space-y-1.5">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Product Nomenclature</label>
           <div className="relative group">
-            <Type className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
+            <Type className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <input
               name="name"
               required
-              className="erp-input !pl-14 !bg-slate-50/50 focus:!bg-white"
+              className="erp-input !pl-10"
               placeholder="ENTER PRODUCT NAME"
               value={formData.name}
               onChange={handleChange}
@@ -147,14 +147,14 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
           </div>
         </div>
 
-        <div className="space-y-2.5">
-           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Asset Master SKU</label>
+        <div className="space-y-1.5">
+           <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Asset SKU</label>
            <div className="relative group">
-              <Hash className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
+              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <input
                 name="sku"
                 required
-                className="erp-input !pl-14 !bg-slate-50/50 focus:!bg-white uppercase !font-mono"
+                className="erp-input !pl-10 uppercase !font-mono"
                 placeholder="SKU-XXXX"
                 value={formData.sku}
                 onChange={handleChange}
@@ -162,37 +162,37 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
            </div>
         </div>
 
-        <div className="space-y-2.5">
-           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Industrial Category</label>
+        <div className="space-y-1.5">
+           <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Industrial Category</label>
            <div className="relative group">
-              <Tag className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
+              <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <input
                 name="category"
-                className="erp-input !pl-14 !bg-slate-50/50 focus:!bg-white uppercase font-black"
-                placeholder="UNSPECIFIED CATEGORY"
+                className="erp-input !pl-10 uppercase"
+                placeholder="UNSPECIFIED"
                 value={formData.category}
                 onChange={handleChange}
               />
            </div>
         </div>
 
-        <div className="space-y-2.5">
-           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">HSN/SAC Protocol UID</label>
+        <div className="space-y-1.5">
+           <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">HSN/SAC UID</label>
            <input
              name="hsnCode"
              required
-             className="erp-input !bg-slate-50/50 focus:!bg-white uppercase font-black tracking-widest"
+             className="erp-input uppercase tracking-widest"
              placeholder="HSN-0000"
              value={formData.hsnCode}
              onChange={handleChange}
            />
         </div>
 
-        <div className="space-y-2.5">
-           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Fiscal GST Contribution (%)</label>
+        <div className="space-y-1.5">
+           <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">GST Rate (%)</label>
            <select
              name="gstRate"
-             className="erp-input !bg-indigo-50/30 !text-indigo-600 !font-black"
+             className="erp-input"
              value={formData.gstRate}
              onChange={handleChange}
            >
@@ -203,40 +203,40 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
            </select>
         </div>
 
-        <div className="space-y-2.5">
-           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Inventory Telemetry (Stock)</label>
-           <div className="flex gap-4">
+        <div className="space-y-1.5">
+           <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Inventory Balance</label>
+           <div className="flex gap-2">
               <input
                 name="stock"
                 type="number"
                 required
-                className="erp-input flex-1 !bg-slate-50/50 focus:!bg-black focus:!text-white !font-black"
+                className="erp-input flex-1 font-bold"
                 value={formData.stock}
                 onChange={handleChange}
               />
               <select
                 name="unit"
-                className="w-32 erp-input !bg-slate-100 !border-slate-200 !text-center !font-black uppercase"
+                className="w-28 erp-input !text-center uppercase"
                 value={formData.unit}
                 onChange={handleChange}
               >
                 {["kg", "gram", "dagina", "pcs", "meters", "tons", "mts", "unit", "amount"].map(u => (
-                  <option key={u} value={u}>{u.toUpperCase()}</option>
+                  <option key={u} value={u} className="bg-card">{u.toUpperCase()}</option>
                 ))}
               </select>
            </div>
         </div>
 
-        <div className="space-y-2.5">
-           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Base Unit Price</label>
+        <div className="space-y-1.5">
+           <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Base Price</label>
            <div className="relative group">
-              <IndianRupee className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
+              <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <input
                 name="price"
                 type="number"
                 step="0.01"
                 required
-                className="erp-input !pl-14 !bg-slate-50/50 focus:!bg-white !font-black !text-lg"
+                className="erp-input !pl-10 font-bold"
                 value={formData.price}
                 onChange={handleChange}
               />
@@ -246,87 +246,80 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
 
       {/* MANUFACTURING BLUEPRINT (BOM) */}
       {formData.type === "finished_good" && (
-        <div className="mt-12 p-8 bg-slate-900 rounded-md border border-slate-800 space-y-8 shadow-2xl shadow-slate-900/40 group relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:rotate-12 transition-transform duration-1000">
-             <Layers className="w-40 h-40 text-white" />
-          </div>
-          
-          <div className="flex items-center justify-between border-b border-white/5 pb-6 relative z-10">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-indigo-600 rounded-md shadow-xl shadow-indigo-600/20">
-                <Layers className="w-6 h-6 text-white" />
+        <div className="mt-8 p-6 bg-muted/20 rounded border border-border space-y-6 relative overflow-hidden">
+          <div className="flex items-center justify-between border-b border-border pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary rounded shadow-sm">
+                <Layers className="w-4 h-4 text-primary-foreground" />
               </div>
               <div>
-                <h4 className="text-xl font-black text-white uppercase tracking-tight italic">Manufacturing <span className="text-indigo-400">Blueprint</span></h4>
-                <p className="text-[10px] text-white/30 font-black uppercase tracking-widest mt-1">Resource allocation per output unit</p>
+                <h4 className="text-sm font-bold text-foreground uppercase tracking-tight">Resource Blueprint</h4>
+                <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">Bill of Materials</p>
               </div>
             </div>
             <button
               type="button"
               onClick={handleAddIngredient}
-              className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-md text-[10px] font-black uppercase tracking-widest transition-all duration-300"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-card hover:bg-muted text-foreground border border-border rounded text-[9px] font-bold uppercase tracking-widest transition-all"
             >
-              <Plus className="w-4 h-4" /> Add Component
+              <Plus className="w-3.5 h-3.5" /> Add Component
             </button>
           </div>
 
           {formData.bom.length === 0 ? (
-            <div className="bg-white/5 rounded-md p-12 text-center border border-dashed border-white/10">
-              <Info className="w-10 h-10 text-white/10 mx-auto mb-4" />
-              <p className="text-[11px] text-white/40 font-black uppercase tracking-widest">Recipe protocol not initialized</p>
-              <p className="text-[9px] text-white/20 mt-2 italic">Add raw materials to track production yield analytics</p>
+            <div className="bg-muted/10 rounded p-10 text-center border border-dashed border-border">
+              <Info className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Blueprint not initialized</p>
             </div>
           ) : (
-            <div className="space-y-4 relative z-10">
+            <div className="space-y-3">
               {formData.bom.map((item, idx) => (
-                <div key={idx} className="grid grid-cols-12 gap-3 bg-white/5 p-5 rounded-md border border-white/5 group/row hover:bg-white/10 transition-all">
-                  <div className="col-span-6 space-y-2">
-                    <label className="text-[8px] font-black text-white/20 uppercase tracking-widest ml-1">Master Material Source</label>
+                <div key={idx} className="grid grid-cols-12 gap-2 bg-card p-4 rounded border border-border shadow-sm group/row transition-all">
+                  <div className="col-span-6 space-y-1">
+                    <label className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Component Source</label>
                     <select
                       required
-                      className="w-full h-12 bg-slate-950/50 border border-white/5 rounded-md text-[10px] font-black text-white outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all uppercase px-4 cursor-pointer"
+                      className="w-full erp-input !py-1.5"
                       value={item.material?._id || item.material}
                       onChange={(e) => handleIngredientChange(idx, "material", e.target.value)}
                     >
-                      <option value="">-- AUTHORIZE MATERIAL --</option>
+                      <option value="" className="bg-card">SELECT MATERIAL</option>
                       {availableComponents.map(m => (
-                        <option key={m._id} value={m._id} className="bg-slate-900 text-white">
+                        <option key={m._id} value={m._id} className="bg-card">
                           {m.name.toUpperCase()} [{m.unit.toUpperCase()}]
                         </option>
                       ))}
                     </select>
                   </div>
-                  <div className="col-span-2 space-y-2">
-                    <label className="text-[8px] font-black text-white/20 uppercase tracking-widest ml-1">Asset Unit</label>
+                  <div className="col-span-2 space-y-1">
+                    <label className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Unit</label>
                     <select
-                      className="w-full h-12 bg-slate-950/50 border border-white/5 rounded-2xl text-[9px] font-black text-white outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all uppercase px-2 cursor-pointer"
+                      className="w-full erp-input !py-1.5 !px-2 !text-center"
                       value={item.unit || availableComponents.find(m => m._id === (item.material?._id || item.material))?.unit || 'pcs'}
                       onChange={(e) => handleIngredientChange(idx, "unit", e.target.value)}
                     >
                       {["pcs", "dagina", "kg", "gram", "meters", "unit", "amount"].map(u => (
-                        <option key={u} value={u} className="bg-slate-900 text-white">{u.toUpperCase()}</option>
+                        <option key={u} value={u} className="bg-card">{u.toUpperCase()}</option>
                       ))}
                     </select>
                   </div>
-                  <div className="col-span-3 space-y-2 text-right">
-                    <label className="text-[8px] font-black text-white/20 uppercase tracking-widest mr-1">Usage Node</label>
-                    <div className="flex items-stretch bg-slate-950/50 rounded-2xl border border-white/5 overflow-hidden h-12">
-                      <input
-                        type="number"
-                        step="0.001"
-                        className="flex-1 bg-transparent px-4 border-none text-[13px] font-black text-white outline-none text-right"
-                        value={item.quantity}
-                        onChange={(e) => handleIngredientChange(idx, "quantity", e.target.value)}
-                      />
-                    </div>
+                  <div className="col-span-3 space-y-1">
+                    <label className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Quantity</label>
+                    <input
+                      type="number"
+                      step="0.001"
+                      className="w-full erp-input !py-1.5 text-right font-bold"
+                      value={item.quantity}
+                      onChange={(e) => handleIngredientChange(idx, "quantity", e.target.value)}
+                    />
                   </div>
-                  <div className="col-span-2 flex items-end justify-center pb-1">
+                  <div className="col-span-1 flex items-end justify-center pb-0.5">
                     <button
                       type="button"
                       onClick={() => handleRemoveIngredient(idx)}
-                      className="p-3.5 text-white/20 hover:text-rose-500 hover:bg-rose-500/10 rounded-2xl transition-all"
+                      className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded transition-all"
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -336,21 +329,21 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
         </div>
       )}
 
-      <div className="flex gap-6 pt-10 border-t border-slate-50">
+      <div className="flex gap-4 pt-6 border-t border-border">
         <button
           type="button"
           onClick={onCancel}
           className="erp-button-secondary flex-1"
         >
-          Abort Blueprint
+          Cancel
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="erp-button-primary flex-1 group shadow-primary/10"
+          className="erp-button-primary flex-1 group"
         >
-          {loading ? "Synchronizing Asset..." : initialData ? "Commit Asset Update" : "Authorize New Asset"}
-          <ShieldCheck className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          {loading ? "Commiting..." : initialData ? "Commit Update" : "Authorize Asset"}
+          <ShieldCheck className="w-4 h-4 group-hover:scale-110 transition-transform" />
         </button>
       </div>
     </form>

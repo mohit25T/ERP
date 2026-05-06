@@ -23,64 +23,112 @@ const generateInvoiceNumber = async () => {
 // Create Invoice (Draft)
 export const createInvoice = async (req, res) => {
   try {
-    const { orderId, dueDate, notes, items } = req.body;
+    const { 
+      orderId, 
+      dueDate, 
+      notes, 
+      items, 
+      invoiceNumber: manualInvoiceNumber,
+      shipTo,
+      poNo,
+      paymentMode,
+      paymentTerms,
+      billSeries
+    } = req.body;
     
-    // Check if invoice already exists for this order
-    const existingInvoice = await Invoice.findOne({ order: orderId });
-    if (existingInvoice) {
-      return res.status(200).json(existingInvoice);
+    const effectiveOrderId = orderId || req.body.order;
+    
+    // Debug log to catch hidden data issues
+    console.log("[INVOICE DEBUG]: Request Body:", JSON.stringify(req.body));
+    console.log("[INVOICE DEBUG]: effectiveOrderId:", effectiveOrderId);
+
+    if (effectiveOrderId) {
+      const existingInvoice = await Invoice.findOne({ order: effectiveOrderId });
+      if (existingInvoice) {
+        return res.status(200).json(existingInvoice);
+      }
+    }
+    
+    if (!effectiveOrderId && (!items || items.length === 0)) {
+        console.error("[INVOICE ERROR]: Missing both orderId and items");
+        return res.status(400).json({ msg: "Either orderId or explicit items are required to generate an invoice." });
     }
 
-    const order = await Order.findById(orderId).populate("customer").populate("product");
-    if (!order) return res.status(404).json({ msg: "Order not found" });
-
-    if (!order.product) {
-      return res.status(400).json({ msg: "Associated product not found for this order. It may have been deleted." });
-    }
-    if (!order.customer) {
-      return res.status(400).json({ msg: "Associated customer not found for this order." });
+    const orderDoc = effectiveOrderId ? await Order.findById(effectiveOrderId).populate("customer").populate("product") : null;
+    
+    if (effectiveOrderId && !orderDoc) {
+        console.error("[INVOICE ERROR]: Order not found for ID:", effectiveOrderId);
+        return res.status(404).json({ msg: "The specified order was not found." });
     }
 
     // If items are not provided, derive from Order (backward compatibility)
     let invoiceItems = items;
     if (!invoiceItems || invoiceItems.length === 0) {
+      if (!orderDoc) {
+          console.error("[INVOICE ERROR]: No items provided and no order found to derive them from");
+          return res.status(400).json({ msg: "Order document required when items are not specified." });
+      }
+      if (!orderDoc.product) {
+          console.error("[INVOICE ERROR]: Order product node missing for order:", orderDoc._id);
+          return res.status(400).json({ msg: "Order product node is missing or corrupted" });
+      }
+      
+      const qty = orderDoc.orderedQty || orderDoc.quantity || 0;
+      const unitPrice = orderDoc.unitPrice || (qty > 0 ? (orderDoc.taxableAmount / qty) : 0) || orderDoc.product.price || 0;
+
       invoiceItems = [
         {
-          product: order.product._id,
-          name: order.product.name,
-          sku: order.product.sku,
-          hsnCode: order.hsnCode || order.product.hsnCode,
-          quantity: order.quantity,
-          price: order.unitPrice || (order.taxableAmount / order.quantity) || order.product.price,
-          unit: order.unit,
-          gstRate: order.product.gstRate || 18,
-          taxableAmount: order.taxableAmount,
-          gstAmount: order.gstAmount,
-          cgst: order.cgst,
-          sgst: order.sgst,
-          igst: order.igst,
-          totalAmount: order.totalAmount,
+          product: orderDoc.product._id,
+          name: orderDoc.product.name,
+          sku: orderDoc.product.sku,
+          hsnCode: orderDoc.hsnCode || orderDoc.product.hsnCode,
+          quantity: qty,
+          price: unitPrice,
+          unit: orderDoc.unit,
+          gstRate: orderDoc.product.gstRate || 18,
+          taxableAmount: orderDoc.taxableAmount || 0,
+          gstAmount: orderDoc.gstAmount || 0,
+          cgst: orderDoc.cgst || 0,
+          sgst: orderDoc.sgst || 0,
+          igst: orderDoc.igst || 0,
+          totalAmount: orderDoc.totalAmount || 0,
         },
       ];
     }
 
-    const invoiceNumber = await generateInvoiceNumber();
+    const invoiceNumber = manualInvoiceNumber || await generateInvoiceNumber();
+    const finalOrderRef = orderDoc?._id || (effectiveOrderId && effectiveOrderId !== "undefined" ? effectiveOrderId : null);
 
-    const invoice = await Invoice.create({
+    // Only block if BOTH orderId and explicit items are missing
+    if (!finalOrderRef && (!invoiceItems || invoiceItems.length === 0)) {
+        console.error("[INVOICE ERROR]: Neither order reference nor items provided");
+        return res.status(400).json({ msg: "A valid order reference or item list is required." });
+    }
+
+    const invoiceData = {
       invoiceNumber,
-      order: orderId,
-      customer: order.customer._id,
+      order: finalOrderRef || undefined, // Mongoose will ignore if undefined and not required
+      customer: orderDoc?.customer?._id || req.body.customer,
       items: invoiceItems,
-      taxableAmount: invoiceItems.reduce((sum, item) => sum + item.taxableAmount, 0),
-      gstAmount: invoiceItems.reduce((sum, item) => sum + item.gstAmount, 0),
+      taxableAmount: invoiceItems.reduce((sum, item) => sum + (item.taxableAmount || 0), 0),
+      gstAmount: invoiceItems.reduce((sum, item) => sum + (item.gstAmount || 0), 0),
       cgst: invoiceItems.reduce((sum, item) => sum + (item.cgst || 0), 0),
       sgst: invoiceItems.reduce((sum, item) => sum + (item.sgst || 0), 0),
       igst: invoiceItems.reduce((sum, item) => sum + (item.igst || 0), 0),
-      totalAmount: invoiceItems.reduce((sum, item) => sum + item.totalAmount, 0),
+      totalAmount: invoiceItems.reduce((sum, item) => sum + (item.totalAmount || 0), 0),
       dueDate,
       notes,
+      shipTo,
+      poNo,
+      paymentMode,
+      paymentTerms,
+      billSeries,
       status: "draft",
-    });
+    };
+
+    console.log("[INVOICE DEBUG] FINAL DATA TO MONGOOSE:", JSON.stringify(invoiceData));
+
+    const invoice = await Invoice.create(invoiceData);
 
     await AuditService.logAction({
       user: req.user,
@@ -93,6 +141,7 @@ export const createInvoice = async (req, res) => {
 
     res.status(201).json(invoice);
   } catch (err) {
+    console.error("[INVOICE CREATE FATAL]:", err);
     res.status(500).json({ error: err.message });
   }
 };

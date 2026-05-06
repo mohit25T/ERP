@@ -10,7 +10,7 @@ const invoiceSchema = new mongoose.Schema(
     order: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
-      required: true,
+      required: false, // Allow direct invoices without pre-existing orders
     },
     customer: {
       type: mongoose.Schema.Types.ObjectId,
@@ -85,6 +85,11 @@ const invoiceSchema = new mongoose.Schema(
       }
     },
     notes: { type: String },
+    shipTo: { type: String, default: "" },
+    poNo: { type: String, default: "" },
+    paymentMode: { type: String, default: "" },
+    paymentTerms: { type: String, default: "" },
+    billSeries: { type: String, default: "" },
     finalizedAt: { type: Date },
   },
   { timestamps: true }

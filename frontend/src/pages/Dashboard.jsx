@@ -15,10 +15,6 @@ import {
 } from "recharts";
 
 
-// Mock data for trends not yet in the backend, illustrating the requested design.
-// Production trend data mapping - will pull from API when integrated
-const productionTrend = [];
-
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -48,7 +44,6 @@ const Dashboard = () => {
     );
   }
 
-  // Derive metrics from real stats
   const summary = stats?.summary || {};
   const pendingOrders = stats?.pendingOrders || 0;
   const availableStock = summary?.totalStockQuantity || 0;
@@ -58,125 +53,125 @@ const Dashboard = () => {
     <AppLayout>
       <div className="space-y-6">
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border pb-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-            <p className="text-sm text-slate-500 mt-1">Real-time business insights and operational overview.</p>
+            <h1 className="text-xl font-black text-foreground uppercase tracking-tight">System Dashboard</h1>
+            <p className="text-xs text-muted-foreground mt-0.5 font-medium uppercase tracking-widest opacity-70">Real-time business intelligence and operational metrics.</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <button className="erp-button-secondary">
-              <Database className="w-4 h-4" /> Download Report
+              <Database className="w-3.5 h-3.5" /> Download Data
             </button>
             <Link to="/production" className="erp-button-primary">
-              Add Production
+              Execute Production
             </Link>
           </div>
         </div>
 
-        {/* A. KPI CARDS (Top Section) */}
+        {/* A. KPI CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <KPICard
             title="Production Today"
             value={`${(stats?.summary?.totalProductionToday || 0).toLocaleString()} kg`}
-            trend="Live"
+            trend="Synchronized"
             isPositive={true}
             icon={Package}
           />
           <KPICard
-            title="Efficiency"
+            title="Operational Efficiency"
             value={`${(stats?.summary?.efficiency || 0).toFixed(1)}%`}
-            trend="Live"
+            trend="Active"
             isPositive={true}
             icon={Activity}
           />
           <KPICard
-            title="Pending Orders"
+            title="Pending Requests"
             value={`${pendingOrders} Orders`}
-            trend="Awaiting dispatch"
+            trend="Queued"
             isPositive={false}
             icon={ShoppingCart}
           />
           <KPICard
-            title="Available Stock"
+            title="Inventory Ledger"
             value={`${availableStock.toLocaleString()} kg`}
-            trend="Live Registry"
+            trend="Validated"
             isPositive={true}
             icon={Database}
           />
         </div>
 
         {/* Middle Section: Charts & Alerts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
           {/* B. CHARTS */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
             {/* Production Output Chart */}
-            <div className="bg-white p-6 rounded-md shadow-sm border border-slate-100 relative overflow-hidden">
-              <h3 className="text-base font-semibold text-slate-900 mb-6">Production Output</h3>
-              <div className="h-[300px] w-full min-w-[10px] min-h-[300px]">
+            <div className="bg-card p-5 rounded border border-border relative overflow-hidden">
+              <h3 className="text-xs font-bold text-foreground mb-6 uppercase tracking-widest opacity-80">Output Analysis</h3>
+              <div className="h-[280px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats?.productionTrend || []} margin={{ top: 5, right: 0, left: -20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border/30" />
                     <XAxis
                       dataKey="name"
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fontSize: 12, fill: '#64748b' }}
+                      tick={{ fontSize: 10, fill: 'currentColor', opacity: 0.5 }}
                       dy={10}
                     />
                     <YAxis
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fontSize: 12, fill: '#64748b' }}
+                      tick={{ fontSize: 10, fill: 'currentColor', opacity: 0.5 }}
                     />
                     <Tooltip
-                      cursor={{ fill: '#f8fafc' }}
-                      contentStyle={{ borderRadius: '0.375rem', border: '1px solid #f1f5f9', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      cursor={{ fill: 'currentColor', opacity: 0.05 }}
+                      contentStyle={{ backgroundColor: 'var(--card)', borderRadius: '4px', border: '1px solid var(--border)', fontSize: '12px' }}
                     />
-                    <Bar dataKey="output" fill="#4f46e5" radius={[4, 4, 0, 0]} name="Output (kg)" maxBarSize={50} />
+                    <Bar dataKey="output" fill="hsl(var(--primary))" radius={[2, 2, 0, 0]} name="Output (kg)" maxBarSize={40} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
               {(!stats?.productionTrend || stats.productionTrend.length === 0) && (
-                <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] flex items-center justify-center">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No production history available</p>
+                <div className="absolute inset-0 bg-card/80 backdrop-blur-[1px] flex items-center justify-center">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em]">No historical data available</p>
                 </div>
               )}
             </div>
 
             {/* Efficiency vs Scrap Trend */}
-            <div className="bg-white p-6 rounded-md shadow-sm border border-slate-100 relative overflow-hidden">
-              <h3 className="text-base font-semibold text-slate-900 mb-6">Efficiency & Scrap Trend</h3>
-              <div className="h-[300px] w-full min-w-[10px] min-h-[300px]">
+            <div className="bg-card p-5 rounded border border-border relative overflow-hidden">
+              <h3 className="text-xs font-bold text-foreground mb-6 uppercase tracking-widest opacity-80">Efficiency vs Resource Loss</h3>
+              <div className="h-[280px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={stats?.productionTrend || []} margin={{ top: 5, right: 0, left: -20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border/30" />
                     <XAxis
                       dataKey="name"
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fontSize: 12, fill: '#64748b' }}
+                      tick={{ fontSize: 10, fill: 'currentColor', opacity: 0.5 }}
                       dy={10}
                     />
                     <YAxis
                       yAxisId="left"
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fontSize: 12, fill: '#64748b' }}
+                      tick={{ fontSize: 10, fill: 'currentColor', opacity: 0.5 }}
                     />
                     <YAxis
                       yAxisId="right"
                       orientation="right"
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fontSize: 12, fill: '#64748b' }}
+                      tick={{ fontSize: 10, fill: 'currentColor', opacity: 0.5 }}
                     />
                     <Tooltip
-                      contentStyle={{ borderRadius: '0.375rem', border: '1px solid #f1f5f9', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      contentStyle={{ backgroundColor: 'var(--card)', borderRadius: '4px', border: '1px solid var(--border)', fontSize: '12px' }}
                     />
-                    <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                    <Line yAxisId="left" type="monotone" dataKey="efficiency" stroke="#10b981" strokeWidth={3} name="Efficiency (%)" dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                    <Line yAxisId="right" type="monotone" dataKey="scrap" stroke="#f43f5e" strokeWidth={3} name="Scrap (kg)" dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                    <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '10px', textTransform: 'uppercase', fontWeight: 'bold' }} />
+                    <Line yAxisId="left" type="monotone" dataKey="efficiency" stroke="hsl(var(--primary))" strokeWidth={2} name="Efficiency (%)" dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                    <Line yAxisId="right" type="monotone" dataKey="scrap" stroke="#f43f5e" strokeWidth={2} name="Scrap (kg)" dot={{ r: 3 }} activeDot={{ r: 5 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -185,40 +180,38 @@ const Dashboard = () => {
 
           {/* C. ALERT PANEL */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-md shadow-sm border border-slate-100 flex flex-col h-full h-[650px]">
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
-                  <ShieldAlert className="w-5 h-5 text-amber-500" /> System Alerts
+            <div className="bg-card rounded border border-border flex flex-col h-full lg:max-h-[660px]">
+              <div className="p-4 border-b border-border flex items-center justify-between bg-muted/20">
+                <h3 className="text-xs font-bold text-foreground flex items-center gap-2 uppercase tracking-widest">
+                  <ShieldAlert className="w-4 h-4 text-amber-500 dark:text-amber-400" /> Critical Alerts
                 </h3>
-                <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded-md">{lowStockAlerts.length}</span>
+                <span className="bg-destructive/10 text-destructive text-[10px] font-black px-2 py-0.5 rounded border border-destructive/20">{lowStockAlerts.length}</span>
               </div>
 
-              <div className="p-4 flex-1 overflow-y-auto space-y-3 custom-scrollbar">
-
-                {/* Dynamic Low Stock Alerts */}
+              <div className="p-3 flex-1 overflow-y-auto space-y-2 custom-scrollbar">
                 {lowStockAlerts.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-sm text-slate-400">No inventory alerts.</p>
+                  <div className="text-center py-10 opacity-40">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">System nominal. No alerts.</p>
                   </div>
                 ) : (
                   lowStockAlerts.map(alert => (
-                    <div key={alert.id} className="p-4 rounded-md border border-slate-100 bg-white flex items-start gap-3 hover:border-slate-200 hover:shadow-sm transition-all cursor-pointer">
-                      <Database className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
+                    <div key={alert.id} className="p-3 rounded border border-border bg-muted/5 flex items-start gap-3 hover:bg-muted/10 transition-colors cursor-pointer group">
+                      <Database className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5 group-hover:text-primary transition-colors" />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <p className="text-sm font-bold text-slate-800">{alert.name}</p>
+                          <p className="text-xs font-bold text-foreground tracking-tight">{alert.name}</p>
                           <StatusBadge status="Critical" />
                         </div>
-                        <p className="text-xs text-slate-500 mt-1">Stock level critically low: <span className="font-bold text-rose-500">{alert.stock} {alert.unit || 'units'}</span> remaining.</p>
+                        <p className="text-[10px] text-muted-foreground mt-1 font-medium">Resource level: <span className="font-bold text-destructive">{alert.stock} {alert.unit || 'units'}</span> remaining.</p>
                       </div>
                     </div>
                   ))
                 )}
               </div>
 
-              <div className="p-4 border-t border-slate-100">
-                <Link to="/products" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center justify-center gap-1 w-full py-2 hover:bg-indigo-50 rounded-md transition-colors">
-                  View full inventory <ArrowRight className="w-4 h-4" />
+              <div className="p-3 border-t border-border">
+                <Link to="/products" className="text-[10px] font-black text-primary hover:text-primary/80 flex items-center justify-center gap-1 w-full py-2 bg-primary/5 rounded border border-primary/10 hover:bg-primary/10 transition-all uppercase tracking-widest">
+                  Inventory Protocol <ArrowRight className="w-3 h-3" />
                 </Link>
               </div>
             </div>

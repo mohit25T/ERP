@@ -6,7 +6,7 @@ import { X, ShieldCheck } from "lucide-react";
 
 /**
  * Modal: The System Interaction Node
- * Designed with a high-fidelity 'Commercial Operations' design language.
+ * Refined for enterprise density and dark mode support.
  */
 const Modal = ({ isOpen, onClose, title, children, size = "xl" }) => {
   const sizeClasses = {
@@ -17,7 +17,11 @@ const Modal = ({ isOpen, onClose, title, children, size = "xl" }) => {
     "2xl": "max-w-2xl",
     "3xl": "max-w-3xl",
     "4xl": "max-w-4xl",
-    "5xl": "max-w-5xl"
+    "5xl": "max-w-5xl",
+    "6xl": "max-w-6xl",
+    "7xl": "max-w-7xl",
+    "full": "max-w-[95vw]",
+    "screen": "max-w-full h-full rounded-none"
   };
 
   const modalContent = (
@@ -30,41 +34,41 @@ const Modal = ({ isOpen, onClose, title, children, size = "xl" }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-md"
+            className="fixed inset-0 z-[200] bg-background/80 backdrop-blur-sm"
           />
           
           {/* Modal Intelligence Layer */}
-          <div className="fixed inset-0 z-[210] flex items-center justify-center p-6 pointer-events-none">
+          <div className="fixed inset-0 z-[210] flex items-center justify-center p-4 pointer-events-none">
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              initial={{ opacity: 0, scale: 0.98, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 30 }}
-              transition={{ duration: 0.6, cubicBezier: [0.16, 1, 0.3, 1] }}
-              className={`bg-white rounded-2xl shadow-3xl shadow-slate-900/20 w-full ${sizeClasses[size] || "max-w-xl"} overflow-hidden pointer-events-auto border border-slate-100 flex flex-col max-h-[95vh]`}
+              exit={{ opacity: 0, scale: 0.98, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className={`bg-card rounded-md shadow-2xl w-full ${sizeClasses[size] || "max-w-xl"} overflow-hidden pointer-events-auto border border-border flex flex-col max-h-[90vh]`}
             >
               {/* Modal Control Header */}
-              <div className="flex items-center justify-between px-10 pt-12 pb-8 border-b border-slate-50 bg-slate-50/30">
-                <div className="flex items-center gap-4">
-                   <div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
-                   <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase italic leading-tight">{title}</h3>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
+                <div className="flex items-center gap-3">
+                   <div className="w-1 h-4 bg-primary rounded-full"></div>
+                   <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">{title}</h3>
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-3 text-slate-400 hover:text-slate-900 hover:bg-white rounded-xl transition-all shadow-inner active:scale-90"
+                  className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-all active:scale-95"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
               
               {/* Dynamic Content Repository */}
-              <div className="p-10 overflow-y-auto custom-scrollbar flex-1">
+              <div className="p-6 overflow-y-auto custom-scrollbar flex-1 text-sm">
                 {children}
               </div>
               
               {/* Security Badge Footer */}
-              <div className="px-10 pb-6 pt-2 flex items-center justify-center gap-3 opacity-20">
-                 <ShieldCheck className="w-3 h-3 text-slate-400" />
-                 <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em]">Authorized Transaction Node</span>
+              <div className="px-6 py-3 border-t border-border/50 flex items-center justify-center gap-2 opacity-40">
+                 <ShieldCheck className="w-3 h-3 text-muted-foreground" />
+                 <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Enterprise Secured Node</span>
               </div>
             </motion.div>
           </div>

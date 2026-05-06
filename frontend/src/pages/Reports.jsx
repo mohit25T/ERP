@@ -103,204 +103,199 @@ const Reports = () => {
 
   if (loading && !gstr1) return (
     <AppLayout>
-      <div className="flex flex-col items-center justify-center h-[70vh]">
+      <div className="flex flex-col items-center justify-center h-[60vh]">
         <HammerLoader />
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-8 animate-pulse">Calibrating Regulatory Datasets...</p>
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em] mt-8 animate-pulse">Synchronizing Regulatory Datasets...</p>
       </div>
     </AppLayout>
   );
 
   return (
     <AppLayout>
-      <div className="space-y-10 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+      <div className="space-y-8 pb-10">
         
         {/* Header Section */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pt-6">
-           <div className="flex items-center gap-6">
-              <div className="w-14 h-14 bg-slate-900 rounded-md flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-xl border border-slate-800">
-                 <PieChart className="w-7 h-7 text-white" />
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-border pb-6">
+           <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-primary rounded flex items-center justify-center shadow-lg">
+                 <PieChart className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                 <h2 className="text-4xl font-black text-slate-900 tracking-tightest leading-none mb-2 italic">Intelligence <span className="text-primary not-italic">Terminal</span></h2>
-                 <div className="flex items-center gap-3">
-                    <ShieldCheck className="w-4 h-4 text-indigo-500" />
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Statutory Compliance, GST Filing, and Financial Analytics</span>
+                 <h2 className="text-2xl font-black text-foreground tracking-tight uppercase leading-none mb-1">Intelligence Terminal</h2>
+                 <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none opacity-70">Statutory Compliance & Financial Analytics</span>
                  </div>
               </div>
            </div>
 
-           <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3 px-4 py-3 bg-white rounded-md border border-slate-100 shadow-sm">
-                 <Calendar className="w-4 h-4 text-slate-400" />
-                 <select value={selectedMonth} onChange={(e) => setSelectedMonth(Number(e.target.value))} className="bg-transparent text-[10px] font-black text-slate-900 uppercase tracking-widest outline-none cursor-pointer">
-                    {months.map((m, i) => <option key={m} value={i+1}>{m}</option>)}
+           <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-card rounded border border-border">
+                 <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                 <select value={selectedMonth} onChange={(e) => setSelectedMonth(Number(e.target.value))} className="bg-transparent text-[10px] font-bold text-foreground uppercase tracking-widest outline-none cursor-pointer">
+                    {months.map((m, i) => <option key={m} value={i+1} className="bg-card">{m}</option>)}
                  </select>
               </div>
-              <div className="flex items-center gap-3 px-4 py-3 bg-white rounded-md border border-slate-100 shadow-sm">
-                 <Globe className="w-4 h-4 text-slate-400" />
-                 <select value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} className="bg-transparent text-[10px] font-black text-slate-900 uppercase tracking-widest outline-none cursor-pointer">
-                    {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-card rounded border border-border">
+                 <Globe className="w-3.5 h-3.5 text-muted-foreground" />
+                 <select value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} className="bg-transparent text-[10px] font-bold text-foreground uppercase tracking-widest outline-none cursor-pointer">
+                    {[2024, 2025, 2026].map(y => <option key={y} value={y} className="bg-card">{y}</option>)}
                  </select>
               </div>
            </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
            
-           <div className="lg:col-span-7 space-y-8">
+           <div className="lg:col-span-7 space-y-6">
               {/* GSTR-1 OUTWARD SUPPLIES */}
-              <div className="bg-white rounded-md p-8 border border-slate-100 shadow-sm relative overflow-hidden group">
-                 <div className="absolute top-0 right-0 p-8 opacity-5"><TrendingUp className="w-16 h-16 text-indigo-600" /></div>
-                 <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-50">
-                    <div className="flex items-center gap-4">
-                       <div className="w-12 h-12 bg-slate-900 rounded-md flex items-center justify-center text-white"><TrendingUp className="w-6 h-6" /></div>
+              <div className="bg-card rounded p-6 border border-border shadow-sm relative overflow-hidden">
+                 <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/50">
+                    <div className="flex items-center gap-3">
+                       <div className="w-10 h-10 bg-primary/10 rounded flex items-center justify-center text-primary"><TrendingUp className="w-5 h-5" /></div>
                        <div>
-                         <h4 className="text-xl font-black text-slate-900 italic tracking-tightest">GSTR-1 Outward Supplies</h4>
-                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Aggregated Sales & Output Tax Analysis</p>
+                         <h4 className="text-sm font-bold text-foreground uppercase tracking-wider">GSTR-1 Outward Supplies</h4>
+                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Output Tax Analysis</p>
                        </div>
                     </div>
-                    <span className="px-3 py-1 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-md text-[9px] font-black uppercase tracking-[0.2em]">Validated</span>
+                    <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded text-[9px] font-bold uppercase tracking-widest">Validated</span>
                  </div>
 
-                 <div className="grid grid-cols-2 gap-10 mb-10">
-                    <div className="space-y-2">
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">B2B Core Transactions</p>
-                       <h3 className="text-3xl font-black text-slate-900 italic tracking-tightest">₹{gstr1?.b2b?.taxableValue.toLocaleString() || '0'}</h3>
-                       <div className="flex items-center gap-2 text-[9px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 w-fit px-3 py-1 rounded-md mt-4">
-                          <span>{gstr1?.b2b?.count || 0} Invoices Registry</span>
+                 <div className="grid grid-cols-2 gap-8 mb-8">
+                    <div className="space-y-1">
+                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">B2B Taxable</p>
+                       <h3 className="text-2xl font-black text-foreground tracking-tighter">₹{gstr1?.b2b?.taxableValue.toLocaleString() || '0'}</h3>
+                       <div className="text-[9px] font-bold text-primary uppercase tracking-widest bg-primary/5 w-fit px-2 py-0.5 rounded mt-2">
+                          {gstr1?.b2b?.count || 0} Invoices
                        </div>
                     </div>
-                    <div className="space-y-2">
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">B2C Retail Flux</p>
-                       <h3 className="text-3xl font-black text-slate-900 italic tracking-tightest">₹{gstr1?.b2c?.taxableValue.toLocaleString() || '0'}</h3>
-                       <div className="flex items-center gap-2 text-[9px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 w-fit px-3 py-1 rounded-md mt-4">
-                          <span>{gstr1?.b2c?.count || 0} Unified Registry</span>
+                    <div className="space-y-1">
+                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">B2C Taxable</p>
+                       <h3 className="text-2xl font-black text-foreground tracking-tighter">₹{gstr1?.b2c?.taxableValue.toLocaleString() || '0'}</h3>
+                       <div className="text-[9px] font-bold text-primary uppercase tracking-widest bg-primary/5 w-fit px-2 py-0.5 rounded mt-2">
+                          {gstr1?.b2c?.count || 0} Records
                        </div>
                     </div>
                  </div>
 
-                 <div className="p-6 bg-slate-900 rounded-md flex items-center justify-between border border-slate-800 shadow-xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-6 opacity-10"><Zap className="w-12 h-12 text-white" /></div>
-                    <div className="relative z-10">
-                       <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Total Output Tax Liability</p>
-                       <h3 className="text-3xl font-black text-white italic tracking-tightest">₹{((gstr1?.b2b?.taxAmount || 0) + (gstr1?.b2c?.taxAmount || 0)).toLocaleString() || '0'}</h3>
+                 <div className="p-5 bg-muted/30 rounded border border-border flex items-center justify-between relative overflow-hidden">
+                    <div>
+                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Total Output Tax Liability</p>
+                       <h3 className="text-2xl font-black text-foreground tracking-tighter">₹{((gstr1?.b2b?.taxAmount || 0) + (gstr1?.b2c?.taxAmount || 0)).toLocaleString() || '0'}</h3>
                     </div>
-                    <div className="w-12 h-12 bg-white/10 rounded-md flex items-center justify-center text-white"><Activity className="w-6 h-6" /></div>
+                    <div className="w-10 h-10 bg-primary/20 rounded flex items-center justify-center text-primary"><Activity className="w-5 h-5" /></div>
                  </div>
               </div>
 
               {/* GSTR-3B TAX OFFSET */}
-              <div className="bg-white rounded-md p-8 border border-slate-100 shadow-sm relative overflow-hidden">
-                 <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-50">
-                    <div className="w-12 h-12 bg-slate-900 rounded-md flex items-center justify-center text-white"><Scale className="w-6 h-6" /></div>
+              <div className="bg-card rounded p-6 border border-border shadow-sm relative overflow-hidden">
+                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border/50">
+                    <div className="w-10 h-10 bg-primary/10 rounded flex items-center justify-center text-primary"><Scale className="w-5 h-5" /></div>
                     <div>
-                      <h4 className="text-xl font-black text-slate-900 italic tracking-tightest">GSTR-3B Fiscal Offset</h4>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Input Tax Credit vs Output Liability Calibration</p>
+                      <h4 className="text-sm font-bold text-foreground uppercase tracking-wider">GSTR-3B Fiscal Offset</h4>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">ITC vs Liability Calibration</p>
                     </div>
                  </div>
 
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                    <div className="p-6 bg-emerald-50/50 rounded-md border border-emerald-100 shadow-sm relative overflow-hidden">
-                       <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-3">Available ITC (Inward)</p>
-                       <h3 className="text-2xl font-black text-emerald-700 italic tracking-tightest">₹{gstr3b?.inward?.taxAmount.toLocaleString() || '0'}</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div className="p-4 bg-emerald-500/5 rounded border border-emerald-500/10">
+                       <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Available ITC</p>
+                       <h3 className="text-xl font-black text-emerald-700 dark:text-emerald-400 tracking-tighter">₹{gstr3b?.inward?.taxAmount.toLocaleString() || '0'}</h3>
                     </div>
-                    <div className="p-6 bg-rose-50/50 rounded-md border border-rose-100 shadow-sm relative overflow-hidden">
-                       <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-3">Output Liability (Outward)</p>
-                       <h3 className="text-2xl font-black text-rose-700 italic tracking-tightest">₹{gstr3b?.outward?.taxAmount.toLocaleString() || '0'}</h3>
+                    <div className="p-4 bg-rose-500/5 rounded border border-rose-500/10">
+                       <p className="text-[10px] font-bold text-rose-600 uppercase tracking-widest mb-1">Output Liability</p>
+                       <h3 className="text-xl font-black text-rose-700 dark:text-rose-400 tracking-tighter">₹{gstr3b?.outward?.taxAmount.toLocaleString() || '0'}</h3>
                     </div>
                  </div>
 
-                 <div className="p-8 flex flex-col md:flex-row items-center justify-between gap-6 bg-slate-50 border border-slate-100 rounded-md">
+                 <div className="p-6 flex flex-col md:flex-row items-center justify-between gap-4 bg-muted/20 border border-border rounded">
                     <div>
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Net Fiscal Payable</p>
-                       <h3 className="text-4xl font-black text-slate-900 italic tracking-tightest">₹{Math.max(0, gstr3b?.netPayable || 0).toLocaleString()}</h3>
+                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Net Fiscal Payable</p>
+                       <h3 className="text-3xl font-black text-foreground tracking-tighter">₹{Math.max(0, gstr3b?.netPayable || 0).toLocaleString()}</h3>
                     </div>
-                    <div className={`px-6 py-3 rounded-md text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 shadow-sm ${gstr3b?.netPayable < 0 ? 'bg-emerald-600 text-white shadow-emerald-500/20' : 'bg-slate-900 text-white shadow-slate-900/20'}`}>
-                       {gstr3b?.netPayable < 0 ? <ShieldCheck className="w-4 h-4" /> : <Activity className="w-4 h-4" />}
-                       {gstr3b?.netPayable < 0 ? "Excess ITC Shield Active" : "Payment Protocol Required"}
+                    <div className={`px-4 py-2 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-sm ${gstr3b?.netPayable < 0 ? 'bg-emerald-600 text-white' : 'bg-foreground text-background'}`}>
+                       {gstr3b?.netPayable < 0 ? <ShieldCheck className="w-3.5 h-3.5" /> : <Activity className="w-3.5 h-3.5" />}
+                       {gstr3b?.netPayable < 0 ? "ITC Reserve Active" : "Payment Action Required"}
                     </div>
                  </div>
               </div>
            </div>
 
-           <div className="lg:col-span-5 space-y-8">
+           <div className="lg:col-span-5 space-y-6">
               {/* BALANCE SHEET */}
-              <div className="bg-white rounded-md p-8 border border-slate-100 shadow-sm relative overflow-hidden">
-                 <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-50">
-                     <div className="w-12 h-12 bg-slate-900 rounded-md flex items-center justify-center text-white"><Building2 className="w-6 h-6" /></div>
+              <div className="bg-card rounded p-6 border border-border shadow-sm">
+                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border/50">
+                     <div className="w-10 h-10 bg-primary/10 rounded flex items-center justify-center text-primary"><Building2 className="w-5 h-5" /></div>
                      <div>
-                        <h4 className="text-xl font-black text-slate-900 italic tracking-tightest">Balance Sheet</h4>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Master Financial Position Snapshot</p>
+                        <h4 className="text-sm font-bold text-foreground uppercase tracking-wider">Balance Sheet</h4>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Financial Position Snapshot</p>
                      </div>
                  </div>
                  
-                 <div className="space-y-8">
-                    {/* ASSETS */}
-                    <div className="space-y-4">
+                 <div className="space-y-6">
+                    <div className="space-y-3">
                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
-                             <TrendingUp className="w-4 h-4 text-emerald-500" />
+                          <span className="text-[10px] font-bold text-foreground uppercase tracking-widest flex items-center gap-2">
+                             <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
                              Asset Matrix
                           </span>
-                          <span className="text-2xl font-black text-slate-900 italic tracking-tightest">₹{balanceSheet?.assets?.total?.toLocaleString() || '0'}</span>
+                          <span className="text-xl font-black text-foreground tracking-tighter">₹{balanceSheet?.assets?.total?.toLocaleString() || '0'}</span>
                        </div>
-                       <div className="space-y-3 px-6 py-5 bg-slate-50/50 rounded-md border border-slate-100">
+                       <div className="space-y-2 px-4 py-3 bg-muted/30 rounded border border-border/50">
                           {[
-                            { label: "Cash & Treasury Bank", val: balanceSheet?.assets?.cashAndBank },
-                            { label: "Accounts Receivable Flow", val: balanceSheet?.assets?.receivables },
-                            { label: "Inventory Asset Value", val: balanceSheet?.assets?.inventory }
+                            { label: "Cash & Bank", val: balanceSheet?.assets?.cashAndBank },
+                            { label: "Receivables", val: balanceSheet?.assets?.receivables },
+                            { label: "Inventory", val: balanceSheet?.assets?.inventory }
                           ].map((item, i) => (
                             <div key={i} className="flex justify-between items-center">
-                               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.label}</span>
-                               <span className="text-sm font-black text-slate-900 italic tracking-tighter">₹{item.val?.toLocaleString() || '0'}</span>
+                               <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{item.label}</span>
+                               <span className="text-xs font-bold text-foreground tracking-tight">₹{item.val?.toLocaleString() || '0'}</span>
                             </div>
                           ))}
                        </div>
                     </div>
 
-                    {/* LIABILITIES */}
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
-                             <TrendingDown className="w-4 h-4 text-rose-500" />
+                          <span className="text-[10px] font-bold text-foreground uppercase tracking-widest flex items-center gap-2">
+                             <TrendingDown className="w-3.5 h-3.5 text-rose-500" />
                              Liability Matrix
                           </span>
-                          <span className="text-2xl font-black text-slate-900 italic tracking-tightest">₹{balanceSheet?.liabilities?.total?.toLocaleString() || '0'}</span>
+                          <span className="text-xl font-black text-foreground tracking-tighter">₹{balanceSheet?.liabilities?.total?.toLocaleString() || '0'}</span>
                        </div>
-                       <div className="space-y-3 px-6 py-5 bg-slate-50/50 rounded-md border border-slate-100">
+                       <div className="px-4 py-3 bg-muted/30 rounded border border-border/50">
                           <div className="flex justify-between items-center">
-                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Accounts Payable Flow</span>
-                             <span className="text-sm font-black text-slate-900 italic tracking-tighter">₹{balanceSheet?.liabilities?.payables?.toLocaleString() || '0'}</span>
+                             <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Accounts Payable</span>
+                             <span className="text-xs font-bold text-foreground tracking-tight">₹{balanceSheet?.liabilities?.payables?.toLocaleString() || '0'}</span>
                           </div>
                        </div>
                     </div>
 
-                    {/* EQUITY */}
-                    <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
-                       <span className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em]">Aggregate Equity</span>
-                       <span className="text-3xl font-black text-indigo-600 italic tracking-tightest">₹{balanceSheet?.equity?.toLocaleString() || '0'}</span>
+                    <div className="pt-4 border-t border-border flex items-center justify-between">
+                       <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Net Equity</span>
+                       <span className="text-2xl font-black text-primary tracking-tighter">₹{balanceSheet?.equity?.toLocaleString() || '0'}</span>
                     </div>
                  </div>
               </div>
 
               {/* ACTION MATRIX */}
-              <div className="grid grid-cols-2 gap-6">
-                 <button onClick={handleExportLedger} disabled={exportLoading} className="p-8 bg-white rounded-md border border-slate-100 shadow-sm text-center hover:border-slate-300 hover:bg-slate-50 transition-all flex flex-col items-center justify-center gap-4 group">
-                    <div className="w-14 h-14 bg-slate-900 rounded-md flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
-                       <Download className="w-7 h-7" />
+              <div className="grid grid-cols-2 gap-4">
+                 <button onClick={handleExportLedger} disabled={exportLoading} className="p-6 bg-card rounded border border-border shadow-sm text-center hover:bg-muted/50 transition-all flex flex-col items-center justify-center gap-3 group">
+                    <div className="w-10 h-10 bg-primary/10 rounded flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                       <Download className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Export Ledger</p>
-                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Global CSV Dataset</p>
+                      <p className="text-[9px] font-bold text-foreground uppercase tracking-widest">Export Ledger</p>
+                      <p className="text-[8px] font-medium text-muted-foreground uppercase tracking-tighter mt-0.5">CSV Dataset</p>
                     </div>
                  </button>
-                 <button onClick={handleDaybookExport} disabled={exportLoading} className="p-8 bg-white rounded-md border border-slate-100 shadow-sm text-center hover:border-slate-300 hover:bg-slate-50 transition-all flex flex-col items-center justify-center gap-4 group">
-                    <div className="w-14 h-14 bg-slate-900 rounded-md flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
-                       <PieChart className="w-7 h-7" />
+                 <button onClick={handleDaybookExport} disabled={exportLoading} className="p-6 bg-card rounded border border-border shadow-sm text-center hover:bg-muted/50 transition-all flex flex-col items-center justify-center gap-3 group">
+                    <div className="w-10 h-10 bg-primary/10 rounded flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                       <PieChart className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Export Daybook</p>
-                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Monthly Temporal summary</p>
+                      <p className="text-[9px] font-bold text-foreground uppercase tracking-widest">Export Daybook</p>
+                      <p className="text-[8px] font-medium text-muted-foreground uppercase tracking-tighter mt-0.5">Monthly Summary</p>
                     </div>
                  </button>
               </div>

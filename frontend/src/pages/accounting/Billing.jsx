@@ -4,13 +4,15 @@ import { useAuth } from "../../context/AuthContext";
 import AppLayout from "../../components/layout/AppLayout";
 import Modal from "../../components/common/Modal";
 import HammerLoader from "../../components/common/HammerLoader";
+import BillingForm from "../../components/forms/BillingForm";
 import EInvoiceDataModal from "../../components/modals/EInvoiceDataModal";
 import EWayBillDataModal from "../../components/modals/EWayBillDataModal";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Landmark, ShieldCheck, Search, Filter, TrendingUp,
-  Activity, Zap, Calendar, FileText, Eye, Truck,
-  FileJson, ArrowDownToLine, Download
+  FileText, Search, Filter, TrendingUp,
+  Activity, Calendar, Eye, Truck,
+  FileJson, Download, Plus, AlertCircle,
+  CheckCircle2, Clock, MoreVertical
 } from "lucide-react";
 
 
@@ -18,15 +20,16 @@ const Billing = () => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
 
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [activeInvoice, setActiveInvoice] = useState(null);
 
+  const [isBillingModalOpen, setIsBillingModalOpen] = useState(false);
   const [isEInvoiceModalOpen, setIsEInvoiceModalOpen] = useState(false);
   const [isEWayBillModalOpen, setIsEWayBillModalOpen] = useState(false);
-
-  const { user } = useAuth();
+  const [formLoading, setFormLoading] = useState(false);
 
   const fetchInvoices = async () => {
     try {
@@ -43,6 +46,19 @@ const Billing = () => {
   useEffect(() => {
     fetchInvoices();
   }, []);
+
+  const handleCreateInvoice = async (data) => {
+    try {
+      setFormLoading(true);
+      await invoiceApi.create(data);
+      setIsBillingModalOpen(false);
+      fetchInvoices();
+    } catch (err) {
+      alert("Invoice creation failed: " + (err.response?.data?.msg || err.message));
+    } finally {
+      setFormLoading(false);
+    }
+  };
 
   const handleOpenPreview = async (invoice) => {
     try {
@@ -95,7 +111,6 @@ const Billing = () => {
     try {
       const res = await invoiceApi.updateEinvoiceDetails(id, data);
       await fetchInvoices();
-      // Update active invoice if it's the one currently being viewed
       if (activeInvoice?._id === id) {
         setActiveInvoice(res.data);
       }
@@ -116,212 +131,192 @@ const Billing = () => {
     }
   };
 
-  const filteredInvoices = invoices.filter(inv =>
-    (inv.invoiceNumber || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (inv.customerName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (inv.customer?.name || "").toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredInvoices = invoices.filter(inv => {
+    const matchesSearch = (inv.invoiceNumber || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (inv.customer?.name || "").toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === "all" || inv.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
 
-  const totalBilled = filteredInvoices.reduce((acc, inv) => acc + (inv.totalAmount || 0), 0);
-  const totalTax = filteredInvoices.reduce((acc, inv) => acc + (inv.gstAmount || 0), 0);
+  const stats = {
+    totalRevenue: filteredInvoices.reduce((acc, inv) => acc + (inv.totalAmount || 0), 0),
+    totalTax: filteredInvoices.reduce((acc, inv) => acc + (inv.gstAmount || 0), 0),
+    pendingCount: filteredInvoices.filter(inv => inv.status === 'draft').length,
+    finalizedCount: filteredInvoices.filter(inv => inv.status === 'finalized' || inv.status === 'paid').length
+  };
 
   return (
     <AppLayout fullWidth>
-      <div className="space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-
-        {/* Corporate Header Node */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-          <div className="flex items-center gap-6">
-            <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-sm border border-indigo-500/10">
-              <Landmark className="w-7 h-7 text-indigo-600" />
-            </div>
-            <div>
-              <h2 className="text-3xl font-black text-slate-900 tracking-tightest leading-none mb-2 italic uppercase">
-                Fiscal <span className="text-primary not-italic text-indigo-600">Terminal</span>
-              </h2>
-              <div className="flex items-center gap-3">
-                <ShieldCheck className="w-4 h-4 text-indigo-500" />
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Commercial Settlement Hub & Compliance Orchestration</span>
-              </div>
+      <div className="max-w-full mx-auto px-2 md:px-6 space-y-8 pb-12 animate-in fade-in duration-700">
+        
+        {/* Professional Dashboard Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase mb-1">
+              Billing <span className="text-indigo-600">Dashboard</span>
+            </h2>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              <Activity className="w-3.5 h-3.5" />
+              Real-time Financial Reconciliation & Invoicing
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
               <input
-                className="pl-10 pr-4 py-2.5 bg-white border border-slate-100 rounded-lg text-[9px] font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 w-72 transition-all shadow-sm"
-                placeholder="Universal Document Search..."
+                className="pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/30 w-64 transition-all shadow-sm"
+                placeholder="Search invoices or clients..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button className="p-2.5 bg-white border border-slate-100 rounded-lg shadow-sm hover:border-indigo-200 transition-all active:scale-95 group">
-              <Filter className="w-4 h-4 text-slate-400 group-hover:text-indigo-600" />
+            <button 
+              onClick={() => setIsBillingModalOpen(true)}
+              className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-indigo-700 active:scale-95 transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20"
+            >
+              <Plus className="w-4 h-4" /> Create Invoice
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="relative group p-4 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-2xl hover:shadow-indigo-600/10 transition-all duration-700 hover:-translate-y-1 overflow-hidden">
-            <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity group-hover:scale-125 duration-700">
-              <TrendingUp className="w-24 h-24 rotate-12" />
-            </div>
-            <div className="relative z-10">
-              <div className="w-10 h-10 bg-indigo-50 border border-indigo-100 rounded-lg flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
-                <TrendingUp className="w-5 h-5 text-emerald-600" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[
+            { label: "Total Gross Revenue", value: `₹${stats.totalRevenue.toLocaleString('en-IN')}`, icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+            { label: "Statutory Tax Volume", value: `₹${stats.totalTax.toLocaleString('en-IN')}`, icon: FileText, color: "text-indigo-500", bg: "bg-indigo-500/10" },
+            { label: "Draft Invoices", value: stats.pendingCount, icon: Clock, color: "text-amber-500", bg: "bg-amber-500/10" },
+            { label: "Issued Invoices", value: stats.finalizedCount, icon: CheckCircle2, color: "text-blue-500", bg: "bg-blue-500/10" },
+          ].map((card, i) => (
+            <div key={i} className="bg-card p-6 rounded-xl border border-border shadow-sm hover:shadow-md transition-all">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-2 rounded-lg ${card.bg}`}>
+                  <card.icon className={`w-5 h-5 ${card.color}`} />
+                </div>
+                <MoreVertical className="w-4 h-4 text-muted-foreground/50" />
               </div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Gross Billings</p>
-              <h3 className="text-xl font-black text-slate-900 tracking-tightest italic leading-none tabular-nums">₹{totalBilled.toLocaleString('en-IN')}</h3>
-              <div className="mt-4 flex items-center gap-2 bg-emerald-50 w-fit px-2.5 py-1 rounded-md border border-emerald-100">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Active Revenue Stream</span>
-              </div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">{card.label}</p>
+              <h3 className="text-xl font-black text-foreground tracking-tightest tabular-nums">{card.value}</h3>
             </div>
-          </div>
-
-          <div className="relative group p-4 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-2xl hover:shadow-slate-900/10 transition-all duration-700 hover:-translate-y-2 overflow-hidden">
-            <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity group-hover:scale-125 duration-700">
-              <Activity className="w-24 h-24 -rotate-12" />
-            </div>
-            <div className="relative z-10">
-              <div className="w-10 h-10 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center mb-4 shadow-inner">
-                <Zap className="w-5 h-5 text-indigo-600" />
-              </div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Tax Liability</p>
-              <h3 className="text-xl font-black text-slate-900 tracking-tightest italic leading-none">₹{totalTax.toLocaleString('en-IN')}</h3>
-              <p className="mt-4 text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 w-fit px-2.5 py-1 rounded-md">Calculated from {filteredInvoices.length} entries</p>
-            </div>
-          </div>
-
-          <div className="relative group p-4 bg-slate-900 rounded-xl shadow-2xl shadow-slate-900/20 text-white overflow-hidden">
-            <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform duration-700">
-              <Calendar className="w-24 h-24" />
-            </div>
-            <div className="relative z-10">
-               <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-lg flex items-center justify-center mb-4 border border-white/10 shadow-inner">
-                <Calendar className="w-5 h-5 text-white" />
-              </div>
-              <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-0.5">E-Way Threshold Monitor</p>
-              <h3 className="text-xl font-black text-white tracking-tightest italic leading-none">₹50,000 / Per Con.</h3>
-              <button className="mt-4 w-full py-2.5 bg-white text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg hover:bg-primary hover:text-white transition-all duration-500">
-                Verify Legal Protocol
-              </button>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Invoice List */}
-        <div className="bg-white rounded-md border border-slate-100 shadow-sm overflow-hidden mb-4">
-          <div className="p-4 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+        {/* Invoice Management Table */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center text-white shadow-lg">
-                <FileText className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-lg font-black text-slate-900 tracking-tightest leading-none mb-1 uppercase italic">Generated Tax Ledgers</h3>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-60">Synchronized Document Stream</p>
-              </div>
+               {['all', 'draft', 'finalized', 'paid'].map(status => (
+                 <button 
+                  key={status}
+                  onClick={() => setFilterStatus(status)}
+                  className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${filterStatus === status ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}
+                 >
+                   {status}
+                 </button>
+               ))}
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100">
-                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Network Secure</span>
-              </div>
-              <div className="h-8 w-px bg-slate-100"></div>
-              <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest bg-white px-4 py-2 rounded-lg border border-slate-100 shadow-sm">Volume: {filteredInvoices.length}</span>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              Total Records: {filteredInvoices.length}
             </div>
           </div>
 
-          <div className="overflow-x-auto min-h-[400px] flex flex-col">
+          <div className="overflow-x-auto">
             {loading ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-20">
+              <div className="py-20 flex flex-col items-center justify-center">
                 <HammerLoader />
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-8 animate-pulse">Retrieving Fiscal Records...</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-8">Synchronizing Ledgers...</p>
               </div>
             ) : filteredInvoices.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-40 text-center opacity-20 gap-6">
-                <FileText className="w-16 h-16" />
-                <p className="font-black text-slate-900 tracking-[0.4em] uppercase italic text-[11px]">Archive Empty. Initialize Fulfillment.</p>
+              <div className="py-24 flex flex-col items-center justify-center text-slate-300 gap-4">
+                <AlertCircle className="w-12 h-12 opacity-20" />
+                <p className="font-black uppercase tracking-widest text-[11px]">No financial records found</p>
               </div>
             ) : (
-              <table className="erp-table">
+              <table className="w-full">
                 <thead>
-                  <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">
-                    <th className="px-6 py-4 italic">Doc Registry</th>
-                    <th className="px-6 py-4 italic">Counterparty Node</th>
-                    <th className="px-6 py-4 text-center italic">Protocol Date</th>
-                    <th className="px-6 py-4 text-right italic">Settlement Value</th>
-                    <th className="px-6 py-4 text-center italic">Compliance</th>
-                    <th className="px-6 py-4 text-right pr-12 italic">Command</th>
+                  <tr className="border-b border-slate-100 text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                    <th className="px-8 py-4 text-left">Invoice Detail</th>
+                    <th className="px-6 py-4 text-left">Client Information</th>
+                    <th className="px-6 py-4 text-center">Status</th>
+                    <th className="px-6 py-4 text-right">Total Value</th>
+                    <th className="px-6 py-4 text-center">Compliance</th>
+                    <th className="px-8 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   <AnimatePresence mode="popLayout">
-                    {filteredInvoices.map((inv, index) => (
+                    {filteredInvoices.map((inv, idx) => (
                       <motion.tr
                         key={inv._id}
-                        initial={{ opacity: 0, y: 10 }}
+                        initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.3, delay: index * 0.03 }}
-                        className="group erp-row-hover transition-all duration-500"
+                        transition={{ delay: idx * 0.03 }}
+                        className="group hover:bg-slate-50/80 transition-colors"
                       >
-                        <td className="px-6 py-4">
-                           <div className="w-10 h-10 bg-white rounded-md flex items-center justify-center text-slate-900 font-black text-xs italic shadow-lg border border-slate-100 group-hover:scale-110 transition-transform mb-1">
-                             {inv.invoiceNumber?.charAt(0) || "I"}
-                           </div>
-                           <div className="flex flex-col">
-                            <span className="text-[8px] font-black text-indigo-600 uppercase tracking-widest leading-none mb-1 opacity-60">Tax Ledger</span>
-                            <span className="text-sm font-black text-slate-900 tracking-tightest italic leading-none">{inv.invoiceNumber || inv._id.slice(-8).toUpperCase()}</span>
+                        <td className="px-8 py-5">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-900 font-black text-[10px] border border-slate-200">
+                              INV
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-black text-slate-900 tracking-tight">{inv.invoiceNumber}</span>
+                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{new Date(inv.createdAt).toLocaleDateString('en-GB')}</span>
+                            </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-5">
                           <div className="flex flex-col">
-                            <span className="text-sm font-black text-slate-900 leading-none mb-1.5 tracking-tightest uppercase italic group-hover:text-primary transition-colors">{inv.customer?.name || inv.customerName || "External Node"}</span>
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest italic leading-none bg-slate-50 w-fit px-2 py-0.5 rounded-md border border-slate-100">{inv.customer?.gstin || "Non-GST Protocol"}</span>
+                            <span className="text-sm font-bold text-slate-900">{inv.customer?.name || "Private Client"}</span>
+                            <span className="text-[10px] text-slate-400 font-medium uppercase tracking-tight">{inv.customer?.company || "Retail Branch"}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="text-[10px] font-black text-slate-900 tracking-tightest italic bg-slate-50 px-3 py-1.5 rounded-md border border-slate-100 tabular-nums uppercase">{new Date(inv.date || inv.createdAt).toLocaleDateString('en-GB')}</span>
+                        <td className="px-6 py-5">
+                          <div className="flex justify-center">
+                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                              inv.status === 'paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                              inv.status === 'finalized' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                              'bg-amber-50 text-amber-600 border-amber-100'
+                            }`}>
+                              {inv.status}
+                            </span>
+                          </div>
                         </td>
-                        <td className="px-6 py-4 text-right">
+                        <td className="px-6 py-5 text-right">
                           <div className="flex flex-col items-end">
-                            <span className="text-xl font-black text-slate-900 tracking-tightest italic tabular-nums leading-none mb-1">₹{(inv.totalAmount || 0).toLocaleString('en-IN')}</span>
-                            <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest italic leading-none bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">Verified Magnitude</span>
+                            <span className="text-base font-black text-slate-900 tabular-nums">₹{(inv.totalAmount || 0).toLocaleString('en-IN')}</span>
+                            <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">Tax Paid</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-5">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => { setActiveInvoice(inv); setIsEInvoiceModalOpen(true); }}
-                              className={`p-2 rounded-md border transition-all duration-300 shadow-sm ${inv.einvoice?.irn ? 'bg-indigo-600 border-indigo-700 text-white shadow-indigo-200' : 'bg-white border-slate-100 text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:shadow-lg'}`}
-                              title={inv.einvoice?.irn ? "E-Invoice Protocol Active" : "Add E-Invoice Data"}
+                              className={`p-2 rounded-lg border transition-all ${inv.einvoice?.irn ? 'bg-indigo-600 border-indigo-700 text-white shadow-md' : 'bg-white border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-100'}`}
+                              title="E-Invoice"
                             >
                               <FileJson className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => { setActiveInvoice(inv); setIsEWayBillModalOpen(true); }}
-                              className={`p-2 rounded-md border transition-all duration-300 shadow-sm ${inv.ewayBill?.number ? 'bg-emerald-600 border-emerald-700 text-white shadow-emerald-200' : 'bg-white border-slate-100 text-slate-400 hover:text-emerald-600 hover:border-emerald-100 hover:shadow-lg'}`}
-                              title={inv.ewayBill?.number ? "E-Way Bill Logged" : "Add E-Way Bill Data"}
+                              className={`p-2 rounded-lg border transition-all ${inv.ewayBill?.number ? 'bg-emerald-600 border-emerald-700 text-white shadow-md' : 'bg-white border-slate-200 text-slate-400 hover:text-emerald-600 hover:border-emerald-100'}`}
+                              title="E-Way Bill"
                             >
                               <Truck className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-right pr-12">
+                        <td className="px-8 py-5 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => handleOpenPreview(inv)}
-                              className="p-3 bg-white border border-slate-100 rounded-md text-slate-400 hover:text-slate-900 hover:shadow-xl transition-all active:scale-90 group/btn"
+                              className="p-2.5 bg-white border border-slate-200 rounded-lg text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm"
                             >
-                              <Eye className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+                              <Eye className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDownloadPdf(inv)}
-                              className="p-3 bg-slate-900 text-white rounded-md hover:bg-black shadow-xl shadow-slate-900/10 transition-all active:scale-90 group/btn"
+                              className="p-2.5 bg-slate-900 text-white rounded-lg hover:bg-black transition-all shadow-md active:scale-95"
                             >
-                              <ArrowDownToLine className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+                              <Download className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -335,38 +330,54 @@ const Billing = () => {
         </div>
       </div>
 
+      {/* Invoice Generation Modal */}
+      <Modal
+        isOpen={isBillingModalOpen}
+        onClose={() => setIsBillingModalOpen(false)}
+        title="Generate New Fiscal Invoice"
+        size="7xl"
+      >
+        <div className="p-2 overflow-y-auto max-h-[90vh]">
+          <BillingForm 
+            onSubmit={handleCreateInvoice}
+            onCancel={() => setIsBillingModalOpen(false)}
+            loading={formLoading}
+          />
+        </div>
+      </Modal>
+
       {/* PDF Preview Modal */}
       <Modal
         isOpen={isPreviewOpen}
         onClose={handleClosePreview}
-        title={<div className="flex items-center gap-4"><FileText className="w-6 h-6 text-slate-900" /><span className="text-xl font-black italic tracking-tightest uppercase leading-none">Fiscal Document Preview</span></div>}
-        size="max-w-6xl"
+        title={<div className="flex items-center gap-4"><FileText className="w-6 h-6 text-slate-900" /><span className="text-xl font-black uppercase tracking-tightest leading-none italic">Document <span className="text-indigo-600">Preview</span></span></div>}
+        size="7xl"
       >
         <div className="flex flex-col h-[85vh]">
-          <div className="p-6 bg-slate-50 border-b border-slate-100 flex items-center justify-between shadow-inner">
-            <div className="flex items-center gap-6">
-              <div className="w-14 h-14 bg-slate-900 rounded-md flex items-center justify-center text-white shadow-xl">
-                <FileText className="w-7 h-7" />
+          <div className="p-6 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-slate-900 rounded-lg flex items-center justify-center text-white shadow-xl">
+                <FileText className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="text-2xl font-black text-slate-900 tracking-tightest italic leading-none mb-1.5 uppercase">Invoice Node: <span className="text-primary not-italic">{activeInvoice?.invoiceNumber}</span></h4>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Enterprise Fulfillment Protocol Analysis</p>
+                <h4 className="text-xl font-black text-slate-900 tracking-tight italic uppercase">{activeInvoice?.invoiceNumber}</h4>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Internal Audit Master Record</p>
               </div>
             </div>
             <button
               onClick={handleDownloadPdf}
-              className="px-6 py-4 bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-md hover:bg-black transition-all flex items-center gap-3 shadow-2xl shadow-slate-900/20 group"
+              className="px-8 py-3 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-indigo-700 transition-all flex items-center gap-3 shadow-lg shadow-indigo-100"
             >
-              <Download className="w-5 h-5 group-hover:scale-110 transition-transform" /> Commit Download
+              <Download className="w-4 h-4" /> Download PDF
             </button>
           </div>
 
-          <div className="flex-1 bg-slate-200/50 p-6 overflow-hidden flex items-center justify-center relative">
-            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:20px_20px]"></div>
+          <div className="flex-1 bg-slate-200 p-8 overflow-hidden flex items-center justify-center relative">
+            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:30px_30px]"></div>
             {previewUrl ? (
               <iframe
                 src={previewUrl}
-                className="w-full h-full rounded-md border border-slate-300 shadow-[0_0_80px_rgba(0,0,0,0.15)] bg-white relative z-10"
+                className="w-full h-full rounded-xl border border-slate-300 shadow-2xl bg-white relative z-10"
                 title="Invoice Preview"
               />
             ) : (
@@ -379,7 +390,7 @@ const Billing = () => {
         </div>
       </Modal>
 
-      {/* E-Invoice Metadata Modal */}
+      {/* E-Invoice & E-Way Bill Modals */}
       <EInvoiceDataModal
         isOpen={isEInvoiceModalOpen}
         onClose={() => setIsEInvoiceModalOpen(false)}
@@ -388,7 +399,6 @@ const Billing = () => {
         onDownloadJSON={(id) => handleDownloadJSON(id, 'einvoice')}
       />
 
-      {/* E-Way Bill Metadata Modal */}
       <EWayBillDataModal
         isOpen={isEWayBillModalOpen}
         onClose={() => setIsEWayBillModalOpen(false)}

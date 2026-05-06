@@ -99,7 +99,7 @@ const Suppliers = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("CRITICAL: Permanent removal of vendor entity? This action will archive historical inward links.")) {
+    if (window.confirm("CRITICAL: Permanent removal of vendor entity?")) {
       try {
         await api.delete(`/suppliers/${id}`);
         fetchSuppliers();
@@ -128,77 +128,77 @@ const Suppliers = () => {
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white rounded-md flex items-center justify-center shadow-sm border border-slate-100">
+              <div className="w-12 h-12 bg-card rounded-md flex items-center justify-center shadow-sm border border-border">
                  <Building2 className="w-6 h-6 text-primary" />
               </div>
               <div>
-                 <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-1">Suppliers</h2>
-                 <p className="text-sm font-medium text-slate-500">Manage vendor portfolios, contacts, and inward logistics</p>
+                 <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Supply Chain Hub</h2>
+                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Vendor Portfolios & Strategic Inward Logistics</p>
               </div>
            </div>
 
            <button onClick={() => handleOpenModal()} className="erp-button-primary">
               <Plus className="w-4 h-4 mr-2" />
-              New Supplier
+              Authorize Partner
            </button>
         </div>
 
         {/* Global Sourcing Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-           <div className="p-5 bg-white rounded-md border border-slate-100 shadow-sm flex flex-col justify-between">
+           <div className="p-5 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
-                 <p className="text-sm font-semibold text-slate-500">Active Suppliers</p>
-                 <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Active Network</p>
+                 <div className="p-2 bg-indigo-500/10 rounded text-indigo-600 dark:text-indigo-400">
                     <Globe className="w-4 h-4" />
                  </div>
               </div>
                <div>
-                  <h3 className="text-2xl font-bold text-slate-900">{suppliers.length} Suppliers</h3>
-                  <p className="text-xs font-medium text-indigo-600 mt-1 flex items-center gap-1">
-                     Registered Partners
+                  <h3 className="text-2xl font-black text-foreground tracking-tighter">{suppliers.length} Nodes</h3>
+                  <p className="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 mt-1 uppercase tracking-widest">
+                     Registered Sourcing Partners
                   </p>
                </div>
            </div>
            
-           <div className="p-5 bg-white rounded-md border border-slate-100 shadow-sm flex flex-col justify-between">
+           <div className="p-5 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
-                 <p className="text-sm font-semibold text-slate-500">Total Procurement</p>
-                 <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Fiscal Inflow</p>
+                 <div className="p-2 bg-emerald-500/10 rounded text-emerald-600 dark:text-emerald-400">
                     <ShoppingCart className="w-4 h-4" />
                  </div>
               </div>
                <div>
-                  <h3 className="text-2xl font-bold text-slate-900">₹0</h3>
-                  <p className="text-xs font-medium text-emerald-600 mt-1 flex items-center gap-1">
-                     Total Procurement Value
+                  <h3 className="text-2xl font-black text-foreground tracking-tighter">₹0</h3>
+                  <p className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 mt-1 uppercase tracking-widest">
+                     Total Procurement Index
                   </p>
                </div>
            </div>
 
-           <div className="p-5 bg-primary/5 rounded-md border border-primary/10 shadow-sm flex flex-col justify-between">
+           <div className="p-5 bg-primary/5 rounded-md border border-primary/20 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
-                 <p className="text-sm font-semibold text-primary">Risk Exposure</p>
-                 <div className="p-2 bg-primary/20 rounded-lg text-primary">
+                 <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Risk Assessment</p>
+                 <div className="p-2 bg-primary/20 rounded text-primary">
                     <Database className="w-4 h-4" />
                  </div>
               </div>
                <div>
-                  <h3 className="text-2xl font-bold text-slate-900">0.0 Alpha</h3>
-                  <p className="text-xs font-medium text-primary/80 mt-1 flex items-center gap-1">
-                     Active Risk Monitoring
+                  <h3 className="text-2xl font-black text-foreground tracking-tighter">0.0 Alpha</h3>
+                  <p className="text-[9px] font-bold text-primary mt-1 uppercase tracking-widest">
+                     Active Exposure Monitoring
                   </p>
                </div>
            </div>
         </div>
 
         {/* Data Table Section */}
-        <div className="bg-white rounded-md border border-slate-200 shadow-sm overflow-hidden mb-20">
-           <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-              <div className="relative w-full max-w-sm">
-                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <div className="bg-card rounded-md border border-border shadow-sm overflow-hidden mb-20">
+           <div className="p-4 border-b border-border flex flex-col sm:flex-row justify-between items-center gap-4 bg-muted/5">
+              <div className="relative w-full max-w-sm group">
+                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                  <input 
                     type="text"
-                    placeholder="Search partner, GSTIN or corporate label..."
+                    placeholder="Search Partners..."
                     className="erp-input w-full pl-10"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -207,12 +207,12 @@ const Suppliers = () => {
               <div className="flex items-center gap-2 w-full sm:w-auto">
                  <button 
                     onClick={() => setShowFilters(!showFilters)}
-                    className={`p-2.5 rounded-md border transition-colors ${showFilters ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                    className={`p-2 border rounded-md transition-all ${showFilters ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-card border-border text-muted-foreground hover:text-foreground'}`}
                     title="Filters"
                  >
                     <Filter className="w-4 h-4" />
                  </button>
-                 <button className="p-2.5 rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors" title="Export">
+                 <button className="p-2 border border-border bg-card rounded-md text-muted-foreground hover:text-foreground transition-all shadow-sm" title="Export">
                     <Download className="w-4 h-4" />
                  </button>
               </div>
@@ -220,15 +220,15 @@ const Suppliers = () => {
 
            {/* Filters */}
            {showFilters && (
-              <div className="p-4 bg-slate-50/50 border-b border-slate-100 flex flex-wrap gap-6 items-end animate-in fade-in slide-in-from-top-2">
+              <div className="p-4 bg-muted/10 border-b border-border flex flex-wrap gap-6 items-end animate-in fade-in slide-in-from-top-2">
                  <div className="space-y-2">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Regional Distribution</p>
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Regional Matrix</p>
                     <div className="flex flex-wrap gap-2">
                        {['all', ...new Set(suppliers.map(s => s.state).filter(Boolean))].map(state => (
                           <button 
                              key={state}
                              onClick={() => setFilterState(state)}
-                             className={`px-4 py-2 rounded-md text-sm font-semibold transition-all border capitalize ${filterState === state ? 'bg-primary/10 text-primary border-primary/20' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}
+                             className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest transition-all border ${filterState === state ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-muted-foreground border-border hover:border-muted-foreground/30'}`}
                           >
                              {state}
                           </button>
@@ -239,9 +239,9 @@ const Suppliers = () => {
                  <div className="flex-1 flex justify-end">
                     <button 
                        onClick={() => { setFilterState("all"); setSearchTerm(""); }}
-                       className="text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-2"
+                       className="text-[9px] font-bold text-muted-foreground hover:text-destructive transition-colors flex items-center gap-2 uppercase tracking-widest"
                     >
-                       <Trash2 className="w-4 h-4" /> Clear Filters
+                       <Trash2 className="w-3.5 h-3.5" /> Clear Matrix
                     </button>
                  </div>
               </div>
@@ -251,21 +251,21 @@ const Suppliers = () => {
               {loading ? (
                 <HammerLoader />
               ) : filteredSuppliers.length === 0 ? (
-                <div className="p-20 flex flex-col items-center justify-center text-slate-500">
-                   <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100">
-                      <Anchor className="w-8 h-8 text-slate-300" />
+                <div className="p-20 flex flex-col items-center justify-center text-muted-foreground">
+                   <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mb-4 border border-border">
+                      <Anchor className="w-8 h-8 text-muted-foreground/30" />
                    </div>
-                   <h3 className="text-lg font-bold text-slate-900 mb-1">No suppliers found</h3>
-                   <p className="text-sm font-medium">Adjust your search or filters to find what you're looking for.</p>
+                   <h3 className="text-sm font-bold text-foreground uppercase tracking-widest mb-1">No identifiers detected</h3>
+                   <p className="text-[10px] font-medium uppercase tracking-tighter">Adjust search or regional matrix</p>
                 </div>
               ) : (
                 <table className="erp-table">
                    <thead>
                       <tr>
-                         <th>Supplier Contact</th>
+                         <th>Vendor Protocol</th>
                          <th>Corporate Entity</th>
-                         <th className="text-center">Contact Info</th>
-                         <th className="text-center">Actions</th>
+                         <th className="text-center">Communication Nodes</th>
+                         <th className="text-center">Control</th>
                       </tr>
                    </thead>
                    <tbody>
@@ -273,43 +273,43 @@ const Suppliers = () => {
                         {filteredSuppliers.map((s, index) => (
                           <motion.tr 
                             key={s._id}
-                            initial={{ opacity: 0, y: 5 }}
+                            initial={{ opacity: 0, y: 4 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.2, delay: index * 0.02 }}
-                            className="group erp-row-hover"
+                            transition={{ duration: 0.2, delay: index * 0.01 }}
+                            className="erp-row-hover"
                           >
                            <td>
                               <div className="flex flex-col">
-                                 <span className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">{s.state || "Global"}</span>
-                                 <span className="text-sm font-bold text-slate-900">{s.name || "Unknown"}</span>
+                                 <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mb-1">{s.state || "GLOBAL"}</span>
+                                 <span className="text-sm font-bold text-foreground">{s.name || "Unknown"}</span>
                                  <div className="flex items-center gap-2 mt-1">
-                                    <MapPin className="w-3 h-3 text-slate-400" />
-                                    <span className="text-xs font-medium text-slate-500 truncate max-w-xs">{s.address?.slice(0, 30)}...</span>
+                                    <MapPin className="w-3 h-3 text-muted-foreground opacity-50" />
+                                    <span className="text-[10px] font-medium text-muted-foreground truncate max-w-xs">{s.address?.slice(0, 40)}...</span>
                                  </div>
                               </div>
                            </td>
                            <td>
                               <div className="flex flex-col">
-                                 <span className="text-sm font-bold text-slate-900">{s.company || "Corporate Entity"}</span>
+                                 <span className="text-xs font-bold text-foreground">{s.company || "CORPORATE ENTITY"}</span>
                                  <div className="flex items-center gap-2 mt-1">
-                                    <div className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs font-medium border border-slate-200 tracking-wider">GSTIN: {s.gstin || "N/A"}</div>
+                                    <div className="px-2 py-0.5 bg-muted/40 text-muted-foreground rounded text-[10px] font-black border border-border/50 tracking-wider">GSTIN: {s.gstin || "NOT-REQUIRED"}</div>
                                  </div>
                               </div>
                            </td>
                            <td className="text-center">
                               <div className="flex flex-col items-center gap-1.5">
-                                 <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
-                                    <Phone className="w-3.5 h-3.5 text-slate-400" />
+                                 <div className="flex items-center gap-2 text-xs font-black text-foreground tabular-nums">
+                                    <Phone className="w-3.5 h-3.5 text-muted-foreground opacity-40" />
                                     {s.phone || "---"}
                                  </div>
-                                 <div className="text-xs font-medium text-slate-500 truncate max-w-[150px]">{s.email}</div>
+                                 <div className="text-[10px] font-bold text-muted-foreground truncate max-w-[150px] opacity-70">{s.email}</div>
                               </div>
                            </td>
                            <td className="text-center">
-                              <div className="flex items-center justify-center gap-2 transition-all">
-                                 <Link to={`/statements/${s._id}?type=supplier`} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-md transition-colors" title="Statement"><FileText className="w-4 h-4" /></Link>
-                                 <button onClick={() => handleOpenModal(s)} className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-md transition-colors" title="Edit"><Edit2 className="w-4 h-4" /></button>
-                                 <button onClick={() => handleDelete(s._id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                              <div className="flex items-center justify-center gap-1.5 transition-all">
+                                 <Link to={`/statements/${s._id}?type=supplier`} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded transition-colors" title="Audit Statement"><FileText className="w-3.5 h-3.5" /></Link>
+                                 <button onClick={() => handleOpenModal(s)} className="p-1.5 text-muted-foreground hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors" title="Modify Record"><Edit2 className="w-3.5 h-3.5" /></button>
+                                 <button onClick={() => handleDelete(s._id)} className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors" title="Decommission"><Trash2 className="w-3.5 h-3.5" /></button>
                               </div>
                            </td>
                         </motion.tr>
@@ -327,49 +327,49 @@ const Suppliers = () => {
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        title={editingSupplier ? "Edit Supplier" : "New Supplier"}
+        title={editingSupplier ? "Modify Vendor Protocol" : "Authorize New Strategic Partner"}
       >
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
            <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
-                 <label className="text-xs font-semibold text-slate-500 block mb-1.5">Contact Name</label>
-                 <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. Ramesh Kumar" className="erp-input" />
+                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Principal Name</label>
+                 <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Full legal name..." className="erp-input" />
               </div>
               <div className="col-span-2">
-                 <label className="text-xs font-semibold text-slate-500 block mb-1.5">Company Name</label>
-                 <input value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} placeholder="Global Sourcing Ltd." className="erp-input" />
+                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Corporate Label</label>
+                 <input value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} placeholder="Registered entity name..." className="erp-input" />
               </div>
               <div className="col-span-2 md:col-span-1">
-                 <label className="text-xs font-semibold text-slate-500 block mb-1.5">GSTIN</label>
+                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">GSTIN Registry</label>
                  <div className="relative">
-                    <input value={formData.gstin} onChange={e => setFormData({...formData, gstin: e.target.value.toUpperCase()})} placeholder="GSTIN-REF-XX" className="erp-input uppercase pr-10" />
-                    <button type="button" onClick={handleFetchDetails} disabled={fetchLoading} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-md transition-colors">
-                       {fetchLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                    <input value={formData.gstin} onChange={e => setFormData({...formData, gstin: e.target.value.toUpperCase()})} placeholder="GSTIN..." className="erp-input uppercase pr-10" />
+                    <button type="button" onClick={handleFetchDetails} disabled={fetchLoading} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded transition-colors">
+                       {fetchLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
                     </button>
                  </div>
               </div>
               <div className="col-span-2 md:col-span-1">
-                 <label className="text-xs font-semibold text-slate-500 block mb-1.5">State</label>
-                 <input required value={formData.state} onChange={e => setFormData({...formData, state: e.target.value.toUpperCase()})} placeholder="e.g. GUJARAT" className="erp-input uppercase" />
+                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">State Jurisdiction</label>
+                 <input required value={formData.state} onChange={e => setFormData({...formData, state: e.target.value.toUpperCase()})} placeholder="e.g. MAHARASHTRA" className="erp-input uppercase" />
               </div>
               <div className="col-span-2 md:col-span-1">
-                 <label className="text-xs font-semibold text-slate-500 block mb-1.5">Phone Number</label>
-                 <input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="+91 XXXX XXX XXX" className="erp-input" />
+                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Communication Node (Phone)</label>
+                 <input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="+91..." className="erp-input" />
               </div>
               <div className="col-span-2 md:col-span-1">
-                 <label className="text-xs font-semibold text-slate-500 block mb-1.5">Email Address</label>
-                 <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="vendor@example.com" className="erp-input" />
+                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Communication Node (Email)</label>
+                 <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="node@corp.com" className="erp-input" />
               </div>
               <div className="col-span-2">
-                 <label className="text-xs font-semibold text-slate-500 block mb-1.5">Registered Address</label>
-                 <textarea rows="3" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="erp-input resize-none py-2.5 h-24" placeholder="Full corporate or warehouse address..." />
+                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Registered Logistics Point</label>
+                 <textarea rows="3" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="erp-input resize-none py-2.5 h-24" placeholder="Full address..." />
               </div>
            </div>
 
-           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+           <div className="flex justify-end gap-3 pt-4 border-t border-border">
               <button type="button" onClick={() => setIsModalOpen(false)} className="erp-button-secondary">Cancel</button>
               <button type="submit" className="erp-button-primary">
-                 {editingSupplier ? "Save Changes" : "Create Supplier"}
+                 {editingSupplier ? "Commit Changes" : "Authorize Node"}
               </button>
            </div>
         </form>

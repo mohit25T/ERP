@@ -16,47 +16,6 @@ import {
 } from "lucide-react";
 
 
-// 🏦 NUMBER TO WORDS UTILITY (Indian Number System)
-const numberToWords = (num) => {
-  if (num === 0) return "Zero Only";
-  const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
-  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-
-  const convert = (n) => {
-    if (n < 20) return a[n];
-    if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + a[n % 10] : "");
-    if (n < 1000) return a[Math.floor(n / 100)] + "Hundred " + (n % 100 !== 0 ? "and " + convert(n % 100) : "");
-    return "";
-  };
-
-  const formatAmount = (n) => {
-    let str = "";
-    if (n >= 10000000) {
-      str += convert(Math.floor(n / 10000000)) + "Crore ";
-      n %= 10000000;
-    }
-    if (n >= 100000) {
-      str += convert(Math.floor(n / 100000)) + "Lakh ";
-      n %= 100000;
-    }
-    if (n >= 1000) {
-      str += convert(Math.floor(n / 1000)) + "Thousand ";
-      n %= 1000;
-    }
-    str += convert(n);
-    return str;
-  };
-
-  const whole = Math.floor(num);
-  const fraction = Math.round((num - whole) * 100);
-
-  let result = formatAmount(whole) + "Rupees ";
-  if (fraction > 0) {
-    result += "and " + formatAmount(fraction) + "Paise ";
-  }
-  return result + "Only";
-};
-
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [invoices, setInvoices] = useState([]);
@@ -174,19 +133,16 @@ const Orders = () => {
 
       // Build Unified Journey Timeline
       const events = [
-        // 1. Birth: Order Placed
         {
           _id: "birth",
           date: order.createdAt,
           type: 'milestone',
           amount: order.totalAmount,
-          description: "Order Placed - Commercial Journey Initialized"
+          description: "Order Placed - Initialized"
         },
-        // 2. Pulse: Payments
         ...(Array.isArray(res.data) ? res.data.map(p => ({ ...p, type: 'payment' })) : [])
       ];
 
-      // 3. Seal: Fulfillment (if complete)
       if (order.status === 'completed') {
         events.push({
           _id: "completion",
@@ -197,7 +153,6 @@ const Orders = () => {
         });
       }
 
-      // Sort Chronologically
       events.sort((a, b) => new Date(a.date) - new Date(b.date));
 
       setPaymentHistory(events);
@@ -219,28 +174,19 @@ const Orders = () => {
     }
   };
 
-  const { user } = useAuth();
-
   const handleStatusUpdate = async (id, newStatus) => {
     try {
       await orderApi.updateStatus(id, newStatus);
-
-      // Miracle-Level Integration: Auto-generate Draft Invoice when status is "invoiced"
       if (newStatus === 'invoiced') {
         const alreadyInvoiced = invoices.find(inv => inv.order?._id === id || inv.order === id);
-        if (alreadyInvoiced) {
-          alert("Invoice already exists for this order. Redirecting to Billing Hub context.");
-        } else {
+        if (!alreadyInvoiced) {
           try {
             await invoiceApi.create({ orderId: id });
-            alert("Draft Invoice generated in Billing Hub!");
           } catch (invErr) {
             console.error("Invoice generation failed", invErr);
-            alert("Order status updated, but Invoice generation failed: " + (invErr.response?.data?.error || invErr.message));
           }
         }
       }
-
       fetchOrders();
     } catch (err) {
       alert("Status update failed: " + (err.response?.data?.msg || err.message));
@@ -248,7 +194,7 @@ const Orders = () => {
   };
 
   const handleDeleteOrder = async (id) => {
-    if (window.confirm("CRITICAL: Delete this order permanently? This will restore product stock if the order was active.")) {
+    if (window.confirm("CRITICAL: Delete this order permanently?")) {
       try {
         await orderApi.delete(id);
         fetchOrders();
@@ -323,44 +269,47 @@ const Orders = () => {
   const getStatusBadgeOptions = (status) => {
     switch (status) {
       case "pending":
-        return { color: "bg-amber-500/10 text-amber-600 border-amber-500/20", label: "Pending Approval", icon: <Clock className="w-3 h-3 mr-1" /> };
+        return { color: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20", label: "Pending", icon: <Clock className="w-3 h-3 mr-1" /> };
       case "in_progress":
-        return { color: "bg-blue-500/10 text-blue-600 border-blue-500/20", label: "Operations Active", icon: <Activity className="w-3 h-3 mr-1" /> };
+        return { color: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20", label: "Operational", icon: <Activity className="w-3 h-3 mr-1" /> };
       case "invoiced":
-        return { color: "bg-purple-500/10 text-purple-600 border-purple-500/20", label: "Legally Invoiced", icon: <ShieldCheck className="w-3 h-3 mr-1" /> };
+        return { color: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20", label: "Invoiced", icon: <ShieldCheck className="w-3 h-3 mr-1" /> };
       case "shipped":
-        return { color: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20", label: "In Transit", icon: <Truck className="w-3 h-3 mr-1" /> };
+        return { color: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20", label: "In Transit", icon: <Truck className="w-3 h-3 mr-1" /> };
       case "completed":
-        return { color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20", label: "Lifecycle Closed", icon: <CheckCircle className="w-3 h-3 mr-1" /> };
+        return { color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20", label: "Lifecycle Closed", icon: <CheckCircle className="w-3 h-3 mr-1" /> };
       case "cancelled":
-        return { color: "bg-rose-500/10 text-rose-600 border-rose-500/20", label: "Cancelled", icon: null };
+        return { color: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20", label: "Cancelled", icon: null };
       default:
-        return { color: "bg-slate-100 text-slate-400 border-slate-200", label: "Unknown", icon: null };
+        return { color: "bg-muted text-muted-foreground border-border", label: "Unknown", icon: null };
     }
   };
 
   return (
     <AppLayout>
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+      <div className="space-y-6">
 
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-              <ShoppingCart className="w-6 h-6 text-indigo-600" /> Orders
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">Manage sales orders, salvage dispatch, and billing pipeline.</p>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-card rounded-md flex items-center justify-center shadow-sm border border-border">
+              <ShoppingCart className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-foreground tracking-tight uppercase">Order Management</h1>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Commercial Flux & Distribution Pipeline</p>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => {
                 setEditingOrder({ saleType: 'scrap' });
                 setIsModalOpen(true);
               }}
-              className="px-4 py-2 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-md text-sm font-semibold shadow-sm transition-colors flex items-center"
+              className="erp-button-secondary border-destructive/20 text-destructive hover:bg-destructive/5"
             >
-              <Hammer className="w-4 h-4 mr-2" />
-              New Salvage Order
+              <Hammer className="w-3.5 h-3.5 mr-2" />
+              New Salvage
             </button>
             <button
               onClick={() => {
@@ -369,41 +318,41 @@ const Orders = () => {
               }}
               className="erp-button-primary"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              New Yield Order
+              <Plus className="w-3.5 h-3.5 mr-2" />
+              New Order
             </button>
           </div>
         </div>
 
         {/* Unified Command Container */}
-        <div className="bg-white rounded-md border border-slate-100 shadow-sm overflow-hidden mb-8">
-          <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="bg-card rounded-md border border-border shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-border flex flex-col md:flex-row justify-between items-center gap-4 bg-muted/5">
             <div className="relative group w-full md:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Search by Order ID or Customer..."
+                placeholder="Search Orders..."
                 className="erp-input w-full pl-9"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-4 w-full md:w-auto">
-              <div className="flex flex-col items-end mr-2 hidden sm:flex">
-                <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Total Orders</span>
-                <span className="text-lg font-bold text-slate-900 tracking-tight">{filteredOrders.length}</span>
+            <div className="flex items-center gap-4">
+              <div className="hidden sm:flex flex-col items-end">
+                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Total Registry</span>
+                <span className="text-sm font-black text-foreground">{filteredOrders.length}</span>
               </div>
-              <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
+              <div className="h-6 w-px bg-border hidden sm:block"></div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="p-2 border border-slate-200 bg-white rounded-md text-slate-500 hover:text-slate-900 transition-colors shadow-sm"
+                  className={`p-2 border rounded-md transition-all ${showFilters ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-card border-border text-muted-foreground hover:text-foreground'}`}
                 >
                   <Filter className="w-4 h-4" />
                 </button>
                 <button
                   onClick={handleExportCSV}
-                  className="p-2 border border-slate-200 bg-white rounded-md text-slate-500 hover:text-slate-900 transition-colors shadow-sm"
+                  className="p-2 border border-border bg-card rounded-md text-muted-foreground hover:text-foreground transition-all shadow-sm"
                 >
                   <ArrowDownToLine className="w-4 h-4" />
                 </button>
@@ -413,15 +362,15 @@ const Orders = () => {
 
           {/* Advanced Filter Manifold */}
           {showFilters && (
-            <div className="p-4 bg-slate-50 border-b border-slate-100 flex flex-col sm:flex-row gap-6 animate-in slide-in-from-top-2 duration-300">
+            <div className="p-4 bg-muted/10 border-b border-border flex flex-col sm:flex-row gap-6 animate-in slide-in-from-top-2 duration-300">
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</p>
+                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Lifecycle Status</p>
                 <div className="flex flex-wrap gap-2">
                   {['all', 'pending', 'in_progress', 'completed', 'cancelled'].map(status => (
                     <button
                       key={status}
                       onClick={() => setFilterStatus(status)}
-                      className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors border ${filterStatus === status ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}
+                      className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest transition-all border ${filterStatus === status ? 'bg-primary text-primary-foreground border-primary shadow-sm' : 'bg-card text-muted-foreground border-border hover:border-muted-foreground/30'}`}
                     >
                       {status.replace('_', ' ')}
                     </button>
@@ -429,14 +378,14 @@ const Orders = () => {
                 </div>
               </div>
 
-              <div className="space-y-2 sm:border-l sm:border-slate-200 sm:pl-6">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</p>
+              <div className="space-y-2 sm:border-l sm:border-border sm:pl-6">
+                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Order Category</p>
                 <div className="flex gap-2">
                   {['all', 'yield', 'scrap'].map(type => (
                     <button
                       key={type}
                       onClick={() => setFilterType(type)}
-                      className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors border ${filterType === type ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}
+                      className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest transition-all border ${filterType === type ? 'bg-primary text-primary-foreground border-primary shadow-sm' : 'bg-card text-muted-foreground border-border hover:border-muted-foreground/30'}`}
                     >
                       {type}
                     </button>
@@ -447,7 +396,7 @@ const Orders = () => {
               <div className="flex-1 flex justify-end items-end pb-0.5">
                 <button
                   onClick={() => { setFilterStatus("all"); setFilterType("all"); setSearchTerm(""); }}
-                  className="text-xs font-semibold text-slate-500 hover:text-rose-600 transition-colors flex items-center gap-1.5"
+                  className="text-[9px] font-bold text-muted-foreground hover:text-destructive transition-colors flex items-center gap-1.5 uppercase tracking-widest"
                 >
                   <Trash2 className="w-3.5 h-3.5" /> Reset Filters
                 </button>
@@ -459,10 +408,9 @@ const Orders = () => {
             {loading ? (
               <HammerLoader />
             ) : filteredOrders.length === 0 ? (
-              <div className="p-12 flex flex-col items-center justify-center text-slate-400">
-                <Box className="w-12 h-12 mb-4 text-slate-300" />
-                <h3 className="text-lg font-semibold text-slate-700">No Orders Found</h3>
-                <p className="text-sm mt-1">There are no orders matching your current filters.</p>
+              <div className="p-12 flex flex-col items-center justify-center text-muted-foreground">
+                <Box className="w-12 h-12 mb-4 text-muted-foreground/30" />
+                <h3 className="text-sm font-bold uppercase tracking-widest">No Operational Data</h3>
               </div>
             ) : (
               <table className="erp-table">
@@ -470,58 +418,57 @@ const Orders = () => {
                   <tr>
                     <th>Order ID</th>
                     <th>Customer</th>
-                    <th>Product / Qty</th>
-                    <th>Amount</th>
+                    <th>Asset / Qty</th>
+                    <th>Fiscal Amount</th>
                     <th>Status</th>
-                    <th className="text-right">Actions</th>
+                    <th className="text-right">Control</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border/50">
                   <AnimatePresence mode="popLayout">
                     {filteredOrders.map((o, index) => {
                       const statusOpts = getStatusBadgeOptions(o.status);
                       return (
                         <motion.tr
                           key={o._id}
-                          initial={{ opacity: 0, y: 10 }}
+                          initial={{ opacity: 0, y: 4 }}
                           animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          transition={{ duration: 0.2, delay: index * 0.03 }}
-                          className="erp-row-hover transition-colors"
+                          transition={{ duration: 0.2, delay: index * 0.02 }}
+                          className="erp-row-hover"
                         >
                           <td>
                             <div className="flex flex-col">
-                              <span className="text-sm font-semibold text-slate-900">#{o._id.substring(o._id.length - 6).toUpperCase()}</span>
-                              <span className="text-xs text-slate-500">{new Date(o.createdAt).toLocaleDateString()}</span>
+                              <span className="text-xs font-black text-foreground">#{o._id.substring(o._id.length - 6).toUpperCase()}</span>
+                              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter">{new Date(o.createdAt).toLocaleDateString()}</span>
                             </div>
                           </td>
                           <td>
                             <div className="flex flex-col">
-                              <span className="text-sm font-semibold text-slate-900">{o.customer?.name || "Unknown Customer"}</span>
+                              <span className="text-xs font-bold text-foreground">{o.customer?.name || "Unknown"}</span>
                               {o.customer?.company && (
-                                <span className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-                                  <ShieldCheck className="w-3 h-3" /> {o.customer.company}
+                                <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-tight flex items-center gap-1 mt-0.5">
+                                  <ShieldCheck className="w-2.5 h-2.5" /> {o.customer.company}
                                 </span>
                               )}
                             </div>
                           </td>
                           <td>
                             <div className="flex flex-col">
-                              <span className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
-                                {o.saleType === 'scrap' ? <Hammer className="w-3.5 h-3.5 text-rose-500" /> : <Box className="w-3.5 h-3.5 text-indigo-500" />}
+                              <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                                {o.saleType === 'scrap' ? <Hammer className="w-3.5 h-3.5 text-rose-500" /> : <Box className="w-3.5 h-3.5 text-primary" />}
                                 {o.product?.name}
                               </span>
-                              <span className="text-xs text-slate-500 mt-0.5">{o.quantity} {o.unit}</span>
+                              <span className="text-[9px] font-bold text-muted-foreground mt-0.5 uppercase tracking-widest">{o.quantity} {o.unit}</span>
                             </div>
                           </td>
                           <td>
                             <div className="flex flex-col gap-1.5">
-                              <span className="text-sm font-bold text-slate-900">₹{o.totalAmount?.toLocaleString('en-IN')}</span>
+                              <span className="text-xs font-black text-foreground">₹{o.totalAmount?.toLocaleString('en-IN')}</span>
                               <div className="flex items-center gap-2">
-                                <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="w-16 h-1 bg-muted rounded-full overflow-hidden">
                                   <div className="h-full bg-emerald-500 transition-all" style={{ width: `${(o.amountPaid / o.totalAmount) * 100}%` }}></div>
                                 </div>
-                                <span className="text-xs text-slate-500 font-medium">{Math.round((o.amountPaid / o.totalAmount) * 100)}%</span>
+                                <span className="text-[8px] text-muted-foreground font-bold">{Math.round((o.amountPaid / o.totalAmount) * 100)}%</span>
                               </div>
                             </div>
                           </td>
@@ -532,54 +479,53 @@ const Orders = () => {
                             </div>
                           </td>
                           <td className="text-right">
-                            <div className="flex items-center justify-end gap-1.5">
+                            <div className="flex items-center justify-end gap-1">
                               {o.paymentStatus !== 'paid' && !['cancelled'].includes(o.status) && (
-                                <button onClick={() => { setSelectedOrder(o); setIsPaymentModalOpen(true); }} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-emerald-600 rounded-md transition-colors" title="Record Payment">
-                                  <Wallet className="w-4 h-4" />
+                                <button onClick={() => { setSelectedOrder(o); setIsPaymentModalOpen(true); }} className="p-1.5 border border-border bg-card hover:bg-muted text-emerald-600 rounded transition-colors" title="Record Payment">
+                                  <Wallet className="w-3.5 h-3.5" />
                                 </button>
                               )}
-                              <button onClick={() => fetchPaymentHistory(o._id)} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 rounded-md transition-colors" title="Payment History">
-                                <History className="w-4 h-4" />
+                              <button onClick={() => fetchPaymentHistory(o._id)} className="p-1.5 border border-border bg-card hover:bg-muted text-muted-foreground rounded transition-colors" title="Payment History">
+                                <History className="w-3.5 h-3.5" />
                               </button>
 
                               {(() => {
                                 const existingInvoice = invoices.find(inv => inv.order?._id === o._id || inv.order === o._id);
                                 return (
                                   <>
-                                    {['pending', 'invoiced'].includes(o.status) && (
-                                      <button onClick={() => handleStatusUpdate(o._id, 'in_progress')} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-blue-600 rounded-md transition-colors" title="Start Order">
-                                        <PackageSearch className="w-4 h-4" />
+                                    {['pending', 'invoiced'].includes(o.status) ? (
+                                      <button onClick={() => handleStatusUpdate(o._id, 'in_progress')} className="p-1.5 border border-border bg-card hover:bg-muted text-blue-600 rounded transition-colors" title="Start Order">
+                                        <PackageSearch className="w-3.5 h-3.5" />
+                                      </button>
+                                    ) : (o.status === 'in_progress' || o.status === 'shipped') && (
+                                      <button onClick={() => handleStatusUpdate(o._id, 'completed')} className="p-1.5 border border-border bg-card hover:bg-muted text-emerald-600 rounded transition-colors" title="Complete Order">
+                                        <CheckCircle className="w-3.5 h-3.5" />
                                       </button>
                                     )}
                                     {(o.status === 'pending' || o.status === 'in_progress') && !existingInvoice && (
-                                      <button onClick={() => handleStatusUpdate(o._id, 'invoiced')} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-purple-600 rounded-md transition-colors" title="Invoice Order">
-                                        <FileText className="w-4 h-4" />
+                                      <button onClick={() => handleStatusUpdate(o._id, 'invoiced')} className="p-1.5 border border-border bg-card hover:bg-muted text-purple-600 rounded transition-colors" title="Invoice Order">
+                                        <FileText className="w-3.5 h-3.5" />
                                       </button>
                                     )}
 
                                     {(o.status === 'invoiced' || (o.status === 'in_progress' && existingInvoice)) && (
-                                      <button onClick={() => handleStatusUpdate(o._id, 'shipped')} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-indigo-600 rounded-md transition-colors" title="Mark as Shipped">
-                                        <Truck className="w-4 h-4" />
+                                      <button onClick={() => handleStatusUpdate(o._id, 'shipped')} className="p-1.5 border border-border bg-card hover:bg-muted text-indigo-600 rounded transition-colors" title="Mark as Shipped">
+                                        <Truck className="w-3.5 h-3.5" />
                                       </button>
                                     )}
 
-                                    {o.status === 'shipped' && (
-                                      <button onClick={() => handleStatusUpdate(o._id, 'completed')} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-emerald-600 rounded-md transition-colors" title="Complete Order">
-                                        <CheckCircle className="w-4 h-4" />
-                                      </button>
-                                    )}
 
                                     {(existingInvoice || ['invoiced', 'shipped', 'completed'].includes(o.status?.toLowerCase())) && (
-                                      <button onClick={() => handleOpenPreview(o)} className="p-2 border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-md transition-colors" title="Preview Invoice">
-                                        <Eye className="w-4 h-4" />
+                                      <button onClick={() => handleOpenPreview(o)} className="p-1.5 border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary rounded transition-colors" title="Preview Invoice">
+                                        <Eye className="w-3.5 h-3.5" />
                                       </button>
                                     )}
                                   </>
                                 );
                               })()}
 
-                              <button onClick={() => handleDeleteOrder(o._id)} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-rose-500 rounded-md transition-colors" title="Delete">
-                                <Trash2 className="w-4 h-4" />
+                              <button onClick={() => handleDeleteOrder(o._id)} className="p-1.5 border border-border bg-card hover:bg-muted text-destructive rounded transition-colors" title="Delete">
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           </td>
@@ -595,7 +541,7 @@ const Orders = () => {
 
       </div>
 
-      {/* Legacy Modals with Clean Layout */}
+      {/* Legacy Modals */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => {
@@ -603,11 +549,7 @@ const Orders = () => {
           setEditingOrder(null);
         }}
         size="4xl"
-        title={
-          editingOrder?._id
-            ? (editingOrder.saleType === 'scrap' ? "Edit Salvage Order" : "Edit Customer Order")
-            : (editingOrder?.saleType === 'scrap' ? "New Salvage Order" : "New Customer Order")
-        }
+        title={editingOrder?._id ? "Edit Transaction Protocol" : "Initialize New Transaction"}
       >
         <div className="p-4">
           <OrderForm
@@ -625,37 +567,37 @@ const Orders = () => {
       <Modal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
-        title="Record Payment Receipt"
+        title="Record Receipt"
       >
         <div className="p-4 space-y-6">
           {selectedOrder && (
             <>
-              <div className="p-5 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-between">
+              <div className="p-5 bg-primary/5 border border-primary/10 rounded flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-indigo-600 font-semibold mb-1 uppercase tracking-wider">Outstanding Balance</p>
-                  <h3 className="text-2xl font-bold text-indigo-900">₹{(selectedOrder.totalAmount - selectedOrder.amountPaid).toLocaleString()}</h3>
+                  <p className="text-[10px] text-primary font-bold mb-1 uppercase tracking-widest">Outstanding</p>
+                  <h3 className="text-2xl font-black text-foreground tracking-tighter">₹{(selectedOrder.totalAmount - selectedOrder.amountPaid).toLocaleString()}</h3>
                 </div>
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm text-indigo-500">
-                  <DollarSign className="w-6 h-6" />
+                <div className="w-10 h-10 bg-card rounded flex items-center justify-center shadow-sm text-primary border border-border">
+                  <DollarSign className="w-5 h-5" />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-semibold text-slate-700 block mb-1">Receipt Amount (₹)</label>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block ml-1">Amount (₹)</label>
                   <input
                     type="number"
-                    className="erp-input w-full font-bold text-lg"
+                    className="erp-input font-black text-lg"
                     placeholder="0.00"
                     value={paymentAmount}
                     onChange={(e) => setPaymentAmount(e.target.value)}
                   />
                 </div>
-                <div>
-                  <label className="text-sm font-semibold text-slate-700 block mb-1">Percentage (%)</label>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block ml-1">Percent (%)</label>
                   <input
                     type="number"
-                    className="erp-input w-full font-bold text-lg"
+                    className="erp-input font-black text-lg"
                     placeholder="0%"
                     value={paymentPercent}
                     onChange={(e) => handlePercentChange(e.target.value)}
@@ -663,24 +605,24 @@ const Orders = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="text-sm font-semibold text-slate-700 block mb-1">Payment Notes</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block ml-1">Audit Notes</label>
                 <textarea
-                  className="erp-input w-full h-24 resize-none"
-                  placeholder="Journal notes for ledger audit..."
+                  className="erp-input h-24 resize-none"
+                  placeholder="Notes..."
                   value={paymentNote}
                   onChange={(e) => setPaymentNote(e.target.value)}
                 />
               </div>
 
-              <div className="flex gap-4 pt-4 border-t border-slate-100">
-                <button onClick={() => setIsPaymentModalOpen(false)} className="px-4 py-2 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">Cancel</button>
+              <div className="flex gap-4 pt-4 border-t border-border">
+                <button onClick={() => setIsPaymentModalOpen(false)} className="erp-button-secondary flex-1">Cancel</button>
                 <button
                   onClick={handleRecordPayment}
                   disabled={formLoading || !paymentAmount}
-                  className="erp-button-primary flex-1"
+                  className="erp-button-primary flex-[2]"
                 >
-                  {formLoading ? "Recording..." : `Confirm Payment: ₹${Number(paymentAmount).toLocaleString()}`}
+                  {formLoading ? "Commiting..." : `Commit: ₹${Number(paymentAmount).toLocaleString()}`}
                 </button>
               </div>
             </>
@@ -691,40 +633,40 @@ const Orders = () => {
       <Modal
         isOpen={isHistoryModalOpen}
         onClose={() => setIsHistoryModalOpen(false)}
-        title="Payment Timeline"
+        title="Transaction History"
       >
         <div className="p-6">
           {paymentHistory.length === 0 ? (
-            <div className="p-12 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-              <Layers className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-              <p className="text-sm font-semibold">No payment history found.</p>
+            <div className="p-10 text-center text-muted-foreground bg-muted/10 rounded border border-dashed border-border">
+              <Layers className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-[10px] font-bold uppercase tracking-widest">No history recorded</p>
             </div>
           ) : (
-            <div className="relative border-l-2 border-slate-200 ml-4 space-y-6 py-2">
+            <div className="relative border-l border-border ml-4 space-y-6 py-2">
               {paymentHistory.map((item, idx) => {
                 const isMilestone = item.type === 'milestone';
                 return (
-                  <div key={item._id} className="relative pl-8">
-                    <div className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 border-white shadow-sm ${isMilestone ? "bg-indigo-500" : "bg-emerald-500"}`}></div>
+                  <div key={item._id} className="relative pl-6">
+                    <div className={`absolute -left-[4.5px] top-1 w-2 h-2 rounded-full shadow-sm ${isMilestone ? "bg-primary" : "bg-emerald-500"}`}></div>
                     <div className="flex flex-col">
-                      <span className="text-xs font-semibold text-slate-500 mb-1">{new Date(item.date).toLocaleDateString()}</span>
+                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">{new Date(item.date).toLocaleDateString()}</span>
                       {isMilestone ? (
-                        <h4 className="text-sm font-bold text-slate-900">{item.description}</h4>
+                        <h4 className="text-xs font-bold text-foreground uppercase tracking-tight">{item.description}</h4>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <h4 className="text-lg font-bold text-slate-900">₹{item.amount.toLocaleString()}</h4>
-                          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-xs font-semibold">Paid</span>
+                          <h4 className="text-sm font-black text-foreground">₹{item.amount.toLocaleString()}</h4>
+                          <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-600 rounded text-[9px] font-bold uppercase tracking-widest">Settled</span>
                         </div>
                       )}
-                      {item.description && !isMilestone && <p className="text-sm text-slate-600 mt-1">{item.description}</p>}
+                      {item.description && !isMilestone && <p className="text-[10px] text-muted-foreground mt-0.5">{item.description}</p>}
                     </div>
                   </div>
                 );
               })}
             </div>
           )}
-          <div className="flex justify-end mt-8">
-            <button onClick={() => setIsHistoryModalOpen(false)} className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition-colors">Close Timeline</button>
+          <div className="flex justify-end mt-8 pt-4 border-t border-border">
+            <button onClick={() => setIsHistoryModalOpen(false)} className="erp-button-secondary">Close Protocol</button>
           </div>
         </div>
       </Modal>
@@ -732,20 +674,20 @@ const Orders = () => {
       <Modal
         isOpen={isPreviewOpen}
         onClose={handleClosePreview}
-        title={`Invoice Preview: ${activeInvoiceForPreview?.invoiceNumber || activeInvoiceForPreview?._id}`}
+        title={`Invoice: ${activeInvoiceForPreview?.invoiceNumber || activeInvoiceForPreview?._id}`}
       >
         <div className="flex flex-col gap-4 p-4">
-          <div className="w-full h-[600px] border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+          <div className="w-full h-[600px] border border-border rounded overflow-hidden bg-muted/20 shadow-inner">
             {previewUrl ? (
               <iframe src={previewUrl} className="w-full h-full border-none" title="Invoice Preview" />
             ) : (
-              <div className="flex items-center justify-center h-full text-slate-400 text-sm font-semibold animate-pulse">Generating PDF preview...</div>
+              <div className="flex items-center justify-center h-full text-muted-foreground text-[10px] font-bold uppercase tracking-[0.3em] animate-pulse">Generating Artifact...</div>
             )}
           </div>
-          <div className="flex gap-4 justify-end">
-            <button onClick={handleClosePreview} className="px-6 py-2 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">Close</button>
+          <div className="flex gap-4 justify-end pt-2 border-t border-border">
+            <button onClick={handleClosePreview} className="erp-button-secondary">Close</button>
             <button onClick={handleDownloadPdf} className="erp-button-primary">
-              <ArrowDownToLine className="w-4 h-4 mr-2" /> Download PDF
+              <ArrowDownToLine className="w-4 h-4 mr-2" /> Download Artifact
             </button>
           </div>
         </div>
