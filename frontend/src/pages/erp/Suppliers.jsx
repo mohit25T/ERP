@@ -123,7 +123,7 @@ const Suppliers = () => {
 
   return (
     <AppLayout>
-      <div className="space-y-6 pb-20">
+      <div className="space-y-4 pb-20">
         
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
@@ -145,7 +145,7 @@ const Suppliers = () => {
 
         {/* Global Sourcing Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-           <div className="p-5 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
+           <div className="p-3 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Active Network</p>
                  <div className="p-2 bg-indigo-500/10 rounded text-indigo-600 dark:text-indigo-400">
@@ -160,7 +160,7 @@ const Suppliers = () => {
                </div>
            </div>
            
-           <div className="p-5 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
+           <div className="p-3 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Fiscal Inflow</p>
                  <div className="p-2 bg-emerald-500/10 rounded text-emerald-600 dark:text-emerald-400">
@@ -175,7 +175,7 @@ const Suppliers = () => {
                </div>
            </div>
 
-           <div className="p-5 bg-primary/5 rounded-md border border-primary/20 shadow-sm flex flex-col justify-between">
+           <div className="p-3 bg-primary/5 rounded-md border border-primary/20 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Risk Assessment</p>
                  <div className="p-2 bg-primary/20 rounded text-primary">
@@ -220,7 +220,7 @@ const Suppliers = () => {
 
            {/* Filters */}
            {showFilters && (
-              <div className="p-4 bg-muted/10 border-b border-border flex flex-wrap gap-6 items-end animate-in fade-in slide-in-from-top-2">
+              <div className="p-4 bg-muted/10 border-b border-border flex flex-wrap gap-4 items-end animate-in fade-in slide-in-from-top-2">
                  <div className="space-y-2">
                     <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Regional Matrix</p>
                     <div className="flex flex-wrap gap-2">
@@ -329,7 +329,7 @@ const Suppliers = () => {
         onClose={() => setIsModalOpen(false)} 
         title={editingSupplier ? "Modify Vendor Protocol" : "Authorize New Strategic Partner"}
       >
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
            <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Principal Name</label>

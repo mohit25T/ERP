@@ -11,7 +11,7 @@ import TransactionManager from "../../../shared/utils/TransactionManager.js";
 // Create Order
 export const createOrder = async (req, res) => {
   try {
-    const { customer, product, quantity, unit, price, dueDate, ewayBillData, saleType } = req.body;
+    const { customer, billToCustomer, shipToCustomer, product, quantity, unit, price, dueDate, ewayBillData, saleType, poNumber, billToAddress, shipToAddress } = req.body;
 
     const result = await TransactionManager.execute(async (session) => {
       // 1. Data Retrieval
@@ -24,11 +24,11 @@ export const createOrder = async (req, res) => {
       // 2. Tax Calculation
       const unitPrice = (price !== undefined && price !== null) ? Number(price) : (existingProduct.price || 0);
       const qty = Number(quantity) || 0;
-      
+
       // Normalize quantity for stock reservation AND for financial calculation 
       // (assuming price is per base unit, e.g. per KG for scrap)
       const normalizedQty = await UnitService.normalize(qty, unit);
-      
+
       const taxableAmount = unitPrice * normalizedQty;
       const gstRate = existingProduct.gstRate || 18;
       const gstAmount = (taxableAmount * gstRate) / 100;
@@ -55,7 +55,9 @@ export const createOrder = async (req, res) => {
 
       // 4. Create Order Record
       const order = await Order.create([{
-        customer,
+        customer: customer || billToCustomer,
+        billToCustomer: billToCustomer || customer,
+        shipToCustomer: shipToCustomer || customer,
         product,
         orderedQty: qty,
         reservedQty: qty,
@@ -72,7 +74,10 @@ export const createOrder = async (req, res) => {
         customerGstin: orderCustomer?.gstin || "",
         dueDate,
         ewayBillData: ewayBillData || { active: false },
-        saleType: saleType || "yield"
+        saleType: saleType || "yield",
+        poNumber,
+        billToAddress,
+        shipToAddress
       }], { session });
 
       // Update reservation log with real order ID
@@ -92,7 +97,7 @@ export const createOrder = async (req, res) => {
 export const updateOrder = async (req, res) => {
   try {
     const { id } = req.params;
-    const { customer, product, quantity, unit, price, dueDate, ewayBillData, saleType } = req.body;
+    const { customer, billToCustomer, shipToCustomer, product, quantity, unit, price, dueDate, ewayBillData, saleType, poNumber, billToAddress, shipToAddress } = req.body;
 
     const result = await TransactionManager.execute(async (session) => {
       const existingOrder = await Order.findById(id).session(session);
@@ -113,7 +118,7 @@ export const updateOrder = async (req, res) => {
       const unitPrice = (price !== undefined && price !== null) ? Number(price) : (targetProduct.price || 0);
       const qty = (quantity !== undefined) ? Number(quantity) : existingOrder.quantity;
       const targetUnit = unit || existingOrder.unit;
-      
+
       const normalizedQty = await UnitService.normalize(qty, targetUnit);
 
       const taxableAmount = (unitPrice || 0) * (normalizedQty || 0);
@@ -134,6 +139,8 @@ export const updateOrder = async (req, res) => {
 
       const updatedOrder = await Order.findByIdAndUpdate(id, {
         customer: customer || existingOrder.customer,
+        billToCustomer: billToCustomer || existingOrder.billToCustomer || (customer || existingOrder.customer),
+        shipToCustomer: shipToCustomer || existingOrder.shipToCustomer || (customer || existingOrder.customer),
         product: product || existingOrder.product,
         quantity: qty,
         unit: unit || existingOrder.unit,
@@ -147,7 +154,10 @@ export const updateOrder = async (req, res) => {
         hsnCode: targetProduct.hsnCode,
         saleType: saleType || existingOrder.saleType || "yield",
         dueDate: dueDate || existingOrder.dueDate,
-        ewayBillData: ewayBillData || existingOrder.ewayBillData
+        ewayBillData: ewayBillData || existingOrder.ewayBillData,
+        poNumber: poNumber !== undefined ? poNumber : existingOrder.poNumber,
+        billToAddress: billToAddress !== undefined ? billToAddress : existingOrder.billToAddress,
+        shipToAddress: shipToAddress !== undefined ? shipToAddress : existingOrder.shipToAddress
       }, { new: true, session });
 
       return updatedOrder;
@@ -254,7 +264,7 @@ export const updateOrderStatus = async (req, res) => {
       if (['shipped', 'completed'].includes(status) && order.reservedQty > 0) {
         const dispatchQtyRaw = order.reservedQty;
         const normalizedDispatch = await UnitService.normalize(dispatchQtyRaw, order.unit);
-        
+
         // 1. Decrease Physical Stock
         await InventoryService.decreaseStock(order.product, normalizedDispatch, {
           reason: `Auto-fulfillment on status update to ${status} (#${orderId.toString().slice(-6)})`,

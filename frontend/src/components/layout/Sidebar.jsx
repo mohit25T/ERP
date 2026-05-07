@@ -103,18 +103,11 @@ const Sidebar = ({ open, setOpen }) => {
       >
         <div className="flex flex-col h-full">
           {/* Logo & Branding */}
-          <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
             <div className="flex items-center gap-3">
-              {user?.companyLogo ? (
-                <img src={user.companyLogo} alt="Logo" className="w-8 h-8 object-contain rounded shadow-sm border border-border/50" />
-              ) : (
-                <div className="w-8 h-8 bg-primary rounded flex items-center justify-center text-primary-foreground font-black text-xs shadow-sm">
-                  {user?.companyName?.charAt(0) || 'E'}
-                </div>
-              )}
               <div className="flex flex-col">
-                <span className="text-[13px] font-black text-foreground tracking-tightest uppercase leading-none truncate max-w-[120px]">
-                  {user?.companyName?.slice(0, 20) || "Enterprise OS"}
+                <span className="text-[13px] font-black text-foreground tracking-tightest uppercase leading-none">
+                  {user?.companyName || "Enterprise OS"}
                 </span>
                 <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5 opacity-60">
                   Global Hub
@@ -130,7 +123,7 @@ const Sidebar = ({ open, setOpen }) => {
           </div>
 
           {/* Optimized Navigation Ecosystem */}
-          <div 
+          <div
             ref={scrollRef}
             onScroll={handleScroll}
             className="flex-1 py-4 overflow-y-auto px-3 scrollbar-hide"

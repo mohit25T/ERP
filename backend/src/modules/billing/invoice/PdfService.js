@@ -180,19 +180,34 @@ class PdfService {
     // --- Party Details & Specs Box ---
     currentY += 15;
     const splitX = margin + (contentWidth * 0.6);
-    drawBox(margin, currentY, contentWidth, 100);
-    vLine(splitX, currentY, currentY + 100);
+    drawBox(margin, currentY, contentWidth, 120); // increased height
+    vLine(splitX, currentY, currentY + 120);
 
     // Bill To
-    doc.fontSize(8).font("Helvetica-Bold").text("M/s.:", margin + 5, currentY + 5);
-    doc.fontSize(10).text(customer.company || customer.name, margin + 45, currentY + 5, { width: (splitX - margin) - 50 });
-    doc.fontSize(8).font("Helvetica").text(customer.address || "", margin + 45, currentY + 20, { width: (splitX - margin) - 50 });
-    doc.fontSize(9).font("Helvetica-Bold").text(`${customer.state?.toUpperCase() || ""} - ${customer.pincode || ""}`, margin + 45, currentY + 65);
+    const billTo = invoice.billToAddress || {
+      companyName: customer.company || customer.name,
+      address: customer.address,
+      state: customer.state,
+      pincode: customer.pincode,
+      gstin: customer.gstin
+    };
 
-    doc.fontSize(8).text("Place of Supply:", margin + 5, currentY + 80);
-    doc.font("Helvetica").text(customer.state || "", margin + 75, currentY + 80);
-    doc.font("Helvetica-Bold").text("GSTIN No. :", margin + 5, currentY + 90);
-    doc.font("Helvetica").text(customer.gstin || "URD", margin + 75, currentY + 90);
+    doc.fontSize(8).font("Helvetica-Bold").text("Bill To:", margin + 5, currentY + 5);
+    doc.fontSize(10).text(billTo.companyName || customer.company || customer.name || "", margin + 45, currentY + 5, { width: (splitX - margin) - 50 });
+    doc.fontSize(8).font("Helvetica").text(billTo.address || "", margin + 45, currentY + 20, { width: (splitX - margin) - 50 });
+    doc.fontSize(9).font("Helvetica-Bold").text(`${billTo.state?.toUpperCase() || ""} - ${billTo.pincode || ""}`, margin + 45, currentY + 40);
+    doc.fontSize(8).text("GSTIN No. :", margin + 5, currentY + 53);
+    doc.font("Helvetica").text(billTo.gstin || customer.gstin || "URD", margin + 65, currentY + 53);
+
+    hLine(currentY + 65, margin, splitX);
+
+    // Ship To
+    const shipTo = invoice.shipToAddress || billTo; // Fallback to billTo if shipTo is null
+    
+    doc.fontSize(8).font("Helvetica-Bold").text("Ship To:", margin + 5, currentY + 70);
+    doc.fontSize(10).text(shipTo.companyName || shipTo.name || billTo.companyName || "", margin + 45, currentY + 70, { width: (splitX - margin) - 50 });
+    doc.fontSize(8).font("Helvetica").text(shipTo.address || billTo.address || "", margin + 45, currentY + 85, { width: (splitX - margin) - 50 });
+    doc.fontSize(9).font("Helvetica-Bold").text(`${(shipTo.state || billTo.state || "").toUpperCase()} - ${shipTo.pincode || billTo.pincode || ""}`, margin + 45, currentY + 105);
 
     // Invoice Meta
     const rMargin = splitX + 5;
@@ -204,24 +219,27 @@ class PdfService {
     doc.font("Helvetica-Bold").text("Date :", rMargin, currentY + 18);
     doc.font("Helvetica").text(new Date(invoice.createdAt).toLocaleDateString("en-IN"), rValPos, currentY + 18);
 
-    hLine(currentY + 35, splitX, margin + contentWidth);
+    doc.font("Helvetica-Bold").text("PO No. :", rMargin, currentY + 28);
+    doc.font("Helvetica").text(invoice.poNo || "N/A", rValPos, currentY + 28);
+
+    hLine(currentY + 40, splitX, margin + contentWidth);
 
     const eway = invoice.ewayBill || {};
     doc.fontSize(8).font("Helvetica-Bold");
-    doc.text("EWB No.", rMargin, currentY + 40);
-    doc.font("Helvetica").text(`: ${eway.ewayBillNo || "."}`, rValPos - 20, currentY + 40);
+    doc.text("EWB No.", rMargin, currentY + 45);
+    doc.font("Helvetica").text(`: ${eway.ewayBillNo || "N/A"}`, rValPos - 20, currentY + 45);
 
-    doc.font("Helvetica-Bold").text("EWB Date", rMargin, currentY + 55);
-    doc.font("Helvetica").text(`: ${eway.ewbDate ? new Date(eway.ewbDate).toLocaleDateString("en-GB") : "/ /"}`, rValPos - 20, currentY + 55);
+    doc.font("Helvetica-Bold").text("EWB Date", rMargin, currentY + 60);
+    doc.font("Helvetica").text(`: ${eway.ewbDate ? new Date(eway.ewbDate).toLocaleDateString("en-GB") : "N/A"}`, rValPos - 20, currentY + 60);
 
-    doc.font("Helvetica-Bold").text("Valid Until", rMargin, currentY + 70);
-    doc.font("Helvetica").text(`: ${eway.validityDate ? new Date(eway.validityDate).toLocaleDateString("en-GB") : "/ /"}`, rValPos - 20, currentY + 70);
+    doc.font("Helvetica-Bold").text("Valid Until", rMargin, currentY + 75);
+    doc.font("Helvetica").text(`: ${eway.validityDate ? new Date(eway.validityDate).toLocaleDateString("en-GB") : "N/A"}`, rValPos - 20, currentY + 75);
 
-    doc.font("Helvetica-Bold").text("Vehicle No.", rMargin, currentY + 85);
-    doc.font("Helvetica").text(`: ${eway.vehicleNo || "."}`, rValPos - 20, currentY + 85);
+    doc.font("Helvetica-Bold").text("Vehicle No.", rMargin, currentY + 90);
+    doc.font("Helvetica").text(`: ${eway.vehicleNo || "N/A"}`, rValPos - 20, currentY + 90);
 
     // --- Items Grid ---
-    currentY += 100;
+    currentY += 120;
     const tableHeaderY = currentY;
     const tableHeight = 350;
     drawBox(margin, currentY, contentWidth, tableHeight);

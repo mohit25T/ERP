@@ -58,12 +58,12 @@ const BankManagement = () => {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Sector Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-            Bank <span className="text-indigo-600 italic">Reserves</span>
+            Bank <span className="text-indigo-600 ">Reserves</span>
           </h1>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1">
             Institutional Liquidity Registry
@@ -133,20 +133,20 @@ const BankManagement = () => {
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Timeline</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Bank & Ref</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Flux Type</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Magnitude (₹)</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Timeline</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Bank & Ref</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Flux Type</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Magnitude (₹)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {transactions.map((tx) => (
                   <tr key={tx._id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <p className="text-xs font-black text-slate-900">{new Date(tx.date).toLocaleDateString()}</p>
                       <p className="text-[10px] text-slate-400">{new Date(tx.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-slate-100 rounded-lg text-slate-500 group-hover:bg-white group-hover:shadow-sm transition-all">
                           <BankIcon className="w-4 h-4" />
@@ -157,7 +157,7 @@ const BankManagement = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <span className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border ${
                         tx.type === 'credit' 
                           ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
@@ -165,9 +165,9 @@ const BankManagement = () => {
                       }`}>
                         {tx.type}
                       </span>
-                      {tx.remarks && <p className="text-[9px] text-slate-400 mt-1 italic">{tx.remarks}</p>}
+                      {tx.remarks && <p className="text-[9px] text-slate-400 mt-1 ">{tx.remarks}</p>}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-4 py-4 text-right">
                       <p className={`text-sm font-black ${tx.type === 'credit' ? 'text-emerald-600' : 'text-rose-600'}`}>
                         {tx.type === 'credit' ? '+' : '-'} {tx.amount.toLocaleString()}
                       </p>
@@ -176,7 +176,7 @@ const BankManagement = () => {
                 ))}
                 {transactions.length === 0 && (
                   <tr>
-                    <td colSpan="4" className="px-6 py-20 text-center">
+                    <td colSpan="4" className="px-4 py-20 text-center">
                       <p className="text-xs font-black text-slate-300 uppercase tracking-[0.3em]">No Transactions Found</p>
                     </td>
                   </tr>
@@ -193,7 +193,7 @@ const BankManagement = () => {
         onClose={() => setShowModal(false)} 
         title="New Bank Ingress/Egress"
       >
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Calendar className="w-3 h-3"/> Transaction Date</label>

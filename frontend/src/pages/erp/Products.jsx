@@ -138,7 +138,7 @@ const Products = () => {
 
    return (
       <AppLayout>
-         <div className="space-y-6 pb-20">
+         <div className="space-y-4 pb-20">
 
             {/* Header Section */}
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
@@ -181,7 +181,7 @@ const Products = () => {
 
             {/* Filters */}
             {showFilters && (
-               <div className="p-4 bg-muted/10 rounded-md border border-border shadow-inner flex flex-wrap gap-6 items-end animate-in fade-in slide-in-from-top-2">
+               <div className="p-4 bg-muted/10 rounded-md border border-border shadow-inner flex flex-wrap gap-4 items-end animate-in fade-in slide-in-from-top-2">
                   <div className="space-y-2">
                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Stock Level Threshold</p>
                      <div className="flex flex-wrap gap-2">
@@ -215,7 +215,7 @@ const Products = () => {
 
             {/* Stats Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-               <div className="p-5 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
+               <div className="p-3 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-4">
                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Asset Valuation</p>
                      <div className="p-2 bg-primary/10 rounded text-primary">
@@ -230,7 +230,7 @@ const Products = () => {
                   </div>
                </div>
 
-               <div className="p-5 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
+               <div className="p-3 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-4">
                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Critical Shortfall</p>
                      <div className="p-2 bg-amber-500/10 rounded text-amber-600">
@@ -245,7 +245,7 @@ const Products = () => {
                   </div>
                </div>
 
-               <div className="p-5 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
+               <div className="p-3 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-4">
                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Scrap Aggregate</p>
                      <div className="p-2 bg-rose-500/10 rounded text-rose-600">
@@ -272,7 +272,7 @@ const Products = () => {
                   </div>
                </div>
 
-               <div className="p-5 bg-primary/5 rounded-md border border-primary/20 shadow-sm flex flex-col justify-between">
+               <div className="p-3 bg-primary/5 rounded-md border border-primary/20 shadow-sm flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-4">
                      <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Catalog Nodes</p>
                      <div className="p-2 bg-primary/20 rounded text-primary">
@@ -374,7 +374,7 @@ const Products = () => {
                                        </div>
                                     </td>
                                     <td>
-                                       <span className="text-[10px] font-bold text-muted-foreground italic uppercase tracking-tight opacity-70">"{log.reason}"</span>
+                                       <span className="text-[10px] font-bold text-muted-foreground  uppercase tracking-tight opacity-70">"{log.reason}"</span>
                                     </td>
                                     <td className="text-center">
                                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 text-amber-600 rounded border border-amber-500/20 font-black tabular-nums text-xs">
@@ -551,14 +551,14 @@ const Products = () => {
 
          {/* Modals */}
          <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingProduct ? "Modify Registry Entry" : "New Registry Node"}>
-            <div className="p-6">
+            <div className="p-4">
                <ProductForm initialData={editingProduct} onSubmit={handleSubmit} onCancel={() => setIsModalOpen(false)} loading={formLoading} />
             </div>
          </Modal>
 
          <Modal isOpen={isBOMModalOpen} onClose={() => setIsBOMModalOpen(false)} title="Operational Requirement Assessment">
-            <div className="p-6 space-y-6">
-               <div className="bg-muted/30 p-6 rounded border border-border shadow-inner">
+            <div className="p-4 space-y-4">
+               <div className="bg-muted/30 p-4 rounded border border-border shadow-inner">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                      <div>
                         <p className="text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-widest">Protocol Target</p>
@@ -580,7 +580,7 @@ const Products = () => {
                <div className="space-y-3">
                   <h4 className="text-[10px] font-black text-foreground pb-2 border-b border-border uppercase tracking-widest">Resource Matrix</h4>
                   {!selectedProductBom ? (
-                     <div className="p-12 bg-muted/10 rounded text-center border border-dashed border-border">
+                     <div className="p-6 bg-muted/10 rounded text-center border border-dashed border-border">
                         <PackageOpen className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">No BOM Protocol Defined</p>
                      </div>

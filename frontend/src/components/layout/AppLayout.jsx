@@ -90,7 +90,7 @@ const AppLayout = ({ children, fullWidth = false }) => {
 
             {/* System Utilities */}
             <div className="flex items-center gap-1 text-muted-foreground">
-              <button 
+              <button
                 onClick={toggleTheme}
                 className="p-2 hover:bg-muted hover:text-foreground rounded-md transition-all active:scale-95"
                 title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
@@ -98,8 +98,8 @@ const AppLayout = ({ children, fullWidth = false }) => {
                 {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
               </button>
               <NotificationBell />
-              <Link 
-                to="/settings" 
+              <Link
+                to="/settings"
                 className="p-2 hover:bg-muted hover:text-foreground rounded-md transition-all active:scale-95"
                 title="System Settings"
               >
@@ -131,8 +131,18 @@ const AppLayout = ({ children, fullWidth = false }) => {
         </header>
 
         {/* Global Main Workspace */}
-        <main className="flex-1 min-w-0 bg-background transition-colors duration-300">
-          <div className={`p-4 md:p-6 w-full mx-auto ${fullWidth ? 'max-w-full' : ''}`}>
+        <main className="flex-1 min-w-0 bg-background transition-colors duration-300 relative">
+
+          {/* Subtle Background Watermark */}
+          <div className="fixed inset-0 pointer-events-none z-[50] flex items-center justify-center opacity-[0.1] dark:opacity-[0.1] select-none">
+            {user?.companyLogo ? (
+              <img src={user.companyLogo} alt="Background Watermark" className="w-[50vw] max-w-[600px] object-contain" />
+            ) : (
+              <span className="text-[12vw] font-black tracking-tighter uppercase text-foreground whitespace-nowrap">{user?.companyName || 'ERP'}</span>
+            )}
+          </div>
+
+          <div className={`p-4 md:p-4 w-full mx-auto relative z-10 ${fullWidth ? 'max-w-full' : ''}`}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}

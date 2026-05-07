@@ -179,6 +179,7 @@ export const productionApi = {
 
 export const invoiceApi = {
   getAll: () => api.get("/invoices"),
+  getNextNumber: () => api.get("/invoices/next-number"),
   create: (data) => api.post("/invoices", data),
   finalize: (id) => api.patch(`/invoices/${id}/finalize`),
   downloadPdf: (id) => api.get(`/invoices/${id}/pdf`, { responseType: 'blob' }),

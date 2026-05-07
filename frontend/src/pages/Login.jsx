@@ -86,7 +86,7 @@ const Login = () => {
       </button>
 
       {/* Brand Side - More Professional / Solid */}
-      <div className="w-full lg:w-[40%] bg-slate-950 p-12 lg:p-20 flex flex-col justify-between relative overflow-hidden shrink-0 border-r border-white/5">
+      <div className="w-full lg:w-[40%] bg-slate-950 p-6 lg:p-20 flex flex-col justify-between relative overflow-hidden shrink-0 border-r border-white/5">
           <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
              <div className="absolute inset-0" style={{ backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`, backgroundSize: '32px 32px' }}></div>
           </div>
@@ -111,7 +111,7 @@ const Login = () => {
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="relative z-10 space-y-6"
+            className="relative z-10 space-y-4"
           >
              <h2 className="text-4xl lg:text-6xl font-black text-white leading-tight tracking-tighter uppercase">
                 Secure<br/>
@@ -131,7 +131,7 @@ const Login = () => {
              </div>
           </motion.div>
 
-          <div className="relative z-10 pt-8 border-t border-white/5">
+          <div className="relative z-10 pt-4 border-t border-white/5">
              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">
                 Property of Mohit Industries. Authorized access only.
              </p>
@@ -139,10 +139,10 @@ const Login = () => {
       </div>
 
       {/* Auth Control Hub */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 relative z-10 bg-background border-l border-border">
+      <div className="flex-1 flex items-center justify-center p-4 lg:p-6 relative z-10 bg-background border-l border-border">
          <div className="w-full max-w-md">
             
-            <div className="mb-8">
+            <div className="mb-4">
                <h3 className="text-2xl font-black text-foreground tracking-tight uppercase mb-1">
                   {step === 1 ? 'Authentication' : 'Verification'}
                </h3>
@@ -158,7 +158,7 @@ const Login = () => {
                    initial={{ opacity: 0, y: -4 }}
                    animate={{ opacity: 1, y: 0 }}
                    exit={{ opacity: 0 }}
-                   className="bg-destructive/10 border border-destructive/20 rounded p-3 mb-6 flex items-center gap-3"
+                   className="bg-destructive/10 border border-destructive/20 rounded p-3 mb-4 flex items-center gap-3"
                  >
                     <ShieldAlert className="w-4 h-4 text-destructive" />
                     <p className="text-[10px] font-bold text-destructive uppercase tracking-widest">{error}</p>
@@ -167,7 +167,7 @@ const Login = () => {
             </AnimatePresence>
 
             {/* Auth Card */}
-            <div className="bg-card p-8 lg:p-10 rounded border border-border shadow-xl relative overflow-hidden group">
+            <div className="bg-card p-4 lg:p-3 rounded border border-border shadow-xl relative overflow-hidden group">
                <AnimatePresence mode="wait">
                   {step === 1 ? (
                     <motion.form 
@@ -175,7 +175,7 @@ const Login = () => {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 10 }}
-                      className="space-y-6 relative z-10" 
+                      className="space-y-4 relative z-10" 
                       onSubmit={handleStep1}
                     >
                       <div className="space-y-2">
@@ -227,7 +227,7 @@ const Login = () => {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 10 }}
-                      className="space-y-6 flex flex-col items-center text-center relative z-10"
+                      className="space-y-4 flex flex-col items-center text-center relative z-10"
                       onSubmit={handleStep2}
                     >
                       <div className="w-12 h-12 bg-primary/10 rounded flex items-center justify-center mb-2 border border-primary/20">
@@ -273,7 +273,7 @@ const Login = () => {
                </AnimatePresence>
             </div>
             
-            <div className="mt-8 flex justify-between items-center opacity-30">
+            <div className="mt-4 flex justify-between items-center opacity-30">
                <div className="flex items-center gap-2">
                   <Database className="w-3 h-3 text-muted-foreground" />
                   <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Node: IN-W-1</span>

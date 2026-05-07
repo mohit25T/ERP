@@ -51,7 +51,7 @@ const Dashboard = () => {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border pb-4">
           <div>
@@ -106,8 +106,8 @@ const Dashboard = () => {
           {/* B. CHARTS */}
           <div className="lg:col-span-2 space-y-4">
             {/* Production Output Chart */}
-            <div className="bg-card p-5 rounded border border-border relative overflow-hidden">
-              <h3 className="text-xs font-bold text-foreground mb-6 uppercase tracking-widest opacity-80">Output Analysis</h3>
+            <div className="bg-card p-3 rounded border border-border relative overflow-hidden">
+              <h3 className="text-xs font-bold text-foreground mb-4 uppercase tracking-widest opacity-80">Output Analysis</h3>
               <div className="h-[280px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats?.productionTrend || []} margin={{ top: 5, right: 0, left: -20, bottom: 5 }}>
@@ -140,8 +140,8 @@ const Dashboard = () => {
             </div>
 
             {/* Efficiency vs Scrap Trend */}
-            <div className="bg-card p-5 rounded border border-border relative overflow-hidden">
-              <h3 className="text-xs font-bold text-foreground mb-6 uppercase tracking-widest opacity-80">Efficiency vs Resource Loss</h3>
+            <div className="bg-card p-3 rounded border border-border relative overflow-hidden">
+              <h3 className="text-xs font-bold text-foreground mb-4 uppercase tracking-widest opacity-80">Efficiency vs Resource Loss</h3>
               <div className="h-[280px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={stats?.productionTrend || []} margin={{ top: 5, right: 0, left: -20, bottom: 5 }}>

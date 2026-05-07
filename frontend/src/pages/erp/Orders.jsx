@@ -12,7 +12,7 @@ import {
   Eye, History, CreditCard, ChevronRight, ArrowLeft,
   ArrowRightLeft, ShoppingCart, CheckCircle, Hammer,
   Clock, DollarSign, Layers, PackageSearch, Wallet,
-  ShieldCheck, Activity
+  ShieldCheck, Activity, Settings
 } from "lucide-react";
 
 
@@ -42,6 +42,10 @@ const Orders = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterType, setFilterType] = useState("all");
+
+  // New states for Dual-Pane & Actions
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [actionOrder, setActionOrder] = useState(null);
 
   const fetchOrders = async () => {
     try {
@@ -114,7 +118,7 @@ const Orders = () => {
       setPaymentNote("");
       fetchOrders();
     } catch (err) {
-      alert("Payment failed: " + (err.response?.data?.msg || err.message));
+      alert("Payment failed: " + (err.response?.data?.error || err.response?.data?.msg || err.message));
     } finally {
       setFormLoading(false);
     }
@@ -177,16 +181,6 @@ const Orders = () => {
   const handleStatusUpdate = async (id, newStatus) => {
     try {
       await orderApi.updateStatus(id, newStatus);
-      if (newStatus === 'invoiced') {
-        const alreadyInvoiced = invoices.find(inv => inv.order?._id === id || inv.order === id);
-        if (!alreadyInvoiced) {
-          try {
-            await invoiceApi.create({ orderId: id });
-          } catch (invErr) {
-            console.error("Invoice generation failed", invErr);
-          }
-        }
-      }
       fetchOrders();
     } catch (err) {
       alert("Status update failed: " + (err.response?.data?.msg || err.message));
@@ -244,9 +238,10 @@ const Orders = () => {
 
   const handleExportCSV = () => {
     if (!filteredOrders.length) return;
-    const headers = ["Order ID", "Customer", "Product", "Quantity", "Total Amount", "Paid", "Status", "Date"];
+    const headers = ["Order ID", "PO Number", "Customer", "Product", "Quantity", "Total Amount", "Paid", "Status", "Date"];
     const rows = filteredOrders.map(o => [
       `"${o._id}"`,
+      `"${o.poNumber || ''}"`,
       `"${o.customer?.name || 'Unassigned'}"`,
       `"${o.product?.name || 'N/A'}"`,
       o.quantity,
@@ -285,9 +280,102 @@ const Orders = () => {
     }
   };
 
+  const pendingOrders = filteredOrders.filter(o => o.status === 'pending');
+  const productionOrders = filteredOrders.filter(o => o.status !== 'pending' && o.status !== 'cancelled');
+
+  const renderOrderCard = (o, isPendingPane) => {
+    const statusOpts = getStatusBadgeOptions(o.status);
+    const unbilled = (o.orderedQty || o.quantity || 0) - (o.invoicedQty || 0);
+    const existingInvoices = invoices.filter(inv => inv.order?._id === o._id || inv.order === o._id);
+    
+    return (
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        key={o._id}
+        className="bg-card border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-all group flex flex-col gap-3 relative"
+      >
+        <div className="flex justify-between items-start">
+          <div>
+            <span className="text-xs font-black text-foreground">#{o._id.substring(o._id.length - 6).toUpperCase()}</span>
+            {o.poNumber && <span className="block text-[9px] font-bold text-indigo-600 uppercase tracking-tighter mt-0.5">PO: {o.poNumber}</span>}
+          </div>
+          <div className={`status-badge text-[9px] px-2 py-0.5 ${statusOpts.color}`}>
+            {statusOpts.label}
+          </div>
+        </div>
+
+        <div>
+          <h4 className="text-sm font-bold text-foreground line-clamp-1">{o.customer?.name || "Unknown"}</h4>
+          {o.customer?.company && (
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight flex items-center gap-1 mt-0.5">
+              <ShieldCheck className="w-3 h-3" /> {o.customer.company}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between bg-muted/30 p-2 rounded-md border border-border/50">
+           <div className="flex items-center gap-2">
+             {o.saleType === 'scrap' ? <Hammer className="w-4 h-4 text-rose-500" /> : <Box className="w-4 h-4 text-primary" />}
+             <div>
+               <p className="text-xs font-bold text-foreground truncate max-w-[120px]">{o.product?.name}</p>
+               <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{o.quantity} {o.unit}</p>
+             </div>
+           </div>
+           <div className="text-right">
+             <p className="text-xs font-black text-foreground">₹{o.totalAmount?.toLocaleString('en-IN')}</p>
+             <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">{Math.round((o.amountPaid / o.totalAmount) * 100)}% Paid</p>
+           </div>
+        </div>
+
+        <div className="flex items-center justify-between pt-2 border-t border-border mt-auto">
+          <div className="flex gap-1.5">
+             <button onClick={() => fetchPaymentHistory(o._id)} className="p-1.5 bg-muted/50 hover:bg-muted text-muted-foreground rounded transition-colors" title="History">
+                <History className="w-3.5 h-3.5" />
+             </button>
+             {o.paymentStatus !== 'paid' && !['cancelled'].includes(o.status) && (
+               <button onClick={() => { setSelectedOrder(o); setIsPaymentModalOpen(true); }} className="p-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 rounded transition-colors" title="Record Payment">
+                  <Wallet className="w-3.5 h-3.5" />
+               </button>
+             )}
+          </div>
+          <div className="flex gap-2">
+             {isPendingPane ? (
+               <button onClick={() => handleStatusUpdate(o._id, 'in_progress')} className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 px-3 py-1.5 rounded transition-colors">
+                 Start <ChevronRight className="w-3 h-3" />
+               </button>
+             ) : (
+               <>
+                 <button onClick={() => handleStatusUpdate(o._id, 'pending')} className="p-1.5 text-muted-foreground hover:bg-muted rounded transition-colors" title="Undo Production">
+                   <ArrowLeft className="w-3.5 h-3.5" />
+                 </button>
+                 <button 
+                   onClick={() => { setActionOrder(o); setIsActionModalOpen(true); }}
+                   className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1.5 rounded transition-colors"
+                 >
+                   Manage <Settings className="w-3 h-3" />
+                 </button>
+               </>
+             )}
+          </div>
+        </div>
+        
+        {/* Unbilled Indicator for Production pane */}
+        {!isPendingPane && unbilled > 0 && (
+          <div className="absolute -top-2 -right-2 bg-amber-500 text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full shadow-md border-2 border-card">
+            {unbilled} {o.unit} Unbilled
+          </div>
+        )}
+      </motion.div>
+    );
+  };
+
+
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
 
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -362,7 +450,7 @@ const Orders = () => {
 
           {/* Advanced Filter Manifold */}
           {showFilters && (
-            <div className="p-4 bg-muted/10 border-b border-border flex flex-col sm:flex-row gap-6 animate-in slide-in-from-top-2 duration-300">
+            <div className="p-4 bg-muted/10 border-b border-border flex flex-col sm:flex-row gap-4 animate-in slide-in-from-top-2 duration-300">
               <div className="space-y-2">
                 <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Lifecycle Status</p>
                 <div className="flex flex-wrap gap-2">
@@ -378,7 +466,7 @@ const Orders = () => {
                 </div>
               </div>
 
-              <div className="space-y-2 sm:border-l sm:border-border sm:pl-6">
+              <div className="space-y-2 sm:border-l sm:border-border sm:pl-4">
                 <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Order Category</p>
                 <div className="flex gap-2">
                   {['all', 'yield', 'scrap'].map(type => (
@@ -404,140 +492,56 @@ const Orders = () => {
             </div>
           )}
 
-          <div className="overflow-x-auto">
+          <div className="p-4 bg-muted/5 min-h-[500px]">
             {loading ? (
               <HammerLoader />
             ) : filteredOrders.length === 0 ? (
-              <div className="p-12 flex flex-col items-center justify-center text-muted-foreground">
+              <div className="py-20 flex flex-col items-center justify-center text-muted-foreground">
                 <Box className="w-12 h-12 mb-4 text-muted-foreground/30" />
                 <h3 className="text-sm font-bold uppercase tracking-widest">No Operational Data</h3>
               </div>
             ) : (
-              <table className="erp-table">
-                <thead>
-                  <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Asset / Qty</th>
-                    <th>Fiscal Amount</th>
-                    <th>Status</th>
-                    <th className="text-right">Control</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/50">
-                  <AnimatePresence mode="popLayout">
-                    {filteredOrders.map((o, index) => {
-                      const statusOpts = getStatusBadgeOptions(o.status);
-                      return (
-                        <motion.tr
-                          key={o._id}
-                          initial={{ opacity: 0, y: 4 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.2, delay: index * 0.02 }}
-                          className="erp-row-hover"
-                        >
-                          <td>
-                            <div className="flex flex-col">
-                              <span className="text-xs font-black text-foreground">#{o._id.substring(o._id.length - 6).toUpperCase()}</span>
-                              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter">{new Date(o.createdAt).toLocaleDateString()}</span>
-                            </div>
-                          </td>
-                          <td>
-                            <div className="flex flex-col">
-                              <span className="text-xs font-bold text-foreground">{o.customer?.name || "Unknown"}</span>
-                              {o.customer?.company && (
-                                <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-tight flex items-center gap-1 mt-0.5">
-                                  <ShieldCheck className="w-2.5 h-2.5" /> {o.customer.company}
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td>
-                            <div className="flex flex-col">
-                              <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                                {o.saleType === 'scrap' ? <Hammer className="w-3.5 h-3.5 text-rose-500" /> : <Box className="w-3.5 h-3.5 text-primary" />}
-                                {o.product?.name}
-                              </span>
-                              <span className="text-[9px] font-bold text-muted-foreground mt-0.5 uppercase tracking-widest">{o.quantity} {o.unit}</span>
-                            </div>
-                          </td>
-                          <td>
-                            <div className="flex flex-col gap-1.5">
-                              <span className="text-xs font-black text-foreground">₹{o.totalAmount?.toLocaleString('en-IN')}</span>
-                              <div className="flex items-center gap-2">
-                                <div className="w-16 h-1 bg-muted rounded-full overflow-hidden">
-                                  <div className="h-full bg-emerald-500 transition-all" style={{ width: `${(o.amountPaid / o.totalAmount) * 100}%` }}></div>
-                                </div>
-                                <span className="text-[8px] text-muted-foreground font-bold">{Math.round((o.amountPaid / o.totalAmount) * 100)}%</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td>
-                            <div className={`status-badge w-fit ${statusOpts.color}`}>
-                              {statusOpts.icon}
-                              {statusOpts.label}
-                            </div>
-                          </td>
-                          <td className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              {o.paymentStatus !== 'paid' && !['cancelled'].includes(o.status) && (
-                                <button onClick={() => { setSelectedOrder(o); setIsPaymentModalOpen(true); }} className="p-1.5 border border-border bg-card hover:bg-muted text-emerald-600 rounded transition-colors" title="Record Payment">
-                                  <Wallet className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                              <button onClick={() => fetchPaymentHistory(o._id)} className="p-1.5 border border-border bg-card hover:bg-muted text-muted-foreground rounded transition-colors" title="Payment History">
-                                <History className="w-3.5 h-3.5" />
-                              </button>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
+                {/* LEFT PANE: PENDING HUB */}
+                <div className="flex flex-col h-full bg-card/50 rounded-xl border border-border/50 overflow-hidden shadow-inner">
+                  <div className="p-3 border-b border-border/50 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between sticky top-0 z-10">
+                    <h2 className="text-xs font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                      <Clock className="w-4 h-4" /> Pending Hub
+                    </h2>
+                    <span className="bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-black px-2 py-0.5 rounded-full">{pendingOrders.length}</span>
+                  </div>
+                  <div className="p-4 flex-1 overflow-y-auto space-y-4">
+                    <AnimatePresence mode="popLayout">
+                      {pendingOrders.map(o => renderOrderCard(o, true))}
+                    </AnimatePresence>
+                    {pendingOrders.length === 0 && (
+                      <div className="h-full flex items-center justify-center text-muted-foreground text-[10px] uppercase tracking-widest font-bold opacity-50">Empty</div>
+                    )}
+                  </div>
+                </div>
 
-                              {(() => {
-                                const existingInvoice = invoices.find(inv => inv.order?._id === o._id || inv.order === o._id);
-                                return (
-                                  <>
-                                    {['pending', 'invoiced'].includes(o.status) ? (
-                                      <button onClick={() => handleStatusUpdate(o._id, 'in_progress')} className="p-1.5 border border-border bg-card hover:bg-muted text-blue-600 rounded transition-colors" title="Start Order">
-                                        <PackageSearch className="w-3.5 h-3.5" />
-                                      </button>
-                                    ) : (o.status === 'in_progress' || o.status === 'shipped') && (
-                                      <button onClick={() => handleStatusUpdate(o._id, 'completed')} className="p-1.5 border border-border bg-card hover:bg-muted text-emerald-600 rounded transition-colors" title="Complete Order">
-                                        <CheckCircle className="w-3.5 h-3.5" />
-                                      </button>
-                                    )}
-                                    {(o.status === 'pending' || o.status === 'in_progress') && !existingInvoice && (
-                                      <button onClick={() => handleStatusUpdate(o._id, 'invoiced')} className="p-1.5 border border-border bg-card hover:bg-muted text-purple-600 rounded transition-colors" title="Invoice Order">
-                                        <FileText className="w-3.5 h-3.5" />
-                                      </button>
-                                    )}
-
-                                    {(o.status === 'invoiced' || (o.status === 'in_progress' && existingInvoice)) && (
-                                      <button onClick={() => handleStatusUpdate(o._id, 'shipped')} className="p-1.5 border border-border bg-card hover:bg-muted text-indigo-600 rounded transition-colors" title="Mark as Shipped">
-                                        <Truck className="w-3.5 h-3.5" />
-                                      </button>
-                                    )}
-
-
-                                    {(existingInvoice || ['invoiced', 'shipped', 'completed'].includes(o.status?.toLowerCase())) && (
-                                      <button onClick={() => handleOpenPreview(o)} className="p-1.5 border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary rounded transition-colors" title="Preview Invoice">
-                                        <Eye className="w-3.5 h-3.5" />
-                                      </button>
-                                    )}
-                                  </>
-                                );
-                              })()}
-
-                              <button onClick={() => handleDeleteOrder(o._id)} className="p-1.5 border border-border bg-card hover:bg-muted text-destructive rounded transition-colors" title="Delete">
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </motion.tr>
-                      );
-                    })}
-                  </AnimatePresence>
-                </tbody>
-              </table>
+                {/* RIGHT PANE: PRODUCTION & TRANSIT */}
+                <div className="flex flex-col h-full bg-indigo-50/20 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-900/30 overflow-hidden shadow-inner">
+                  <div className="p-3 border-b border-indigo-100 dark:border-indigo-900/30 bg-indigo-50/50 dark:bg-indigo-900/20 flex items-center justify-between sticky top-0 z-10">
+                    <h2 className="text-xs font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                      <Activity className="w-4 h-4" /> Active Production & Logistics
+                    </h2>
+                    <span className="bg-indigo-200 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-300 text-[10px] font-black px-2 py-0.5 rounded-full">{productionOrders.length}</span>
+                  </div>
+                  <div className="p-4 flex-1 overflow-y-auto space-y-4">
+                    <AnimatePresence mode="popLayout">
+                      {productionOrders.map(o => renderOrderCard(o, false))}
+                    </AnimatePresence>
+                    {productionOrders.length === 0 && (
+                      <div className="h-full flex items-center justify-center text-indigo-400/50 text-[10px] uppercase tracking-widest font-bold">No Active Operations</div>
+                    )}
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
+
 
       </div>
 
@@ -569,10 +573,10 @@ const Orders = () => {
         onClose={() => setIsPaymentModalOpen(false)}
         title="Record Receipt"
       >
-        <div className="p-4 space-y-6">
+        <div className="p-4 space-y-4">
           {selectedOrder && (
             <>
-              <div className="p-5 bg-primary/5 border border-primary/10 rounded flex items-center justify-between">
+              <div className="p-3 bg-primary/5 border border-primary/10 rounded flex items-center justify-between">
                 <div>
                   <p className="text-[10px] text-primary font-bold mb-1 uppercase tracking-widest">Outstanding</p>
                   <h3 className="text-2xl font-black text-foreground tracking-tighter">₹{(selectedOrder.totalAmount - selectedOrder.amountPaid).toLocaleString()}</h3>
@@ -635,18 +639,18 @@ const Orders = () => {
         onClose={() => setIsHistoryModalOpen(false)}
         title="Transaction History"
       >
-        <div className="p-6">
+        <div className="p-4">
           {paymentHistory.length === 0 ? (
-            <div className="p-10 text-center text-muted-foreground bg-muted/10 rounded border border-dashed border-border">
+            <div className="p-3 text-center text-muted-foreground bg-muted/10 rounded border border-dashed border-border">
               <Layers className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-[10px] font-bold uppercase tracking-widest">No history recorded</p>
             </div>
           ) : (
-            <div className="relative border-l border-border ml-4 space-y-6 py-2">
+            <div className="relative border-l border-border ml-4 space-y-4 py-2">
               {paymentHistory.map((item, idx) => {
                 const isMilestone = item.type === 'milestone';
                 return (
-                  <div key={item._id} className="relative pl-6">
+                  <div key={item._id} className="relative pl-4">
                     <div className={`absolute -left-[4.5px] top-1 w-2 h-2 rounded-full shadow-sm ${isMilestone ? "bg-primary" : "bg-emerald-500"}`}></div>
                     <div className="flex flex-col">
                       <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">{new Date(item.date).toLocaleDateString()}</span>
@@ -665,7 +669,7 @@ const Orders = () => {
               })}
             </div>
           )}
-          <div className="flex justify-end mt-8 pt-4 border-t border-border">
+          <div className="flex justify-end mt-4 pt-4 border-t border-border">
             <button onClick={() => setIsHistoryModalOpen(false)} className="erp-button-secondary">Close Protocol</button>
           </div>
         </div>
@@ -690,6 +694,53 @@ const Orders = () => {
               <ArrowDownToLine className="w-4 h-4 mr-2" /> Download Artifact
             </button>
           </div>
+        </div>
+      </Modal>
+
+      {/* Unified Action Modal */}
+      <Modal
+        isOpen={isActionModalOpen}
+        onClose={() => { setIsActionModalOpen(false); setActionOrder(null); }}
+        title="Manage Operation"
+      >
+        <div className="p-4 space-y-4">
+          {actionOrder && (
+            <>
+              <div className="p-4 bg-muted/20 border border-border rounded-lg text-center space-y-1">
+                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Selected Context</p>
+                 <p className="text-lg font-black text-foreground">#{actionOrder._id.substring(actionOrder._id.length - 6).toUpperCase()}</p>
+                 <p className="text-xs font-bold text-foreground opacity-80">{actionOrder.customer?.company || actionOrder.customer?.name}</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <button 
+                   disabled={actionOrder.status === 'completed'}
+                   onClick={() => { setIsActionModalOpen(false); handleStatusUpdate(actionOrder._id, 'completed'); }} 
+                   className={`flex items-center gap-3 p-4 rounded-xl transition-all group ${actionOrder.status === 'completed' ? 'opacity-50 cursor-not-allowed bg-slate-100 border border-slate-200 grayscale' : 'bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20'}`}
+                 >
+                   <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform ${actionOrder.status === 'completed' ? 'bg-slate-200 text-slate-500' : 'bg-emerald-500/20 text-emerald-600 group-hover:scale-110'}`}>
+                      <CheckCircle className="w-5 h-5" />
+                   </div>
+                   <div className="text-left">
+                     <p className={`text-sm font-black ${actionOrder.status === 'completed' ? 'text-slate-600' : 'text-emerald-700'}`}>Complete Order</p>
+                     <p className={`text-[9px] font-bold uppercase tracking-widest ${actionOrder.status === 'completed' ? 'text-slate-500' : 'text-emerald-600/70'}`}>Mark as fulfilled</p>
+                   </div>
+                 </button>
+                 
+                 <button 
+                   onClick={() => { setIsActionModalOpen(false); handleDeleteOrder(actionOrder._id); }} 
+                   className="flex items-center gap-3 p-4 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-xl transition-all group"
+                 >
+                   <div className="w-10 h-10 rounded-full bg-rose-500/20 flex items-center justify-center text-rose-600 group-hover:scale-110 transition-transform">
+                      <Trash2 className="w-5 h-5" />
+                   </div>
+                   <div className="text-left">
+                     <p className="text-sm font-black text-rose-700">Delete Order</p>
+                     <p className="text-[9px] font-bold uppercase tracking-widest text-rose-600/70">Remove from registry</p>
+                   </div>
+                 </button>
+              </div>
+            </>
+          )}
         </div>
       </Modal>
 

@@ -98,9 +98,9 @@ const NotificationBell = () => {
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             className="absolute right-0 mt-3 w-80 md:w-96 bg-white rounded-[2rem] shadow-2xl shadow-indigo-500/10 border border-indigo-50 overflow-hidden z-50"
           >
-            <div className="p-5 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
+            <div className="p-3 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-black text-gray-900 uppercase tracking-tighter italic">Alert Center</h3>
+                <h3 className="text-sm font-black text-gray-900 uppercase tracking-tighter ">Alert Center</h3>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{unreadCount} Unread Notifications</p>
               </div>
               {unreadCount > 0 && (
@@ -115,7 +115,7 @@ const NotificationBell = () => {
 
             <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
               {notifications.length === 0 ? (
-                <div className="p-10 text-center space-y-3">
+                <div className="p-3 text-center space-y-3">
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
                     <Bell className="w-8 h-8 text-gray-300" />
                   </div>

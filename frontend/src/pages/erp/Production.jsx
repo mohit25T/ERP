@@ -264,18 +264,18 @@ const Production = () => {
 
    return (
       <AppLayout fullWidth>
-          <div className="space-y-4">
+         <div className="space-y-4">
 
-             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-                <div className="flex items-center gap-4">
-                   <div className="w-12 h-12 bg-card rounded-md flex items-center justify-center shadow-sm border border-border">
-                      <Factory className="w-6 h-6 text-primary" />
-                   </div>
-                   <div>
-                      <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Production Execution</h2>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Operational Yield Optimization & Batch Fabrication Management</p>
-                   </div>
-                </div>
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+               <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-card rounded-md flex items-center justify-center shadow-sm border border-border">
+                     <Factory className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                     <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Production Execution</h2>
+                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Operational Yield Optimization & Batch Fabrication Management</p>
+                  </div>
+               </div>
                <button
                   onClick={() => setIsModalOpen(true)}
                   className="erp-button-primary !py-4"
@@ -287,7 +287,7 @@ const Production = () => {
 
             {/* Global Operational Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-               <div className="bg-card p-5 rounded-md border border-border shadow-sm flex flex-col justify-between group">
+               <div className="bg-card p-3 rounded-md border border-border shadow-sm flex flex-col justify-between group">
                   <div className="flex items-center justify-between mb-4">
                      <div className="p-2 bg-emerald-500/10 rounded text-emerald-600 dark:text-emerald-400">
                         <TrendingUp className="w-4 h-4" />
@@ -302,7 +302,7 @@ const Production = () => {
                   </div>
                </div>
 
-               <div className="bg-card p-5 rounded-md border border-border shadow-sm flex flex-col justify-between group">
+               <div className="bg-card p-3 rounded-md border border-border shadow-sm flex flex-col justify-between group">
                   <div className="flex items-center justify-between mb-4">
                      <div className="p-2 bg-primary/10 rounded text-primary">
                         <Activity className="w-4 h-4" />
@@ -317,7 +317,7 @@ const Production = () => {
                   </div>
                </div>
 
-               <div className="bg-card p-5 rounded-md border border-border shadow-sm flex flex-col justify-between group">
+               <div className="bg-card p-3 rounded-md border border-border shadow-sm flex flex-col justify-between group">
                   <div className="flex items-center justify-between mb-4">
                      <div className="p-2 bg-amber-500/10 rounded text-amber-600 dark:text-amber-400">
                         <Recycle className="w-4 h-4" />
@@ -405,18 +405,28 @@ const Production = () => {
                                        </div>
                                     </td>
                                     <td>
-                                       <div className={`status-badge w-fit ${
-                                          b.status === 'completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
+                                       <div className={`status-badge w-fit ${b.status === 'completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
                                           b.status === 'in_progress' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' :
-                                          'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-                                       }`}>
+                                             'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                                          }`}>
                                           {b.status === 'in_progress' ? 'ACTIVE' : b.status === "completed" ? "CLOSED" : "QUEUED"}
                                        </div>
                                     </td>
                                     <td>
                                        <div className="flex flex-col">
                                           <span className="text-xs font-black text-foreground tabular-nums">
-                                             {b.status === 'completed' ? (b.outputQuantity ?? b.quantity) : b.quantity}
+                                             {(() => {
+                                                if (b.status !== 'completed') return b.quantity;
+                                                let actual = Number(b.outputQuantity !== undefined && b.outputQuantity !== null ? b.outputQuantity : b.quantity);
+                                                let target = Number(b.quantity);
+                                                let scrap = Number(b.scrapQuantity || 0);
+                                                let unit = String(b.scrapUnit || 'pcs').toLowerCase().trim();
+
+                                                if (actual >= target && scrap > 0 && ['pcs', 'unit', 'dagina'].includes(unit)) {
+                                                   actual = Math.max(0, target - scrap);
+                                                }
+                                                return actual;
+                                             })()}
                                              {b.status === 'completed' && <span className="text-[10px] text-muted-foreground font-bold ml-1">/ {b.quantity}</span>}
                                              <span className="text-[9px] font-bold text-muted-foreground ml-1 uppercase tracking-widest">{b.product?.unit}</span>
                                           </span>
@@ -467,7 +477,7 @@ const Production = () => {
                                     <span className="text-xs font-black text-destructive tabular-nums">-{log.quantity} {log.material?.unit}</span>
                                  </td>
                                  <td>
-                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight opacity-70 italic">"{log.notes || "Wastage"}"</span>
+                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight opacity-70 ">"{log.notes || "Wastage"}"</span>
                                  </td>
                               </tr>
                            ))}
@@ -481,7 +491,7 @@ const Production = () => {
 
          {/* Modals */}
          <Modal isOpen={isModalOpen} onClose={handleClose} title={isEditing ? "Modify Production Sequence" : "Authorize Batch Fabrication"}>
-            <form onSubmit={handleCreate} className="p-6 space-y-6">
+            <form onSubmit={handleCreate} className="p-4 space-y-4">
                <div className="flex bg-muted/30 p-1 rounded border border-border/50 shadow-inner">
                   <button type="button" onClick={() => setIsNewProduct(false)} className={`flex-1 py-2 rounded text-[10px] font-bold uppercase tracking-widest transition-all ${!isNewProduct ? 'bg-card text-primary shadow-sm border border-border/50' : 'text-muted-foreground hover:text-foreground'}`}>Registry Item</button>
                   <button type="button" onClick={() => setIsNewProduct(true)} className={`flex-1 py-2 rounded text-[10px] font-bold uppercase tracking-widest transition-all ${isNewProduct ? 'bg-card text-emerald-600 shadow-sm border border-border/50' : 'text-muted-foreground hover:text-foreground'}`}>New Prototype</button>
@@ -525,6 +535,13 @@ const Production = () => {
                               const outputWeightGrams = parseFloat(newWeight) || 0;
                               const lossGrams = inputWeightGrams - outputWeightGrams;
 
+                              const primaryUnit = localBom.length > 0 ? (localBom[0].unit?.toLowerCase() || 'kg') : 'kg';
+                              const primaryFactor = unitsUtil.CONVERSIONS[primaryUnit] || 1;
+
+                              const displayInput = (inputWeightGrams / 1000) / primaryFactor;
+                              const displayOutput = (outputWeightGrams / 1000) / primaryFactor;
+                              const displayLoss = (lossGrams / 1000) / primaryFactor;
+
                               return (
                                  <div className="col-span-2 p-4 bg-muted/40 rounded border border-border space-y-4">
                                     <div className="flex items-center justify-between">
@@ -534,15 +551,15 @@ const Production = () => {
                                     <div className="grid grid-cols-3 gap-2">
                                        <div className="flex flex-col">
                                           <span className="text-[8px] font-bold text-muted-foreground uppercase">Input</span>
-                                          <span className="text-xs font-black text-foreground tabular-nums">{(inputWeightGrams / 1000).toFixed(3)}kg</span>
+                                          <span className="text-xs font-black text-foreground tabular-nums">{displayInput.toFixed(3)} {primaryUnit.toUpperCase()}</span>
                                        </div>
                                        <div className="flex flex-col">
                                           <span className="text-[8px] font-bold text-muted-foreground uppercase">Yield</span>
-                                          <span className="text-xs font-black text-foreground tabular-nums">{(outputWeightGrams / 1000).toFixed(3)}kg</span>
+                                          <span className="text-xs font-black text-foreground tabular-nums">{displayOutput.toFixed(3)} {primaryUnit.toUpperCase()}</span>
                                        </div>
                                        <div className="flex flex-col">
                                           <span className="text-[8px] font-bold text-muted-foreground uppercase">Loss</span>
-                                          <span className="text-xs font-black text-destructive tabular-nums">{(lossGrams / 1000).toFixed(3)}kg</span>
+                                          <span className="text-xs font-black text-destructive tabular-nums">{displayLoss.toFixed(3)} {primaryUnit.toUpperCase()}</span>
                                        </div>
                                     </div>
                                  </div>
@@ -570,13 +587,24 @@ const Production = () => {
                      </div>
                      <div className="space-y-2">
                         {localBom.map((item, idx) => (
-                           <div key={idx} className="flex items-center gap-2 bg-card p-2 rounded border border-border shadow-sm">
-                              <select required value={typeof item.material === 'string' ? item.material : item.material?._id} onChange={e => handleIngredientChange(idx, "material", e.target.value)} className="flex-1 bg-transparent border-none text-[11px] font-bold outline-none">
+                           <div key={idx} className="flex flex-col sm:flex-row items-center gap-2 bg-card p-2 rounded border border-border shadow-sm">
+                              <select required value={typeof item.material === 'string' ? item.material : item.material?._id} onChange={e => handleIngredientChange(idx, "material", e.target.value)} className="w-full sm:flex-1 bg-transparent border-none text-[11px] font-bold outline-none">
                                  <option value="">Material...</option>
                                  {rawMaterials.map(m => <option key={m._id} value={m._id}>{m.name}</option>)}
                               </select>
-                              <input required type="number" step="0.001" value={item.quantity} onChange={e => handleIngredientChange(idx, "quantity", e.target.value)} className="w-16 bg-muted/40 px-2 py-1 rounded text-[11px] font-black text-right outline-none border border-border" />
-                              <button type="button" onClick={() => setLocalBom(localBom.filter((_, i) => i !== idx))} className="p-1 text-destructive opacity-40 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
+                              <div className="flex items-center gap-2 w-full sm:w-auto">
+                                 <input required type="number" step="0.001" value={item.quantity} onChange={e => handleIngredientChange(idx, "quantity", e.target.value)} className="w-full sm:w-20 bg-muted/40 px-2 py-1 rounded text-[11px] font-black text-right outline-none border border-border" />
+                                 <select
+                                    className="erp-input !py-1 !px-2 !text-center text-[10px] uppercase w-20"
+                                    value={item.unit || rawMaterials.find(m => m._id === (typeof item.material === 'string' ? item.material : item.material?._id))?.unit || 'pcs'}
+                                    onChange={(e) => handleIngredientChange(idx, "unit", e.target.value)}
+                                 >
+                                    {["pcs", "dagina", "kg", "gram"].map(u => (
+                                       <option key={u} value={u} className="bg-card">{u.toUpperCase()}</option>
+                                    ))}
+                                 </select>
+                                 <button type="button" onClick={() => setLocalBom(localBom.filter((_, i) => i !== idx))} className="p-1 text-destructive opacity-40 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
+                              </div>
                            </div>
                         ))}
                      </div>
@@ -604,7 +632,7 @@ const Production = () => {
          </Modal>
 
          <Modal isOpen={isCompleteModalOpen} onClose={() => setIsCompleteModalOpen(false)} title="Finalize Fabrication Cycle">
-            <form onSubmit={handleComplete} className="p-6 space-y-6">
+            <form onSubmit={handleComplete} className="p-4 space-y-4">
                <div className="p-4 bg-amber-500/10 rounded border border-amber-500/20 flex gap-3 text-amber-600 text-[11px] font-bold uppercase tracking-tight">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <p>Finalizing this cycle will inject yielded assets into registry and commit identified wastage to scrap index.</p>
@@ -636,8 +664,14 @@ const Production = () => {
                         value={scrapCalcMode === 'pieces' ? scrapPieces : scrapQuantity}
                         onChange={e => {
                            const val = parseFloat(e.target.value) || 0;
-                           if (scrapCalcMode === 'pieces') setScrapPieces(val);
-                           else setScrapQuantity(val);
+                           if (scrapCalcMode === 'pieces') {
+                              setScrapPieces(val);
+                              if (completeBatch) {
+                                 setProducedQty(Math.max(0, completeBatch.quantity - val));
+                              }
+                           } else {
+                              setScrapQuantity(val);
+                           }
                         }}
                         className="erp-input w-full text-destructive font-black text-lg"
                         placeholder="0.000"

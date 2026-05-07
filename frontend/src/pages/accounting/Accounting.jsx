@@ -54,11 +54,11 @@ const TransactionModal = ({ isOpen, onClose, onRefresh, parties }) => {
                   exit={{ scale: 0.98, opacity: 0, y: 20 }}
                   className="bg-white w-full max-w-2xl rounded-2xl shadow-3xl shadow-slate-900/10 overflow-hidden border border-slate-100 flex flex-col"
                >
-                  <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-white relative">
+                  <div className="p-4 border-b border-slate-50 flex items-center justify-between bg-white relative">
                      <div className="flex items-center gap-4 relative z-10">
                         <div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
                         <div>
-                           <h3 className="text-xl font-black text-slate-900 tracking-tighter uppercase italic leading-none mb-1">Initialize Protocol</h3>
+                           <h3 className="text-xl font-black text-slate-900 tracking-tighter uppercase  leading-none mb-1">Initialize Protocol</h3>
                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Global Fiscal Adjustment Terminal</p>
                         </div>
                      </div>
@@ -67,7 +67,7 @@ const TransactionModal = ({ isOpen, onClose, onRefresh, parties }) => {
                      </button>
                   </div>
 
-                  <form onSubmit={handleSubmit} className="p-5 space-y-4">
+                  <form onSubmit={handleSubmit} className="p-3 space-y-4">
                      <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Flow Direction</label>
@@ -121,7 +121,7 @@ const TransactionModal = ({ isOpen, onClose, onRefresh, parties }) => {
                            <input
                               required
                               type="number"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-xs font-black italic outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-xs font-black  outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all"
                               placeholder="0.00"
                               value={formData.amount}
                               onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
@@ -152,7 +152,7 @@ const TransactionModal = ({ isOpen, onClose, onRefresh, parties }) => {
                         <button
                            type="button"
                            onClick={onClose}
-                           className="px-5 py-2.5 bg-slate-100 text-slate-600 font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-slate-200 transition-all focus:outline-none active:scale-95"
+                           className="px-3 py-2.5 bg-slate-100 text-slate-600 font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-slate-200 transition-all focus:outline-none active:scale-95"
                         >
                            Cancel
                         </button>
@@ -311,16 +311,16 @@ const Accounting = () => {
 
    return (
       <AppLayout fullWidth>
-         <div className="space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+         <div className="space-y-4 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
 
             {/* Elite Treasury Header */}
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-               <div className="flex items-center gap-6">
+               <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-sm border border-indigo-500/10">
                      <Wallet className="w-7 h-7 text-indigo-600" />
                   </div>
                   <div>
-                     <h2 className="text-3xl font-black text-slate-900 tracking-tightest leading-none mb-2 italic uppercase">Treasury <span className="text-primary not-italic text-indigo-600">Intelligence</span></h2>
+                     <h2 className="text-3xl font-black text-slate-900 tracking-tightest leading-none mb-2  uppercase">Treasury <span className="text-primary not- text-indigo-600">Intelligence</span></h2>
                      <div className="flex items-center gap-3">
                         <ShieldCheck className="w-4 h-4 text-indigo-500" />
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Global Cash Flow Orchestration & Balance Settlement</span>
@@ -332,13 +332,13 @@ const Accounting = () => {
                   {(activeTab === 'creditnotes' || activeTab === 'debitnotes') && (
                      <button
                         onClick={() => setIsModalOpen(true)}
-                        className="erp-button-primary !py-5 !bg-indigo-600 !rounded-xl hover:!bg-indigo-700 group shadow-xl shadow-indigo-900/20"
+                        className="erp-button-primary !py-3 !bg-indigo-600 !rounded-xl hover:!bg-indigo-700 group shadow-xl shadow-indigo-900/20"
                      >
                         <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
                         Initialize Protocol
                      </button>
                   )}
-                  <div className="px-6 py-4 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
+                  <div className="px-4 py-4 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
                      <Clock className="w-4 h-4 text-indigo-500" />
                      <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Real-time Flux Monitoring</span>
                   </div>
@@ -346,7 +346,7 @@ const Accounting = () => {
             </div>
 
             {/* Global KPI Matrix */}
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                {[
                   { id: 'receivables', label: 'Receivables', val: summary?.totalReceivable || 0, icon: ArrowUpCircle },
                   { id: 'payables', label: 'Payables', val: summary?.totalPayable || 0, icon: ArrowDownCircle },
@@ -358,13 +358,13 @@ const Accounting = () => {
                   <div
                      key={tab.id}
                      onClick={() => setActiveTab(tab.id)}
-                     className={`p-6 rounded-2xl border transition-all duration-500 cursor-pointer relative overflow-hidden group ${activeTab === tab.id ? 'bg-indigo-600 border-indigo-600 shadow-2xl shadow-indigo-600/20 text-white scale-105 z-10' : 'bg-white border-slate-100 hover:border-indigo-200 shadow-sm'}`}
+                     className={`p-4 rounded-2xl border transition-all duration-500 cursor-pointer relative overflow-hidden group ${activeTab === tab.id ? 'bg-indigo-600 border-indigo-600 shadow-2xl shadow-indigo-600/20 text-white scale-105 z-10' : 'bg-white border-slate-100 hover:border-indigo-200 shadow-sm'}`}
                   >
                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 ${activeTab === tab.id ? 'bg-white/10 text-white' : 'bg-indigo-50 text-indigo-500'}`}>
                         <tab.icon className="w-5 h-5" />
                      </div>
                      <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${activeTab === tab.id ? 'text-white/40' : 'text-slate-400'}`}>{tab.label}</p>
-                     <h3 className={`text-lg font-black italic tracking-tightest tabular-nums ${activeTab === tab.id ? 'text-white' : 'text-slate-900'}`}>
+                     <h3 className={`text-lg font-black  tracking-tightest tabular-nums ${activeTab === tab.id ? 'text-white' : 'text-slate-900'}`}>
                         {typeof tab.val === 'number' ? `₹${tab.val.toLocaleString()}` : tab.val}
                      </h3>
                      {activeTab === tab.id && <div className="absolute top-0 right-0 p-4 opacity-10"><Zap className="w-10 h-10 text-white" /></div>}
@@ -374,12 +374,12 @@ const Accounting = () => {
 
             {/* Unified Ledger Workspace */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-12">
-               <div className="p-6 border-b border-slate-50 flex flex-col md:flex-row justify-between items-center gap-6 bg-slate-50/30">
+               <div className="p-4 border-b border-slate-50 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50/30">
                   <div className="flex items-center gap-4">
                      <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg"><Activity className="w-6 h-6" /></div>
                      <div>
                         <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Detailed Analysis</h4>
-                        <p className="text-xl font-black text-slate-900 uppercase italic tracking-tightest">
+                        <p className="text-xl font-black text-slate-900 uppercase  tracking-tightest">
                            {activeTab === 'receivables' ? 'Outstanding Inflow' :
                               activeTab === 'payables' ? 'Pending Obligations' :
                                  activeTab === 'creditnotes' ? 'Sales Returns & Credit Registry' :
@@ -392,13 +392,13 @@ const Accounting = () => {
                   <div className="flex flex-wrap items-center gap-4">
                      <div className="relative group w-72">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Dataset Lookup..." className="pl-12 pr-6 py-4 bg-white border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all w-full shadow-sm" />
+                        <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Dataset Lookup..." className="pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all w-full shadow-sm" />
                      </div>
-                     <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} className="px-6 pr-10 py-4 bg-white border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-indigo-500/10 cursor-pointer shadow-sm">
+                     <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} className="px-4 pr-10 py-4 bg-white border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-indigo-500/10 cursor-pointer shadow-sm">
                         <option value="all">Global Temporal</option>
                         {uniqueMonths.map(m => <option key={m} value={m}>{m}</option>)}
                      </select>
-                     <select value={filterParty} onChange={(e) => setFilterParty(e.target.value)} className="px-6 pr-10 py-4 bg-white border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-indigo-500/10 cursor-pointer shadow-sm max-w-[200px]">
+                     <select value={filterParty} onChange={(e) => setFilterParty(e.target.value)} className="px-4 pr-10 py-4 bg-white border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-indigo-500/10 cursor-pointer shadow-sm max-w-[200px]">
                         <option value="all">Global Entities</option>
                         {uniqueParties.map(p => <option key={p} value={p}>{p}</option>)}
                      </select>
@@ -409,12 +409,12 @@ const Accounting = () => {
                   {loading ? (
                      <div className="flex-1 flex flex-col items-center justify-center">
                         <HammerLoader />
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-8 animate-pulse">Syncing Treasury Data...</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-4 animate-pulse">Syncing Treasury Data...</p>
                      </div>
                   ) : filteredDetails.length === 0 ? (
                      <div className="flex-1 flex flex-col items-center justify-center p-32 text-center opacity-20 gap-4">
                         <Database className="w-12 h-12" />
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] italic">Zero Records Detected in current Scope.</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] ">Zero Records Detected in current Scope.</p>
                      </div>
                   ) : (
                      <table className="erp-table">
@@ -422,27 +422,27 @@ const Accounting = () => {
                            <tr className="bg-slate-50/50 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] border-b border-slate-50">
                               {activeTab === "journal" ? (
                                  <>
-                                    <th className="px-6 py-4 italic">Timestamp</th>
-                                    <th className="px-6 py-4 italic">Narration</th>
-                                    <th className="px-6 py-4 italic">Account Matrix</th>
-                                    <th className="px-6 py-4 text-right italic">Debit</th>
-                                    <th className="px-6 py-4 text-right pr-20 italic">Credit</th>
+                                    <th className="px-4 py-4 ">Timestamp</th>
+                                    <th className="px-4 py-4 ">Narration</th>
+                                    <th className="px-4 py-4 ">Account Matrix</th>
+                                    <th className="px-4 py-4 text-right ">Debit</th>
+                                    <th className="px-4 py-4 text-right pr-20 ">Credit</th>
                                  </>
                               ) : activeTab === "ledger" || activeTab === "creditnotes" || activeTab === "debitnotes" ? (
                                  <>
-                                    <th className="px-6 py-4 italic">Timestamp</th>
-                                    <th className="px-6 py-4 italic">Protocol/Category</th>
-                                    <th className="px-6 py-4 italic">Narration Summary</th>
-                                    <th className="px-6 py-4 italic">Linked Node</th>
-                                    <th className="px-6 py-4 text-right pr-20 italic">Magnitude</th>
+                                    <th className="px-4 py-4 ">Timestamp</th>
+                                    <th className="px-4 py-4 ">Protocol/Category</th>
+                                    <th className="px-4 py-4 ">Narration Summary</th>
+                                    <th className="px-4 py-4 ">Linked Node</th>
+                                    <th className="px-4 py-4 text-right pr-20 ">Magnitude</th>
                                  </>
                               ) : (
                                  <>
-                                    <th className="px-6 py-4 italic">Reference</th>
-                                    <th className="px-6 py-4 italic">Entity Analysis</th>
-                                    <th className="px-6 py-4 text-right italic">Invoice Yield</th>
-                                    <th className="px-6 py-4 text-right italic">Settled Amount</th>
-                                    <th className="px-6 py-4 text-right pr-20 italic">Remaining Drift</th>
+                                    <th className="px-4 py-4 ">Reference</th>
+                                    <th className="px-4 py-4 ">Entity Analysis</th>
+                                    <th className="px-4 py-4 text-right ">Invoice Yield</th>
+                                    <th className="px-4 py-4 text-right ">Settled Amount</th>
+                                    <th className="px-4 py-4 text-right pr-20 ">Remaining Drift</th>
                                  </>
                               )}
                            </tr>
@@ -459,33 +459,33 @@ const Accounting = () => {
                                  >
                                     {activeTab === "journal" ? (
                                        <>
-                                          <td className="px-6 py-4">
+                                          <td className="px-4 py-4">
                                              <div className="flex flex-col">
-                                                <span className="text-[11px] font-black text-slate-900 tracking-tightest italic">{new Date(item.date).toLocaleDateString()}</span>
+                                                <span className="text-[11px] font-black text-slate-900 tracking-tightest ">{new Date(item.date).toLocaleDateString()}</span>
                                                 <span className="text-[8px] font-black text-indigo-500 uppercase tracking-widest mt-1.5 bg-indigo-50 px-2 py-0.5 rounded-md w-fit">JV-{item._id.slice(-4).toUpperCase()}</span>
                                              </div>
                                           </td>
-                                          <td className="px-6 py-4">
+                                          <td className="px-4 py-4">
                                              <div className="flex flex-col">
-                                                <span className="text-sm font-black text-slate-900 tracking-tightest uppercase italic">{item.description}</span>
+                                                <span className="text-sm font-black text-slate-900 tracking-tightest uppercase ">{item.description}</span>
                                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2 flex items-center gap-2">
                                                    <Database className="w-3.5 h-3.5" />
                                                    Ref: {(item.referenceId || item.order?._id || item.purchase?._id || item._id).slice(-6).toUpperCase()}
                                                 </span>
                                              </div>
                                           </td>
-                                          <td className="px-6 py-4" colSpan={3}>
+                                          <td className="px-4 py-4" colSpan={3}>
                                              <div className="space-y-3 py-2">
                                                 {getVirtualEntries(item).map((entry, idx) => (
-                                                   <div key={idx} className="grid grid-cols-12 gap-6 items-center border-b border-slate-50 last:border-0 pb-3">
+                                                   <div key={idx} className="grid grid-cols-12 gap-4 items-center border-b border-slate-50 last:border-0 pb-3">
                                                       <div className="col-span-6 flex items-center gap-3">
                                                          <div className={`w-2 h-2 rounded-full ${entry.debit > 0 ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50 animate-pulse' : 'bg-rose-500 shadow-sm shadow-rose-500/50'}`}></div>
                                                          <span className="text-[11px] font-black text-slate-900 uppercase tracking-tight">{entry.account}</span>
                                                       </div>
-                                                      <div className="col-span-3 text-right tabular-nums text-sm font-black italic tracking-tighter text-slate-900">
+                                                      <div className="col-span-3 text-right tabular-nums text-sm font-black  tracking-tighter text-slate-900">
                                                          {entry.debit > 0 ? `₹${entry.debit.toLocaleString()}` : '---'}
                                                       </div>
-                                                      <div className="col-span-3 text-right tabular-nums text-sm font-black italic tracking-tighter text-slate-900 pr-8">
+                                                      <div className="col-span-3 text-right tabular-nums text-sm font-black  tracking-tighter text-slate-900 pr-4">
                                                          {entry.credit > 0 ? `₹${entry.credit.toLocaleString()}` : '---'}
                                                       </div>
                                                    </div>
@@ -495,60 +495,60 @@ const Accounting = () => {
                                        </>
                                     ) : activeTab === "ledger" || activeTab === "creditnotes" || activeTab === "debitnotes" ? (
                                        <>
-                                          <td className="px-6 py-4">
-                                             <span className="text-[11px] font-black text-slate-900 tracking-tightest italic">{new Date(item.date).toLocaleDateString()}</span>
+                                          <td className="px-4 py-4">
+                                             <span className="text-[11px] font-black text-slate-900 tracking-tightest ">{new Date(item.date).toLocaleDateString()}</span>
                                           </td>
-                                          <td className="px-6 py-4">
+                                          <td className="px-4 py-4">
                                              <div className="flex items-center gap-3">
                                                 <span className={`px-4 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest border ${item.type === 'income' ? 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-sm shadow-emerald-500/5' : 'bg-rose-50 text-rose-600 border-rose-100 shadow-sm shadow-rose-500/5'}`}>
                                                    {item.type}
                                                 </span>
-                                                <span className="text-[10px] font-black text-slate-900 uppercase italic tracking-tighter">{item.category}</span>
+                                                <span className="text-[10px] font-black text-slate-900 uppercase  tracking-tighter">{item.category}</span>
                                              </div>
                                           </td>
-                                          <td className="px-6 py-4 max-w-xs">
-                                             <span className="text-sm font-black text-slate-900 tracking-tightest uppercase italic truncate block">{item.description || 'Global Narrative Offset'}</span>
+                                          <td className="px-4 py-4 max-w-xs">
+                                             <span className="text-sm font-black text-slate-900 tracking-tightest uppercase  truncate block">{item.description || 'Global Narrative Offset'}</span>
                                           </td>
-                                          <td className="px-6 py-4">
+                                          <td className="px-4 py-4">
                                              {item.customer ? (
-                                                <div className="text-[10px] font-black text-indigo-600 uppercase flex items-center gap-2 italic bg-indigo-50 px-4 py-2 rounded-md border border-indigo-100 w-fit"><Users className="w-3.5 h-3.5" /> {item.customer?.name}</div>
+                                                <div className="text-[10px] font-black text-indigo-600 uppercase flex items-center gap-2  bg-indigo-50 px-4 py-2 rounded-md border border-indigo-100 w-fit"><Users className="w-3.5 h-3.5" /> {item.customer?.name}</div>
                                              ) : item.supplier ? (
-                                                <div className="text-[10px] font-black text-rose-600 uppercase flex items-center gap-2 italic bg-rose-50 px-4 py-2 rounded-md border border-rose-100 w-fit"><Building2 className="w-3.5 h-3.5" /> {item.supplier?.company || item.supplier?.name}</div>
+                                                <div className="text-[10px] font-black text-rose-600 uppercase flex items-center gap-2  bg-rose-50 px-4 py-2 rounded-md border border-rose-100 w-fit"><Building2 className="w-3.5 h-3.5" /> {item.supplier?.company || item.supplier?.name}</div>
                                              ) : (
-                                                <span className="text-[10px] font-black text-slate-200 uppercase tracking-widest italic opacity-40">System Node</span>
+                                                <span className="text-[10px] font-black text-slate-200 uppercase tracking-widest  opacity-40">System Node</span>
                                              )}
                                           </td>
-                                          <td className="px-6 py-4 text-right pr-20">
-                                             <span className={`text-lg font-black italic tracking-tightest tabular-nums ${item.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                          <td className="px-4 py-4 text-right pr-20">
+                                             <span className={`text-lg font-black  tracking-tightest tabular-nums ${item.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                                                 {item.type === 'income' ? '+' : '-'} ₹{item.amount?.toLocaleString()}
                                              </span>
                                           </td>
                                        </>
                                     ) : (
                                        <>
-                                          <td className="px-6 py-4">
+                                          <td className="px-4 py-4">
                                              <div className="flex flex-col">
-                                                <span className="text-[11px] font-black text-slate-900 tracking-tightest italic mb-1.5">#{item._id.slice(-6).toUpperCase()}</span>
+                                                <span className="text-[11px] font-black text-slate-900 tracking-tightest  mb-1.5">#{item._id.slice(-6).toUpperCase()}</span>
                                                 <div className="px-3 py-1 bg-slate-50 text-slate-400 rounded-xl text-[9px] font-black border border-slate-100 uppercase tracking-widest w-fit">Ref-Protocol</div>
                                              </div>
                                           </td>
-                                          <td className="px-6 py-4">
+                                          <td className="px-4 py-4">
                                              <div className="flex flex-col">
-                                                <span className="text-sm font-black text-slate-900 tracking-tightest uppercase italic group-hover:text-slate-600 transition-colors">
+                                                <span className="text-sm font-black text-slate-900 tracking-tightest uppercase  group-hover:text-slate-600 transition-colors">
                                                    {activeTab === 'receivables' ? item.customer?.name : (item.supplier?.company || item.supplier?.name || 'Partner')}
                                                 </span>
                                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2 opacity-40 flex items-center gap-2"><Clock className="w-3.5 h-3.5" /> Duration: {getMonthStr(item)}</span>
                                              </div>
                                           </td>
-                                          <td className="px-6 py-4 text-right tabular-nums">
-                                             <span className="text-sm font-black italic tracking-tighter text-slate-900">₹{item.totalAmount?.toLocaleString()}</span>
+                                          <td className="px-4 py-4 text-right tabular-nums">
+                                             <span className="text-sm font-black  tracking-tighter text-slate-900">₹{item.totalAmount?.toLocaleString()}</span>
                                           </td>
-                                          <td className="px-6 py-4 text-right tabular-nums">
-                                             <span className="text-sm font-black italic tracking-tighter text-emerald-600">₹{item.amountPaid?.toLocaleString()}</span>
+                                          <td className="px-4 py-4 text-right tabular-nums">
+                                             <span className="text-sm font-black  tracking-tighter text-emerald-600">₹{item.amountPaid?.toLocaleString()}</span>
                                           </td>
-                                          <td className="px-6 py-4 text-right pr-20">
+                                          <td className="px-4 py-4 text-right pr-20">
                                              <div className="flex flex-col items-end">
-                                                <span className="text-lg font-black text-rose-600 tracking-tightest italic">₹{(item.totalAmount - (item.amountPaid || 0)).toLocaleString()}</span>
+                                                <span className="text-lg font-black text-rose-600 tracking-tightest ">₹{(item.totalAmount - (item.amountPaid || 0)).toLocaleString()}</span>
                                                 <div className="w-32 h-1.5 bg-slate-100 rounded-full mt-4 overflow-hidden shadow-inner flex border border-slate-200">
                                                    <div className={`h-full bg-gradient-to-r ${activeTab === 'receivables' ? 'from-indigo-600 to-indigo-400' : 'from-rose-600 to-rose-400'}`} style={{ width: `${item.totalAmount > 0 ? ((item.amountPaid || 0) / item.totalAmount) * 100 : 0}%` }}></div>
                                                 </div>

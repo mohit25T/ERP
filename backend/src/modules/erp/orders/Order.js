@@ -7,6 +7,14 @@ const orderSchema = new mongoose.Schema(
       ref: "Customer",
       required: true,
     },
+    billToCustomer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Customer",
+    },
+    shipToCustomer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Customer",
+    },
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
@@ -26,6 +34,10 @@ const orderSchema = new mongoose.Schema(
       default: 0,
     },
     shippedQty: {
+      type: Number,
+      default: 0,
+    },
+    invoicedQty: {
       type: Number,
       default: 0,
     },
@@ -94,6 +106,28 @@ const orderSchema = new mongoose.Schema(
       lrNo: { type: String, default: "" },
       lrDate: { type: String, default: "" }
     },
+    poNumber: {
+      type: String,
+      default: "",
+    },
+    billToAddress: {
+      label: String,
+      companyName: String,
+      address: String,
+      city: String,
+      state: String,
+      pincode: String,
+      gstin: String,
+    },
+    shipToAddress: {
+      label: String,
+      companyName: String,
+      address: String,
+      city: String,
+      state: String,
+      pincode: String,
+      gstin: String,
+    },
   },
   { 
     timestamps: true,
@@ -105,6 +139,11 @@ const orderSchema = new mongoose.Schema(
 // Virtual for Pending Quantity
 orderSchema.virtual("pendingQty").get(function () {
   return this.orderedQty - this.shippedQty;
+});
+
+// Virtual for Unbilled Quantity
+orderSchema.virtual("unbilledQty").get(function () {
+  return this.orderedQty - this.invoicedQty;
 });
 
 // Backward Compatibility Alias for 'quantity'

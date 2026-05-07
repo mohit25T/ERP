@@ -43,9 +43,9 @@ const RoleProtectedRoute = ({ children, allowedRoles }) => {
 
   if (allowedRoles && !allowedRoles.includes(userRole)) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-8 text-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 text-center">
         <div className="space-y-4">
-          <h2 className="text-xl font-black text-rose-500 uppercase italic tracking-widest">Access Protocol Restricted</h2>
+          <h2 className="text-xl font-black text-rose-500 uppercase  tracking-widest">Access Protocol Restricted</h2>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Your credentials do not satisfy the security requirements for this sector.</p>
           <button onClick={() => window.location.href = "/"} className="erp-button-primary mt-4">Return to Base</button>
         </div>

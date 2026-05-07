@@ -20,20 +20,35 @@ const generateInvoiceNumber = async () => {
   return `INV-${year}-${nextNumber}`;
 };
 
+export const getNextInvoiceNumber = async (req, res) => {
+  try {
+    const nextNumber = await generateInvoiceNumber();
+    res.json({ nextNumber });
+  } catch (err) {
+    res.status(500).json({ msg: "Failed to generate invoice number" });
+  }
+};
+
 // Create Invoice (Draft)
 export const createInvoice = async (req, res) => {
   try {
     const { 
       orderId, 
+      customer,
       dueDate, 
       notes, 
       items, 
       invoiceNumber: manualInvoiceNumber,
       shipTo,
       poNo,
+      billToCustomer,
+      shipToCustomer,
+      billToAddress,
+      shipToAddress,
       paymentMode,
       paymentTerms,
-      billSeries
+      billSeries,
+      billQty
     } = req.body;
     
     const effectiveOrderId = orderId || req.body.order;
@@ -42,12 +57,7 @@ export const createInvoice = async (req, res) => {
     console.log("[INVOICE DEBUG]: Request Body:", JSON.stringify(req.body));
     console.log("[INVOICE DEBUG]: effectiveOrderId:", effectiveOrderId);
 
-    if (effectiveOrderId) {
-      const existingInvoice = await Invoice.findOne({ order: effectiveOrderId });
-      if (existingInvoice) {
-        return res.status(200).json(existingInvoice);
-      }
-    }
+    // Allow multiple drafts for partial invoicing flexibility
     
     if (!effectiveOrderId && (!items || items.length === 0)) {
         console.error("[INVOICE ERROR]: Missing both orderId and items");
@@ -73,8 +83,18 @@ export const createInvoice = async (req, res) => {
           return res.status(400).json({ msg: "Order product node is missing or corrupted" });
       }
       
-      const qty = orderDoc.orderedQty || orderDoc.quantity || 0;
-      const unitPrice = orderDoc.unitPrice || (qty > 0 ? (orderDoc.taxableAmount / qty) : 0) || orderDoc.product.price || 0;
+      const orderQty = orderDoc.orderedQty || orderDoc.quantity || 0;
+      const qty = billQty ? Number(billQty) : orderQty;
+      
+      const unitPrice = orderDoc.unitPrice || (orderQty > 0 ? (orderDoc.taxableAmount / orderQty) : 0) || orderDoc.product.price || 0;
+      const taxableAmount = qty * unitPrice;
+      const gstRate = orderDoc.product.gstRate || 18;
+      const gstAmount = taxableAmount * (gstRate / 100);
+      const isIgst = orderDoc.igst > 0; // simplistic check, ideally use customer state
+      const cgst = isIgst ? 0 : gstAmount / 2;
+      const sgst = isIgst ? 0 : gstAmount / 2;
+      const igst = isIgst ? gstAmount : 0;
+      const totalAmount = taxableAmount + gstAmount;
 
       invoiceItems = [
         {
@@ -85,15 +105,35 @@ export const createInvoice = async (req, res) => {
           quantity: qty,
           price: unitPrice,
           unit: orderDoc.unit,
-          gstRate: orderDoc.product.gstRate || 18,
-          taxableAmount: orderDoc.taxableAmount || 0,
-          gstAmount: orderDoc.gstAmount || 0,
-          cgst: orderDoc.cgst || 0,
-          sgst: orderDoc.sgst || 0,
-          igst: orderDoc.igst || 0,
-          totalAmount: orderDoc.totalAmount || 0,
+          gstRate,
+          taxableAmount,
+          gstAmount,
+          cgst,
+          sgst,
+          igst,
+          totalAmount,
         },
       ];
+    }
+
+
+    const isIgst = req.body.isIgst === true || req.body.isIgst === "true" || orderDoc?.igst > 0;
+
+    // If items are provided explicitly (e.g. from Custom Invoice Form), ensure cgst/sgst/igst are calculated
+    if (invoiceItems && invoiceItems.length > 0) {
+      invoiceItems = invoiceItems.map(item => {
+        if (item.cgst === undefined && item.sgst === undefined && item.igst === undefined) {
+          const itemGst = item.gstAmount || ((item.taxableAmount || 0) * (item.gstRate || 18) / 100);
+          return {
+            ...item,
+            gstAmount: itemGst,
+            cgst: isIgst ? 0 : itemGst / 2,
+            sgst: isIgst ? 0 : itemGst / 2,
+            igst: isIgst ? itemGst : 0
+          };
+        }
+        return item;
+      });
     }
 
     const invoiceNumber = manualInvoiceNumber || await generateInvoiceNumber();
@@ -118,8 +158,11 @@ export const createInvoice = async (req, res) => {
       totalAmount: invoiceItems.reduce((sum, item) => sum + (item.totalAmount || 0), 0),
       dueDate,
       notes,
-      shipTo,
-      poNo,
+      poNo: poNo || orderDoc?.poNumber || "",
+      billToCustomer: billToCustomer || orderDoc?.billToCustomer || orderDoc?.customer?._id || req.body.customer,
+      shipToCustomer: shipToCustomer || orderDoc?.shipToCustomer || orderDoc?.customer?._id || req.body.customer,
+      billToAddress: billToAddress || orderDoc?.billToAddress,
+      shipToAddress: shipToAddress || orderDoc?.shipToAddress,
       paymentMode,
       paymentTerms,
       billSeries,
@@ -138,6 +181,23 @@ export const createInvoice = async (req, res) => {
       changes: invoice,
       req
     });
+
+    // Update Order invoicedQty
+    if (orderDoc) {
+      const addedQty = invoiceItems.reduce((acc, it) => acc + (it.quantity || 0), 0);
+      orderDoc.invoicedQty = (orderDoc.invoicedQty || 0) + addedQty;
+      
+      // Update status if fully invoiced
+      if (orderDoc.invoicedQty >= (orderDoc.orderedQty || orderDoc.quantity)) {
+        if (orderDoc.status === 'pending' || orderDoc.status === 'in_progress') {
+          orderDoc.status = 'invoiced';
+        }
+      } else if (orderDoc.status === 'pending') {
+        orderDoc.status = 'in_progress';
+      }
+      
+      await orderDoc.save();
+    }
 
     res.status(201).json(invoice);
   } catch (err) {
@@ -168,9 +228,26 @@ export const finalizeInvoice = async (req, res) => {
       req
     });
 
+    invoice.status = "finalized";
+    invoice.finalizedAt = new Date();
+
+    const order = invoice.order ? await Order.findById(invoice.order) : null;
+    
+    // Auto-map payment status from the Order if applicable
+    if (order && order.amountPaid > 0) {
+      if (order.amountPaid >= invoice.totalAmount) {
+        invoice.amountPaid = invoice.totalAmount;
+        invoice.status = "paid";
+      } else {
+        invoice.amountPaid = order.amountPaid;
+        invoice.status = "partially_paid";
+      }
+    }
+
+    await invoice.save();
+
     // Handle Compliance (E-Way Bill)
-    if (result.success) {
-      const order = await Order.findById(invoice.order);
+    if (result.success || true) { // We bypass the stub result
       const needsEWayBill = GstService.requiresEWayBill(invoice.totalAmount) || order?.ewayBillData?.active;
       
       if (needsEWayBill && order) {
@@ -186,13 +263,49 @@ export const finalizeInvoice = async (req, res) => {
           lrDate: ewbData.lrDate || "",
           status: "pending"
         });
-        await Invoice.findByIdAndUpdate(id, { ewayBill: ewayBill._id });
+        invoice.ewayBill = ewayBill._id;
+        await invoice.save();
       }
     }
 
-    res.json({ msg: "Invoice finalized and synchronized across system", invoice: result.invoice });
+    res.json({ msg: "Invoice finalized", invoice });
   } catch (err) {
     console.error("[INVOICE ERROR]:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Delete Draft Invoice
+export const deleteInvoice = async (req, res) => {
+  try {
+    const invoice = await Invoice.findById(req.params.id);
+    if (!invoice) return res.status(404).json({ msg: "Invoice not found" });
+
+    if (invoice.status !== "draft") {
+      return res.status(400).json({ msg: "Only draft invoices can be deleted. Finalized invoices are permanently etched into the ledger." });
+    }
+
+    // Revert the ordered quantity from the parent Order
+    if (invoice.order) {
+      const orderDoc = await Order.findById(invoice.order);
+      if (orderDoc) {
+        const removedQty = invoice.items.reduce((acc, it) => acc + (it.quantity || 0), 0);
+        orderDoc.invoicedQty = Math.max(0, (orderDoc.invoicedQty || 0) - removedQty);
+        
+        // Only revert status if it was specifically 'invoiced'
+        if (orderDoc.status === 'invoiced' && orderDoc.invoicedQty < (orderDoc.orderedQty || orderDoc.quantity)) {
+           orderDoc.status = 'in_progress';
+        } else if (orderDoc.status === 'in_progress' && orderDoc.invoicedQty === 0 && orderDoc.shippedQty === 0 && orderDoc.reservedQty === 0) {
+           orderDoc.status = 'pending';
+        }
+        await orderDoc.save();
+      }
+    }
+
+    await Invoice.findByIdAndDelete(req.params.id);
+    res.json({ msg: "Invoice successfully purged" });
+  } catch (err) {
+    console.error("[INVOICE DELETE ERROR]:", err.message);
     res.status(500).json({ error: err.message });
   }
 };

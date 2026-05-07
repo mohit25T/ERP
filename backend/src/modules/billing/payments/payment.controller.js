@@ -30,19 +30,19 @@ export const recordOrderPayment = async (req, res) => {
     const { id } = req.params; // Order ID (backward compatibility) or Invoice ID
 
     let order, invoice;
+    let target;
     
     if (invoiceId || req.url.includes("invoice")) {
       invoice = await Invoice.findById(invoiceId || id).populate("customer");
       if (!invoice) return res.status(404).json({ msg: "Invoice not found" });
-      order = await Order.findById(invoice.order);
+      order = await Order.findById(invoice.order).populate("customer");
+      target = invoice;
     } else {
       order = await Order.findById(id).populate("customer");
-      invoice = await Invoice.findOne({ order: id });
+      if (!order) return res.status(404).json({ msg: "Order not found" });
+      target = order;
     }
 
-    if (!order && !invoice) return res.status(404).json({ msg: "Transaction target not found" });
-
-    const target = invoice || order;
     const currentPaid = Number(target.amountPaid || 0);
     const outstanding = Number(target.totalAmount) - currentPaid;
 
@@ -54,24 +54,43 @@ export const recordOrderPayment = async (req, res) => {
 
     target.amountPaid = currentPaid + Number(amount);
     
-    // Status Logic for Invoice/Order
     if (target.amountPaid >= target.totalAmount) {
       target.paymentStatus = "paid";
-      if (invoice) target.status = "paid";
+      if (target === invoice) target.status = "paid";
     } else if (target.amountPaid > 0) {
       target.paymentStatus = "partial";
-      if (invoice) target.status = "partially_paid";
+      if (target === invoice) target.status = "partially_paid";
     }
 
     await target.save();
 
-    // If it's an order and has an invoice, update invoice too
-    if (!invoiceId && !invoice && order) {
-       // Just update order
-    } else if (invoice && order) {
-       order.amountPaid = target.amountPaid;
-       order.paymentStatus = target.paymentStatus;
-       await order.save();
+    // Cascading Payment Distribution Logic
+    if (order) {
+      // If payment was directly to invoice, bubble up to Order
+      if (target === invoice) {
+         order.amountPaid = (order.amountPaid || 0) + Number(amount);
+         if (order.amountPaid >= order.totalAmount) order.paymentStatus = "paid";
+         else if (order.amountPaid > 0) order.paymentStatus = "partial";
+         await order.save();
+      }
+
+      // Distribute order's total amountPaid down to all related invoices
+      const allInvoices = await Invoice.find({ order: order._id }).sort({ createdAt: 1 });
+      let remainingPool = order.amountPaid;
+
+      for (const inv of allInvoices) {
+         const invTotal = inv.totalAmount || 0;
+         if (remainingPool >= invTotal) {
+            inv.amountPaid = invTotal;
+            inv.status = "paid";
+            remainingPool -= invTotal;
+         } else {
+            inv.amountPaid = remainingPool;
+            inv.status = remainingPool > 0 ? "partially_paid" : inv.status;
+            remainingPool = 0;
+         }
+         await inv.save();
+      }
     }
 
     // Automated Accounting

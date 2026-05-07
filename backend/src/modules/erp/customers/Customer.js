@@ -39,6 +39,20 @@ const customerSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    addresses: [
+      {
+        label: { type: String, trim: true }, // e.g., "Main Office", "Warehouse 1"
+        companyName: { type: String, trim: true }, // For child companies/branches
+        address: { type: String, required: true },
+        city: { type: String, trim: true },
+        state: { type: String, trim: true },
+        pincode: { type: String, trim: true },
+        gstin: { type: String, trim: true },
+        isDefaultBilling: { type: Boolean, default: false },
+        isDefaultShipping: { type: Boolean, default: false },
+        type: { type: String, enum: ["billing", "shipping", "both"], default: "both" }
+      }
+    ],
     shareToken: {
       type: String,
       unique: true,

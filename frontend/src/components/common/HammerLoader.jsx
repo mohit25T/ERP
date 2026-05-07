@@ -3,7 +3,7 @@ import { Hammer } from "lucide-react";
 
 const HammerLoader = ({ fullScreen = false }) => {
   const content = (
-    <div className="flex flex-col items-center justify-center gap-6">
+    <div className="flex flex-col items-center justify-center gap-4">
       <div className="relative">
         {/* Anvil Base with Metallic Finish */}
         <div className="w-20 h-6 bg-slate-900 rounded-t-sm rounded-b-md mb-2 shadow-2xl animate-anvil flex items-center justify-center overflow-hidden border-b-4 border-slate-950">
@@ -44,7 +44,7 @@ const HammerLoader = ({ fullScreen = false }) => {
       </div>
 
       <div className="flex flex-col items-center">
-        <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.3em] italic">Forging Data...</h3>
+        <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.3em] ">Forging Data...</h3>
         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Manufacturing Intelligence Active</p>
       </div>
     </div>

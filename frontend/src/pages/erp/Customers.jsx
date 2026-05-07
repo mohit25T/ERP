@@ -89,7 +89,7 @@ const Customers = () => {
 
   return (
     <AppLayout>
-      <div className="space-y-6 pb-20">
+      <div className="space-y-4 pb-20">
         
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
@@ -111,7 +111,7 @@ const Customers = () => {
 
         {/* High-Impact Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-           <div className="p-5 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
+           <div className="p-3 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Active Pipeline</p>
                  <div className="p-2 bg-primary/10 rounded text-primary">
@@ -126,7 +126,7 @@ const Customers = () => {
                </div>
            </div>
            
-           <div className="p-5 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
+           <div className="p-3 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Service Level</p>
                  <div className="p-2 bg-amber-500/10 rounded text-amber-600 dark:text-amber-400">
@@ -141,7 +141,7 @@ const Customers = () => {
                </div>
            </div>
 
-           <div className="p-5 bg-primary/5 rounded-md border border-primary/20 shadow-sm flex flex-col justify-between">
+           <div className="p-3 bg-primary/5 rounded-md border border-primary/20 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Revenue Focus</p>
                  <div className="p-2 bg-primary/20 rounded text-primary">
@@ -158,7 +158,7 @@ const Customers = () => {
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-card rounded-md border border-border shadow-sm overflow-hidden mt-6 mb-6">
+        <div className="bg-card rounded-md border border-border shadow-sm overflow-hidden mt-4 mb-4">
            <div className="p-4 border-b border-border flex flex-col sm:flex-row justify-between items-center gap-4 bg-muted/5">
               <div className="relative w-full max-w-sm">
                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -218,7 +218,7 @@ const Customers = () => {
                     className="bg-card rounded-md border border-border shadow-sm hover:shadow-md hover:border-primary/40 transition-all overflow-hidden relative group"
                   >
                      <div className={`h-1 w-full ${customer.type === 'scrap_buyer' ? 'bg-orange-500' : 'bg-primary'}`}></div>
-                     <div className="p-5">
+                     <div className="p-3">
                         <div className="flex justify-between items-start mb-4">
                            <div className="flex items-center gap-4">
                               <div className="w-10 h-10 rounded bg-muted/30 flex items-center justify-center text-foreground font-black text-lg border border-border">
@@ -231,7 +231,7 @@ const Customers = () => {
                            </div>
                         </div>
 
-                        <div className="space-y-3 mb-5">
+                        <div className="space-y-3 mb-3">
                            <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded bg-muted/20 flex items-center justify-center text-muted-foreground border border-border/50">
                                  {customer.type === 'scrap_buyer' ? <Recycle className="w-3.5 h-3.5" /> : <ShieldCheck className="w-3.5 h-3.5" />}

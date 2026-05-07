@@ -47,7 +47,7 @@ const Modal = ({ isOpen, onClose, title, children, size = "xl" }) => {
               className={`bg-card rounded-md shadow-2xl w-full ${sizeClasses[size] || "max-w-xl"} overflow-hidden pointer-events-auto border border-border flex flex-col max-h-[90vh]`}
             >
               {/* Modal Control Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
+              <div className="flex items-center justify-between px-4 py-4 border-b border-border bg-muted/30">
                 <div className="flex items-center gap-3">
                    <div className="w-1 h-4 bg-primary rounded-full"></div>
                    <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">{title}</h3>
@@ -61,12 +61,12 @@ const Modal = ({ isOpen, onClose, title, children, size = "xl" }) => {
               </div>
               
               {/* Dynamic Content Repository */}
-              <div className="p-6 overflow-y-auto custom-scrollbar flex-1 text-sm">
+              <div className="p-4 overflow-y-auto custom-scrollbar flex-1 text-sm">
                 {children}
               </div>
               
               {/* Security Badge Footer */}
-              <div className="px-6 py-3 border-t border-border/50 flex items-center justify-center gap-2 opacity-40">
+              <div className="px-4 py-3 border-t border-border/50 flex items-center justify-center gap-2 opacity-40">
                  <ShieldCheck className="w-3 h-3 text-muted-foreground" />
                  <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Enterprise Secured Node</span>
               </div>

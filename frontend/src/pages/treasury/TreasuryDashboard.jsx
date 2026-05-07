@@ -38,12 +38,12 @@ const TreasuryDashboard = () => {
 
   return (
     <AppLayout>
-      <div className="space-y-8">
+      <div className="space-y-4">
         {/* Header Domain */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-            Treasury <span className="text-indigo-600 italic">Intelligence</span>
+            Treasury <span className="text-indigo-600 ">Intelligence</span>
           </h1>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1">
             Financial Liquidity & Expense Protocol
@@ -58,7 +58,7 @@ const TreasuryDashboard = () => {
       </div>
 
       {/* Primary Balance Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <MetricCard 
           title="Bank Reserves" 
           value={data.balances.bank} 
@@ -83,14 +83,14 @@ const TreasuryDashboard = () => {
       </div>
 
       {/* Analytics & Transactions Sector */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Expense Analytics */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm"
+          className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"
         >
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
               <PieIcon className="w-4 h-4 text-indigo-500" /> Category Breakdown
             </h3>
@@ -135,9 +135,9 @@ const TreasuryDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm"
+          className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"
         >
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
               <RefreshCcw className="w-4 h-4 text-emerald-500" /> Recent Flux
             </h3>
@@ -195,7 +195,7 @@ const MetricCard = ({ title, value, icon: Icon, color, subtitle }) => {
   return (
     <motion.div 
       whileHover={{ y: -5 }}
-      className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group"
+      className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group"
     >
       <div className={`inline-flex p-3 rounded-xl mb-4 border ${colorMap[color]}`}>
         <Icon className="w-5 h-5" />

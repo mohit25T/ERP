@@ -90,12 +90,12 @@ const ExpenseManagement = () => {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Sector Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-            Burn <span className="text-rose-600 italic">Matrix</span>
+            Burn <span className="text-rose-600 ">Matrix</span>
           </h1>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1">
             General Expense Monitoring Protocol
@@ -151,36 +151,36 @@ const ExpenseManagement = () => {
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Timeline</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Classification</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Method</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Burn (₹)</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Control</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Timeline</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Classification</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Method</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Burn (₹)</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Control</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {expenses.map((e) => (
                   <tr key={e._id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <p className="text-xs font-black text-slate-900">{new Date(e.date).toLocaleDateString()}</p>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <div>
                         <p className="text-xs font-black text-slate-900 uppercase tracking-tight">{e.category}</p>
                         <p className="text-[10px] font-medium text-slate-400 truncate max-w-[200px]">{e.description || 'No Description'}</p>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <span className="px-2 py-1 bg-slate-100 text-slate-500 rounded-md text-[9px] font-black uppercase tracking-widest">
                         {e.paymentMethod}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-4 py-4 text-right">
                       <p className="text-sm font-black text-rose-600">
                         ₹ {e.amount.toLocaleString()}
                       </p>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4">
                       <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => handleEdit(e)} className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors">
                           <Edit3 className="w-4 h-4" />
@@ -194,7 +194,7 @@ const ExpenseManagement = () => {
                 ))}
                 {expenses.length === 0 && (
                   <tr>
-                    <td colSpan="5" className="px-6 py-20 text-center">
+                    <td colSpan="5" className="px-4 py-20 text-center">
                       <p className="text-xs font-black text-slate-300 uppercase tracking-[0.3em]">No Expense Records</p>
                     </td>
                   </tr>
@@ -211,7 +211,7 @@ const ExpenseManagement = () => {
         onClose={() => setShowModal(false)} 
         title={editingId ? "Update Burn Entry" : "New Burn Registration"}
       >
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Calendar className="w-3 h-3"/> Timeline</label>

@@ -3,7 +3,7 @@ import {
    Bell, Lock, Building2, ShieldCheck, Activity, CreditCard, Layout,
    Settings as SettingsIcon, LogOut, Save, Shield, Upload, Database, Wallet,
    Image as ImageIcon, EyeOff, Eye, Trash2, Loader2, Boxes,
-   Zap, Search, Globe
+   Zap, Search, Truck
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { authApi, gstApi, complianceApi } from "../api/erpApi";
@@ -220,16 +220,16 @@ const Settings = () => {
    return (
       <AppLayout>
          {loading && <HammerLoader message="Synchronizing Enterprise Flux..." />}
-         <div className="space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+         <div className="space-y-4 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
 
             {/* Elite Governance Header */}
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-               <div className="flex items-center gap-6">
+               <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-slate-900 rounded-md flex items-center justify-center group hover:scale-110 transition-transform duration-500 shadow-xl border border-slate-800">
                      <SettingsIcon className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                     <h2 className="text-3xl font-black text-slate-900 tracking-tightest leading-none mb-2 italic">System <span className="text-primary not-italic">Governance</span></h2>
+                     <h2 className="text-3xl font-black text-slate-900 tracking-tightest leading-none mb-2 ">System <span className="text-primary not-">Governance</span></h2>
                      <div className="flex items-center gap-3">
                         <ShieldCheck className="w-4 h-4 text-indigo-500" />
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Global Intelligence Config & Enterprise Authorization</span>
@@ -237,13 +237,13 @@ const Settings = () => {
                   </div>
                </div>
 
-               <button onClick={logout} className="erp-button-secondary !py-4 !px-6 border-rose-100 text-rose-600 hover:bg-rose-50 group rounded-md">
+               <button onClick={logout} className="erp-button-secondary !py-4 !px-4 border-rose-100 text-rose-600 hover:bg-rose-50 group rounded-md">
                   <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                   Terminate Session
                </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                {/* Advanced Tab Navigation */}
                <div className="lg:col-span-1 space-y-3">
                   {[
@@ -266,7 +266,7 @@ const Settings = () => {
                            <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? "text-indigo-400" : "text-slate-300 group-hover:text-slate-900"}`} />
                            <span className="text-[11px] font-black uppercase tracking-widest">{tab.label}</span>
                         </div>
-                        <span className={`text-[10px] font-bold text-left italic transition-colors ${activeTab === tab.id ? "text-white/40" : "text-slate-300 group-hover:text-slate-400"}`}>{tab.desc}</span>
+                        <span className={`text-[10px] font-bold text-left  transition-colors ${activeTab === tab.id ? "text-white/40" : "text-slate-300 group-hover:text-slate-400"}`}>{tab.desc}</span>
                         {activeTab === tab.id && <div className="absolute top-0 right-0 p-4 opacity-10"><Zap className="w-12 h-12 text-white" /></div>}
                      </button>
                   ))}
@@ -275,19 +275,19 @@ const Settings = () => {
                {/* Configuration Workspace */}
                <div className="lg:col-span-3">
                   {activeTab === "profile" && (
-                     <form onSubmit={updateProfile} className="bg-white p-8 rounded-md border border-slate-100 shadow-sm space-y-8 animate-in fade-in zoom-in-95 duration-500">
-                        <div className="flex items-center justify-between border-b border-slate-50 pb-8">
+                     <form onSubmit={updateProfile} className="bg-white p-4 rounded-md border border-slate-100 shadow-sm space-y-4 animate-in fade-in zoom-in-95 duration-500">
+                        <div className="flex items-center justify-between border-b border-slate-50 pb-4">
                            <div className="flex items-center gap-4">
                               <div className="w-12 h-12 bg-indigo-50 rounded-md flex items-center justify-center text-indigo-600"><Building2 className="w-6 h-6" /></div>
                               <div>
-                                 <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase italic">Entity Registry</h3>
+                                 <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase ">Entity Registry</h3>
                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Configure your core business identity datasets</p>
                               </div>
                            </div>
                            <Activity className="w-6 h-6 text-slate-100 animate-pulse" />
                         </div>
 
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                            <div className="space-y-3">
                               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Legal Proprietor Name</label>
                               <input name="name" className="erp-input !py-4 !bg-slate-50 focus:!bg-white" value={profileData.name} onChange={handleProfileChange} />
@@ -319,11 +319,11 @@ const Settings = () => {
 
                         <div className="space-y-3">
                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Registered Operational Hub (Address)</label>
-                           <textarea name="address" rows="3" className="erp-input !py-5 resize-none h-28" value={profileData.address} onChange={handleProfileChange} />
+                           <textarea name="address" rows="3" className="erp-input !py-3 resize-none h-28" value={profileData.address} onChange={handleProfileChange} />
                         </div>
 
-                        <div className="pt-8 flex justify-end">
-                           <button disabled={loading} className="erp-button-primary !py-6 !bg-slate-900 !rounded-md hover:!bg-black group">
+                        <div className="pt-4 flex justify-end">
+                           <button disabled={loading} className="erp-button-primary !py-4 !bg-slate-900 !rounded-md hover:!bg-black group">
                               <Save className="w-5 h-5 group-hover:scale-110 transition-transform" />
                               {loading ? "Capturing Flux..." : "Commit Entity Update"}
                            </button>
@@ -331,17 +331,17 @@ const Settings = () => {
                      </form>
                   )}
 
-                   {activeTab === "bank" && (
-                     <form onSubmit={updateProfile} className="bg-white p-8 rounded-md border border-slate-100 shadow-sm space-y-8 animate-in fade-in zoom-in-95 duration-500">
+                  {activeTab === "bank" && (
+                     <form onSubmit={updateProfile} className="bg-white p-4 rounded-md border border-slate-100 shadow-sm space-y-4 animate-in fade-in zoom-in-95 duration-500">
                         <div className="flex items-center gap-4">
                            <div className="w-12 h-12 bg-emerald-50 rounded-md flex items-center justify-center text-emerald-600"><CreditCard className="w-6 h-6" /></div>
                            <div>
-                              <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase italic">Settlement Configuration</h3>
+                              <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase ">Settlement Configuration</h3>
                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Authorize banking nodes for financial clearance</p>
                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                            <div className="space-y-3">
                               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Bank Institution</label>
                               <input name="bankName" className="erp-input !py-4 uppercase" value={bankDetails.bankName} onChange={handleBankChange} placeholder="ICICI BANK" />
@@ -362,7 +362,7 @@ const Settings = () => {
                            </div>
                         </div>
 
-                        <button type="submit" disabled={loading} className="w-full erp-button-primary !py-6 !bg-emerald-600 !rounded-md hover:!bg-emerald-700 shadow-emerald-500/20">
+                        <button type="submit" disabled={loading} className="w-full erp-button-primary !py-4 !bg-emerald-600 !rounded-md hover:!bg-emerald-700 shadow-emerald-500/20">
                            <Shield className="w-5 h-5" />
                            {loading ? "Synchronizing Node..." : "Authorize Financial Protocol"}
                         </button>
@@ -370,12 +370,12 @@ const Settings = () => {
                   )}
 
                   {activeTab === "invoice" && (
-                     <form onSubmit={updateProfile} className="bg-white p-10 rounded-md border border-slate-100 shadow-sm space-y-12 animate-in fade-in zoom-in-95 duration-500">
-                        <div className="flex items-center justify-between border-b border-slate-50 pb-8">
+                     <form onSubmit={updateProfile} className="bg-white p-3 rounded-md border border-slate-100 shadow-sm space-y-6 animate-in fade-in zoom-in-95 duration-500">
+                        <div className="flex items-center justify-between border-b border-slate-50 pb-4">
                            <div className="flex items-center gap-4">
                               <div className="w-12 h-12 bg-indigo-50 rounded-md flex items-center justify-center text-indigo-600"><Layout className="w-6 h-6" /></div>
                               <div>
-                                 <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase italic">Invoice Architecture</h3>
+                                 <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase ">Invoice Architecture</h3>
                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Global Grid Config (Miracle-Style)</p>
                               </div>
                            </div>
@@ -388,23 +388,23 @@ const Settings = () => {
                         </div>
 
                         {/* Logo Upload System */}
-                        <div className="space-y-6">
+                        <div className="space-y-4">
                            <div className="flex items-center gap-3">
                               <div className="w-1.5 h-6 bg-indigo-500 rounded-full"></div>
                               <h4 className="text-[11px] font-black uppercase text-slate-900 tracking-widest uppercase">Brand Essence (Logo)</h4>
                            </div>
-                           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                               <div className="md:col-span-1">
                                  <div className={`aspect-square rounded-md border-2 border-dashed flex flex-col items-center justify-center relative overflow-hidden transition-all ${profileData.companyLogo ? 'border-emerald-200 bg-emerald-50' : 'border-slate-100 bg-slate-50 hover:border-indigo-200 hover:bg-white'}`}>
                                     {profileData.companyLogo ? (
                                        <>
-                                          <img src={profileData.companyLogo} alt="Logo Preview" className="w-full h-full object-contain p-6" />
+                                          <img src={profileData.companyLogo} alt="Logo Preview" className="w-full h-full object-contain p-4" />
                                           <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                              <button type="button" onClick={removeLogo} className="p-3 bg-rose-600 text-white rounded-md shadow-xl active:scale-95 transition-all"><Trash2 className="w-5 h-5" /></button>
                                           </div>
                                        </>
                                     ) : (
-                                       <label className="w-full h-full cursor-pointer flex flex-col items-center justify-center p-8 text-center group">
+                                       <label className="w-full h-full cursor-pointer flex flex-col items-center justify-center p-4 text-center group">
                                           <Upload className="w-8 h-8 text-slate-300 mb-4 group-hover:text-indigo-500 group-hover:scale-110 transition-all" />
                                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">Drop Brand Node<br /> or Click to Browse</span>
                                           <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
@@ -412,26 +412,26 @@ const Settings = () => {
                                     )}
                                  </div>
                               </div>
-                              <div className="md:col-span-2 flex flex-col justify-center space-y-6 p-8 bg-slate-50/50 rounded-md border border-slate-50">
+                              <div className="md:col-span-2 flex flex-col justify-center space-y-4 p-4 bg-slate-50/50 rounded-md border border-slate-50">
                                  <div className="flex items-start gap-4">
                                     <div className="w-10 h-10 bg-white rounded-md flex items-center justify-center shadow-sm"><ImageIcon className="w-5 h-5 text-indigo-400" /></div>
                                     <div>
                                        <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1">Vector/Raster Compatibility</p>
-                                       <p className="text-[9px] font-black text-slate-400 uppercase italic leading-relaxed">System supports PNG, JPG, and SVG formats. Recommended dimensions: 512x512px for maximum clarity on printed PDF docs.</p>
+                                       <p className="text-[9px] font-black text-slate-400 uppercase  leading-relaxed">System supports PNG, JPG, and SVG formats. Recommended dimensions: 512x512px for maximum clarity on printed PDF docs.</p>
                                     </div>
                                  </div>
                                  <div className="flex items-start gap-4">
                                     <div className="w-10 h-10 bg-white rounded-md flex items-center justify-center shadow-sm"><Zap className="w-5 h-5 text-amber-400" /></div>
                                     <div>
                                        <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1">Persistence Engine</p>
-                                       <p className="text-[9px] font-black text-slate-400 uppercase italic leading-relaxed">Your brand node is securely cached and synchronized across all enterprise billing terminals instantly.</p>
+                                       <p className="text-[9px] font-black text-slate-400 uppercase  leading-relaxed">Your brand node is securely cached and synchronized across all enterprise billing terminals instantly.</p>
                                     </div>
                                  </div>
                               </div>
                            </div>
                         </div>
 
-                        <div className="space-y-8">
+                        <div className="space-y-4">
                            <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] pl-2 border-l-4 border-indigo-500">Grid Parameter Mapping</h4>
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                               {Object.keys(invoiceSettings.columns).map((key) => {
@@ -463,36 +463,36 @@ const Settings = () => {
                      </form>
                   )}
 
-                   {activeTab === "security" && (
-                     <form onSubmit={changePassword} className="bg-white p-8 rounded-md border border-slate-100 shadow-sm space-y-8 animate-in fade-in zoom-in-95 duration-500">
+                  {activeTab === "security" && (
+                     <form onSubmit={changePassword} className="bg-white p-4 rounded-md border border-slate-100 shadow-sm space-y-4 animate-in fade-in zoom-in-95 duration-500">
                         <div className="flex items-center gap-4">
                            <div className="w-12 h-12 bg-indigo-50 rounded-md flex items-center justify-center text-indigo-600"><Lock className="w-6 h-6" /></div>
                            <div>
-                              <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase italic">Auth Governance</h3>
+                              <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase ">Auth Governance</h3>
                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Manage system access & secure credentials</p>
                            </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <div className="p-5 bg-slate-50 rounded-md border border-slate-100 flex items-center gap-6 group hover:border-slate-300 transition-all">
+                           <div className="p-3 bg-slate-50 rounded-md border border-slate-100 flex items-center gap-4 group hover:border-slate-300 transition-all">
                               <div className="w-12 h-12 bg-white rounded-md flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform"><Database className="w-6 h-6 text-slate-300" /></div>
                               <div>
                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Data Encryption</p>
-                                 <p className="text-sm font-black text-slate-900 uppercase italic">Active AES-256</p>
+                                 <p className="text-sm font-black text-slate-900 uppercase ">Active AES-256</p>
                               </div>
                            </div>
-                           <div className="p-5 bg-indigo-50 rounded-md border border-indigo-100 flex items-center gap-6">
+                           <div className="p-3 bg-indigo-50 rounded-md border border-indigo-100 flex items-center gap-4">
                               <div className="w-12 h-12 bg-white rounded-md flex items-center justify-center shadow-sm"><ShieldCheck className="w-6 h-6 text-indigo-500" /></div>
                               <div>
                                  <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Security Status</p>
-                                 <p className="text-sm font-black text-indigo-900 uppercase italic">Threat: LOW_INTEL</p>
+                                 <p className="text-sm font-black text-indigo-900 uppercase ">Threat: LOW_INTEL</p>
                               </div>
                            </div>
                         </div>
 
-                        <div className="space-y-8">
+                        <div className="space-y-4">
                            <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] pl-2 border-l-4 border-slate-900">Credential Synchronization</h4>
-                           <div className="space-y-6">
+                           <div className="space-y-4">
                               <div className="space-y-3">
                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Current Master Password</label>
                                  <div className="relative">
@@ -502,7 +502,7 @@ const Settings = () => {
                                     </button>
                                  </div>
                               </div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                  <div className="space-y-3">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Secure Cipher</label>
                                     <input type={showPasswords.new ? "text" : "password"} name="newPassword" required className="erp-input !py-4" value={passwordData.newPassword} onChange={handlePasswordChange} />
@@ -515,7 +515,7 @@ const Settings = () => {
                            </div>
                         </div>
 
-                        <button type="submit" className="erp-button-primary w-full !py-6 !bg-slate-900 !rounded-md hover:!bg-black">
+                        <button type="submit" className="erp-button-primary w-full !py-4 !bg-slate-900 !rounded-md hover:!bg-black">
                            <Lock className="w-5 h-5" />
                            Commit Security Update
                         </button>
@@ -523,26 +523,26 @@ const Settings = () => {
                   )}
 
                   {activeTab === "notifications" && (
-                     <form onSubmit={updateProfile} className="bg-white p-10 rounded-md border border-slate-100 shadow-sm space-y-6 animate-in fade-in zoom-in-95 duration-500">
+                     <form onSubmit={updateProfile} className="bg-white p-3 rounded-md border border-slate-100 shadow-sm space-y-4 animate-in fade-in zoom-in-95 duration-500">
                         <div className="flex items-center gap-4">
                            <div className="w-12 h-12 bg-amber-50 rounded-md flex items-center justify-center text-amber-600"><Bell className="w-6 h-6" /></div>
                            <div>
-                              <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase italic">Alert Intelligence</h3>
+                              <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase ">Alert Intelligence</h3>
                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Configure telemetry & notification ecosystem</p>
                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                           <div className="space-y-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                           <div className="space-y-4">
                               <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] pl-2 border-l-4 border-amber-500">Inventory & Flux</h4>
                               {[
                                  { key: 'lowStock', label: 'STOCK ATTRITION ALERT', desc: 'Critical re-order level triggers' },
                                  { key: 'newOrder', label: 'SALES NODE CREATION', desc: 'Real-time billing telemetry' },
                               ].map((item) => (
-                                 <div key={item.key} className="p-6 bg-slate-50 rounded-md border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-xl transition-all">
+                                 <div key={item.key} className="p-4 bg-slate-50 rounded-md border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-xl transition-all">
                                     <div className="space-y-1">
                                        <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{item.label}</p>
-                                       <p className="text-[9px] font-black text-slate-400 uppercase italic opacity-40">{item.desc}</p>
+                                       <p className="text-[9px] font-black text-slate-400 uppercase  opacity-40">{item.desc}</p>
                                     </div>
                                     <button type="button" onClick={() => setNotificationSettings({ ...notificationSettings, [item.key]: !notificationSettings[item.key] })} className={`w-14 h-7 rounded-full transition-all relative ${notificationSettings[item.key] ? 'bg-amber-600' : 'bg-slate-300'}`}>
                                        <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${notificationSettings[item.key] ? 'left-8' : 'left-1'}`}></div>
@@ -550,16 +550,16 @@ const Settings = () => {
                                  </div>
                               ))}
                            </div>
-                           <div className="space-y-8">
+                           <div className="space-y-4">
                               <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] pl-2 border-l-4 border-slate-900">System Telemetry</h4>
                               {[
                                  { key: 'securityAlerts', label: 'AUTH THREAT DETECT', desc: 'Login from unauthorized geographical nodes' },
                                  { key: 'channelEmail', label: 'EMAIL RELAY PROTOCOL', desc: 'Primary asynchronous delivery channel' },
                               ].map((item) => (
-                                 <div key={item.key} className="p-6 bg-slate-50 rounded-md border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-xl transition-all">
+                                 <div key={item.key} className="p-4 bg-slate-50 rounded-md border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-xl transition-all">
                                     <div className="space-y-1">
                                        <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{item.label}</p>
-                                       <p className="text-[9px] font-black text-slate-400 uppercase italic opacity-40">{item.desc}</p>
+                                       <p className="text-[9px] font-black text-slate-400 uppercase  opacity-40">{item.desc}</p>
                                     </div>
                                     <button type="button" onClick={() => setNotificationSettings({ ...notificationSettings, [item.key]: !notificationSettings[item.key] })} className={`w-14 h-7 rounded-full transition-all relative ${notificationSettings[item.key] ? 'bg-slate-900' : 'bg-slate-300'}`}>
                                        <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${notificationSettings[item.key] ? 'left-8' : 'left-1'}`}></div>
@@ -577,17 +577,17 @@ const Settings = () => {
                   )}
 
                   {activeTab === "modules" && (
-                     <form onSubmit={updateProfile} className="bg-white p-10 rounded-md border border-slate-100 shadow-sm space-y-6 animate-in fade-in zoom-in-95 duration-500">
+                     <form onSubmit={updateProfile} className="bg-white p-3 rounded-md border border-slate-100 shadow-sm space-y-4 animate-in fade-in zoom-in-95 duration-500">
                         <div className="flex items-center gap-4">
                            <div className="w-12 h-12 bg-indigo-50 rounded-md flex items-center justify-center text-indigo-600"><Activity className="w-6 h-6" /></div>
                            <div>
-                              <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase italic">Module Governance</h3>
+                              <h3 className="text-xl font-black text-slate-900 tracking-tightest uppercase ">Module Governance</h3>
                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Toggle enterprise-wide operational modules</p>
                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                           <div className="p-6 bg-slate-50 rounded-md border border-slate-100 space-y-6 group hover:border-slate-300 transition-all">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div className="p-4 bg-slate-50 rounded-md border border-slate-100 space-y-4 group hover:border-slate-300 transition-all">
                               <div className="flex items-center justify-between">
                                  <div className="w-14 h-14 bg-white rounded-md flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform"><Boxes className="w-6 h-6 text-indigo-600" /></div>
                                  <button type="button" onClick={() => setActiveModules({ ...activeModules, erp: !activeModules.erp })} className={`w-14 h-7 rounded-full transition-all relative ${activeModules.erp ? 'bg-indigo-600' : 'bg-slate-300'}`}>
@@ -595,12 +595,12 @@ const Settings = () => {
                                  </button>
                               </div>
                               <div>
-                                 <p className="text-sm font-black text-slate-900 uppercase italic">ERP Module</p>
+                                 <p className="text-sm font-black text-slate-900 uppercase ">ERP Module</p>
                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Inventory, Orders, Production, Suppliers, Customers</p>
                               </div>
                            </div>
 
-                           <div className="p-6 bg-slate-50 rounded-md border border-slate-100 space-y-6 group hover:border-slate-300 transition-all">
+                           <div className="p-4 bg-slate-50 rounded-md border border-slate-100 space-y-4 group hover:border-slate-300 transition-all">
                               <div className="flex items-center justify-between">
                                  <div className="w-14 h-14 bg-white rounded-md flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform"><Wallet className="w-6 h-6 text-emerald-600" /></div>
                                  <div className="flex items-center gap-3">
@@ -610,7 +610,7 @@ const Settings = () => {
                                  </div>
                               </div>
                               <div>
-                                 <div className="text-base font-black text-slate-900 uppercase italic flex items-center gap-3">
+                                 <div className="text-base font-black text-slate-900 uppercase  flex items-center gap-3">
                                     <div className="w-1.5 h-6 bg-slate-900 rounded-full"></div>
                                     Accounting Module
                                  </div>
@@ -619,7 +619,7 @@ const Settings = () => {
                            </div>
                         </div>
 
-                        <button type="submit" className="erp-button-primary w-full !py-8 !bg-slate-900 !rounded-md shadow-2xl flex items-center justify-center gap-4 group transition-all duration-500 hover:scale-[1.01] active:scale-95 border border-slate-700">
+                        <button type="submit" className="erp-button-primary w-full !py-4 !bg-slate-900 !rounded-md shadow-2xl flex items-center justify-center gap-4 group transition-all duration-500 hover:scale-[1.01] active:scale-95 border border-slate-700">
                            <ShieldCheck className="w-6 h-6 text-emerald-400 group-hover:scale-110 transition-transform" />
                            <span className="text-sm font-black uppercase tracking-[0.1em]">Commit Module Architecture</span>
                         </button>
@@ -717,12 +717,12 @@ const GstComplianceGateway = () => {
    };
 
    return (
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-md border border-slate-100 shadow-sm space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-         <div className="flex items-center justify-between border-b border-slate-50 pb-8">
+      <form onSubmit={handleSubmit} className="bg-white p-4 rounded-md border border-slate-100 shadow-sm space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+         <div className="flex items-center justify-between border-b border-slate-50 pb-4">
             <div className="flex items-center gap-4">
                <div className="w-14 h-14 bg-slate-900 rounded-md flex items-center justify-center text-white shadow-xl rotate-3 group-hover:rotate-0 transition-transform"><ShieldCheck className="w-8 h-8" /></div>
                <div>
-                  <h3 className="text-2xl font-black text-slate-900 tracking-tightest uppercase italic">GST Compliance <span className="text-indigo-600">Gateway</span></h3>
+                  <h3 className="text-2xl font-black text-slate-900 tracking-tightest uppercase ">GST Compliance <span className="text-indigo-600">Gateway</span></h3>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Global NIC Proxy & Encrypted Credential Vault</p>
                </div>
             </div>
@@ -734,50 +734,50 @@ const GstComplianceGateway = () => {
          </div>
 
          {/* Core Entity Data */}
-         <div className="space-y-8">
+         <div className="space-y-4">
             <div className="flex items-center gap-4">
                <div className="h-px bg-slate-100 flex-grow"></div>
                <span className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em]">Entity Identity</span>
                <div className="h-px bg-slate-100 flex-grow"></div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                <div className="space-y-3">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">GSTIN Identifier</label>
-                  <input name="gstin" className="erp-input !py-5 uppercase font-mono tracking-widest !bg-slate-50 focus:!bg-white" value={formData.gstin} onChange={handleChange} placeholder="24XXXXXXXXXXXXX" />
+                  <input name="gstin" className="erp-input !py-3 uppercase font-mono tracking-widest !bg-slate-50 focus:!bg-white" value={formData.gstin} onChange={handleChange} placeholder="24XXXXXXXXXXXXX" />
                </div>
                <div className="space-y-3 md:col-span-3">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Legal Entity Name (GST Records)</label>
-                  <input name="legalName" className="erp-input !py-5 uppercase !bg-slate-50 focus:!bg-white" value={formData.legalName} onChange={handleChange} />
+                  <input name="legalName" className="erp-input !py-3 uppercase !bg-slate-50 focus:!bg-white" value={formData.legalName} onChange={handleChange} />
                </div>
                <div className="space-y-3">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">PAN Master ID</label>
-                  <input name="pan" className="erp-input !py-5 uppercase font-mono !bg-slate-50 focus:!bg-white" value={formData.pan} onChange={handleChange} />
+                  <input name="pan" className="erp-input !py-3 uppercase font-mono !bg-slate-50 focus:!bg-white" value={formData.pan} onChange={handleChange} />
                </div>
                <div className="space-y-3">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">GST State Code</label>
-                  <input name="stateCode" className="erp-input !py-5 !bg-slate-50 focus:!bg-white" value={formData.stateCode} onChange={handleChange} placeholder="24" />
+                  <input name="stateCode" className="erp-input !py-3 !bg-slate-50 focus:!bg-white" value={formData.stateCode} onChange={handleChange} placeholder="24" />
                </div>
                <div className="space-y-3 md:col-span-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">NIC Dispatch Pincode</label>
-                  <input name="pincode" className="erp-input !py-5 uppercase font-mono tracking-tighter !bg-slate-50 focus:!bg-white" value={formData.pincode} onChange={handleChange} placeholder="360001" maxLength="6" />
+                  <input name="pincode" className="erp-input !py-3 uppercase font-mono tracking-tighter !bg-slate-50 focus:!bg-white" value={formData.pincode} onChange={handleChange} placeholder="360001" maxLength="6" />
                </div>
             </div>
             <div className="space-y-3">
                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Principal Place of Business (Full Address)</label>
-               <textarea name="address" rows="2" className="erp-input !py-5 resize-none h-24 uppercase !text-[11px]" value={formData.address} onChange={handleChange} />
+               <textarea name="address" rows="2" className="erp-input !py-3 resize-none h-24 uppercase !text-[11px]" value={formData.address} onChange={handleChange} />
             </div>
          </div>
 
          {/* NIC Credentials */}
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-4">
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
             {/* E-Invoice */}
-            <div className="space-y-8 p-8 bg-slate-50 rounded-md border border-slate-100 hover:border-indigo-200 transition-colors">
+            <div className="space-y-4 p-4 bg-slate-50 rounded-md border border-slate-100 hover:border-indigo-200 transition-colors">
                <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                      <div className="w-10 h-10 bg-indigo-600 rounded-md flex items-center justify-center text-white shadow-lg"><Zap className="w-5 h-5" /></div>
                      <div>
-                        <h4 className="text-sm font-black text-slate-900 uppercase italic tracking-tighter">E-Invoice Portal</h4>
+                        <h4 className="text-sm font-black text-slate-900 uppercase  tracking-tighter">E-Invoice Portal</h4>
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">NIC Integration Credentials</p>
                      </div>
                   </div>
@@ -786,7 +786,7 @@ const GstComplianceGateway = () => {
                   </button>
                </div>
 
-               <div className="space-y-6">
+               <div className="space-y-4">
                   <div className="space-y-2">
                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">System Username</label>
                      <input name="eInvoiceUsername" className="erp-input !py-4 !bg-white" value={formData.eInvoiceUsername} onChange={handleChange} />
@@ -799,12 +799,12 @@ const GstComplianceGateway = () => {
             </div>
 
             {/* E-Way Bill */}
-            <div className="space-y-8 p-8 bg-slate-50 rounded-md border border-slate-100 hover:border-emerald-200 transition-colors">
+            <div className="space-y-4 p-4 bg-slate-50 rounded-md border border-slate-100 hover:border-emerald-200 transition-colors">
                <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                      <div className="w-10 h-10 bg-emerald-600 rounded-md flex items-center justify-center text-white shadow-lg"><Truck className="w-5 h-5" /></div>
                      <div>
-                        <h4 className="text-sm font-black text-slate-900 uppercase italic tracking-tighter">E-Way Bill Portal</h4>
+                        <h4 className="text-sm font-black text-slate-900 uppercase  tracking-tighter">E-Way Bill Portal</h4>
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">NIC Integration Credentials</p>
                      </div>
                   </div>
@@ -813,7 +813,7 @@ const GstComplianceGateway = () => {
                   </button>
                </div>
 
-               <div className="space-y-6">
+               <div className="space-y-4">
                   <div className="space-y-2">
                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">System Username</label>
                      <input name="eWayBillUsername" className="erp-input !py-4 !bg-white" value={formData.eWayBillUsername} onChange={handleChange} />
@@ -827,7 +827,7 @@ const GstComplianceGateway = () => {
          </div>
 
          <div className="flex justify-end pt-4">
-            <button type="submit" disabled={loading} className="px-12 py-6 bg-slate-900 text-white text-xs font-black uppercase tracking-widest rounded-md hover:bg-black transition-all shadow-2xl flex items-center gap-4 group">
+            <button type="submit" disabled={loading} className="px-12 py-4 bg-slate-900 text-white text-xs font-black uppercase tracking-widest rounded-md hover:bg-black transition-all shadow-2xl flex items-center gap-4 group">
                <ShieldCheck className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" />
                {loading ? "Capturing Flux..." : "Commit Compliance Setup"}
             </button>

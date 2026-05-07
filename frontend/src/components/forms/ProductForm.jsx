@@ -102,7 +102,7 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-4">
       
       {/* Classification Protocol */}
       <div className="space-y-3">
@@ -130,7 +130,7 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
          </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* PRODUCT CORE */}
         <div className="md:col-span-2 space-y-1.5">
           <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Product Nomenclature</label>
@@ -246,7 +246,7 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
 
       {/* MANUFACTURING BLUEPRINT (BOM) */}
       {formData.type === "finished_good" && (
-        <div className="mt-8 p-6 bg-muted/20 rounded border border-border space-y-6 relative overflow-hidden">
+        <div className="mt-4 p-4 bg-muted/20 rounded border border-border space-y-4 relative overflow-hidden">
           <div className="flex items-center justify-between border-b border-border pb-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary rounded shadow-sm">
@@ -267,7 +267,7 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
           </div>
 
           {formData.bom.length === 0 ? (
-            <div className="bg-muted/10 rounded p-10 text-center border border-dashed border-border">
+            <div className="bg-muted/10 rounded p-3 text-center border border-dashed border-border">
               <Info className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Blueprint not initialized</p>
             </div>
@@ -329,7 +329,7 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
         </div>
       )}
 
-      <div className="flex gap-4 pt-6 border-t border-border">
+      <div className="flex gap-4 pt-4 border-t border-border">
         <button
           type="button"
           onClick={onCancel}

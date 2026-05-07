@@ -17,6 +17,14 @@ const invoiceSchema = new mongoose.Schema(
       ref: "Customer",
       required: true,
     },
+    billToCustomer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Customer",
+    },
+    shipToCustomer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Customer",
+    },
     type: {
       type: String,
       enum: ["sales", "credit_note", "debit_note"],
@@ -85,8 +93,25 @@ const invoiceSchema = new mongoose.Schema(
       }
     },
     notes: { type: String },
-    shipTo: { type: String, default: "" },
     poNo: { type: String, default: "" },
+    billToAddress: {
+      label: String,
+      companyName: String,
+      address: String,
+      city: String,
+      state: String,
+      pincode: String,
+      gstin: String,
+    },
+    shipToAddress: {
+      label: String,
+      companyName: String,
+      address: String,
+      city: String,
+      state: String,
+      pincode: String,
+      gstin: String,
+    },
     paymentMode: { type: String, default: "" },
     paymentTerms: { type: String, default: "" },
     billSeries: { type: String, default: "" },
