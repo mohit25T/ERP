@@ -101,7 +101,7 @@ const Login = () => {
                    <Cpu className="w-6 h-6 text-primary-foreground" />
                 </div>
                 <div>
-                   <h1 className="text-xl font-black text-white tracking-tighter uppercase">Mohit<span className="text-primary">_ERP</span></h1>
+                   <h1 className="text-xl font-black text-white tracking-tighter uppercase">Apex<span className="text-primary">_ERP</span></h1>
                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.3em]">Enterprise Resource Operating System</p>
                 </div>
              </div>
