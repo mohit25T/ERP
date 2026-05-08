@@ -124,6 +124,7 @@ const Settings = () => {
                      taxable: { label: globalData.invoiceSettings.columns?.taxable?.label || "Taxable Val.", show: globalData.invoiceSettings.columns?.taxable?.show ?? true },
                      amount: { label: globalData.invoiceSettings.columns?.amount?.label || "Net Amount", show: globalData.invoiceSettings.columns?.amount?.show ?? true }
                   },
+                  showLogo: globalData.invoiceSettings.showLogo ?? true,
                   footerText: globalData.invoiceSettings.footerText || "Certified that the particulars given above are true and correct. Taxes shown above are extra as applicable.",
                });
             }

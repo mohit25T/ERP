@@ -8,7 +8,7 @@ import unitsUtil from "../../utils/units";
 import {
    Factory, Plus, TrendingUp, Activity, Search, Filter,
    Trash2, Edit3, Play, CheckCircle2, AlertTriangle,
-   Layers, X, Info, PackageOpen, LayoutGrid, ArrowRight,
+   Layers, X, Info, Scale, LayoutGrid, ArrowRight,
    Gauge, History, Recycle, Download, Zap, AlertCircle,
    ShieldCheck
 } from "lucide-react";
@@ -22,7 +22,10 @@ const Production = () => {
    const [searchTerm, setSearchTerm] = useState("");
    const [showFilters, setShowFilters] = useState(false);
    const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
-   const [completeBatchId, setCompleteBatchId] = useState(null);
+   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
+   const [activeBatch, setActiveBatch] = useState(null);
+   const [adjustmentData, setAdjustmentData] = useState({ scrapQuantity: 0, scrapWeight: 0, outputQuantity: 0 });
    const [scrapQuantity, setScrapQuantity] = useState(0);
    const [scrapPieces, setScrapPieces] = useState(0);
    const [producedQty, setProducedQty] = useState(0);
@@ -115,6 +118,17 @@ const Production = () => {
          alert(`Manufacturing authorization failed:\n${errorMsg}`);
       } finally {
          setFormLoading(false);
+      }
+   };
+
+   const handleAdjustScrap = async (e) => {
+      e.preventDefault();
+      try {
+         await productionApi.adjustScrap(activeBatch._id, adjustmentData);
+         setIsAdjustModalOpen(false);
+         fetchData();
+      } catch (err) {
+         alert(err.response?.data?.msg || "Failed to adjust scrap");
       }
    };
 
@@ -327,7 +341,7 @@ const Production = () => {
                   <div>
                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Wastage Index</p>
                      <h3 className="text-2xl font-black text-foreground tracking-tighter tabular-nums">
-                        {(insights?.scrapEfficiency || 0).toFixed(1)}% <span className="text-xs text-muted-foreground font-bold ml-1 uppercase">Flux</span>
+                        {(insights?.summary?.scrapEfficiency || 0).toFixed(1)}% <span className="text-xs text-muted-foreground font-bold ml-1 uppercase">Flux</span>
                      </h3>
                   </div>
                </div>
@@ -444,12 +458,12 @@ const Production = () => {
                                        )}
                                     </td>
                                     <td className="text-right">
-                                       <div className="flex items-center justify-end gap-1">
-                                          {b.status === 'pending' && <button onClick={() => handleEdit(b)} className="p-1.5 border border-border bg-card hover:bg-muted text-primary rounded transition-colors" title="Modify"><Edit3 className="w-3.5 h-3.5" /></button>}
-                                          {b.status === 'pending' && <button onClick={() => handleStart(b._id)} className="p-1.5 border border-border bg-card hover:bg-muted text-primary rounded transition-colors" title="Initialize"><Activity className="w-3.5 h-3.5" /></button>}
-                                          {b.status === 'in_progress' && <button onClick={() => { setCompleteBatch(b); setProducedQty(b.quantity); setScrapQuantity(0); setScrapPieces(0); setIsCompleteModalOpen(true); }} className="p-1.5 border border-border bg-card hover:bg-muted text-emerald-600 rounded transition-colors" title="Finalize"><CheckCircle2 className="w-3.5 h-3.5" /></button>}
-                                          <button onClick={() => handleDelete(b._id)} className="p-1.5 border border-border bg-card hover:bg-muted text-destructive rounded transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                                       </div>
+                                       <button
+                                          onClick={() => { setActiveBatch(b); setIsActionModalOpen(true); }}
+                                          className="text-[10px] font-bold uppercase tracking-widest bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1.5 rounded transition-colors"
+                                       >
+                                          Manage
+                                       </button>
                                     </td>
                                  </motion.tr>
                               ))}
@@ -464,6 +478,7 @@ const Production = () => {
                               <th>Material Node</th>
                               <th>Aggregate Loss</th>
                               <th>Audit Trail</th>
+                              <th>Total Scrape</th>
                            </tr>
                         </thead>
                         <tbody className="divide-y divide-border/50">
@@ -474,10 +489,44 @@ const Production = () => {
                                     <span className="text-xs font-bold text-foreground">{log.material?.name || "Raw Material"}</span>
                                  </td>
                                  <td>
-                                    <span className="text-xs font-black text-destructive tabular-nums">-{log.quantity} {log.material?.unit}</span>
+                                    <div className="flex flex-col">
+                                       <span className="text-sm font-black text-destructive tabular-nums">
+                                          -{log.batchReference?.scrapQuantity || 0} <span className="text-[9px] uppercase font-bold tracking-widest">pcs</span>
+                                       </span>
+                                       <span className="text-[8px] text-muted-foreground font-bold uppercase tracking-tighter">
+                                          Batch Yield
+                                       </span>
+                                    </div>
                                  </td>
                                  <td>
-                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight opacity-70 ">"{log.notes || "Wastage"}"</span>
+                                    <div className="flex flex-col gap-1">
+                                       <div className="flex items-center gap-2">
+                                          <span className="text-[10px] font-black text-slate-700 uppercase tracking-tight">Mass Loss:</span>
+                                          <span className="text-[10px] font-black text-destructive tabular-nums">{(log.batchReference?.scrapWeight || log.quantity || 0).toFixed(2)} KG</span>
+                                       </div>
+                                       <div className="flex items-center gap-2 opacity-70">
+                                          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tight">Piece Weight:</span>
+                                          <span className="text-[9px] font-bold text-slate-900 tabular-nums">
+                                             {((log.batchReference?.scrapQuantity || 0) * (log.material?.unitWeightGrams || 0) / 1000).toFixed(2)} KG
+                                          </span>
+                                       </div>
+                                       <div className="mt-1 px-2 py-0.5 bg-slate-100 rounded text-[8px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200 w-fit">
+                                          {log.notes || "Standard Production Wastage"}
+                                       </div>
+                                    </div>
+                                 </td>
+                                 <td>
+                                    <div className="flex flex-col">
+                                       <span className="text-sm font-black text-indigo-700 tabular-nums">
+                                          {(
+                                             (log.batchReference?.scrapWeight || log.quantity || 0) +
+                                             ((log.batchReference?.scrapQuantity || 0) * (log.material?.unitWeightGrams || 0) / 1000)
+                                          ).toFixed(2)} <span className="text-[9px] uppercase font-bold tracking-widest">KG</span>
+                                       </span>
+                                       <span className="text-[8px] text-muted-foreground font-bold uppercase tracking-tighter">
+                                          Combined Loss
+                                       </span>
+                                    </div>
                                  </td>
                               </tr>
                            ))}
@@ -684,6 +733,150 @@ const Production = () => {
                   <button type="submit" disabled={formLoading} className="erp-button-primary flex-[2] !bg-emerald-600 border-emerald-500">
                      {formLoading ? "Processing..." : "Commit Fabrication"}
                   </button>
+               </div>
+            </form>
+         </Modal>
+
+         {/* Action Modal */}
+         <Modal isOpen={isActionModalOpen} onClose={() => setIsActionModalOpen(false)} title="Batch Operations" size="md">
+            {activeBatch && (
+               <div className="p-4 space-y-4">
+                  <div className="p-4 bg-slate-50 border border-slate-100 rounded-lg flex items-center gap-4">
+                     <div className="w-10 h-10 bg-white border border-slate-200 rounded-lg flex items-center justify-center">
+                        <Factory className="w-5 h-5 text-indigo-600" />
+                     </div>
+                     <div className="flex flex-col">
+                        <span className="text-sm font-black text-slate-900 tracking-tight">BN-{activeBatch.batchNumber ? activeBatch.batchNumber.slice(-6).toUpperCase() : (activeBatch._id ? activeBatch._id.slice(-6).toUpperCase() : "VOID")}</span>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{activeBatch.product?.name || "Unknown"}</span>
+                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                     {activeBatch.status === 'pending' && (
+                        <>
+                           <button
+                              onClick={() => {
+                                 setIsActionModalOpen(false);
+                                 handleEdit(activeBatch);
+                              }}
+                              className="flex flex-col items-center justify-center p-4 bg-white border border-slate-200 rounded-xl hover:border-indigo-500 hover:shadow-md transition-all group"
+                           >
+                              <div className="p-2 bg-indigo-50 text-indigo-600 rounded-full mb-3 group-hover:scale-110 transition-transform">
+                                 <Edit3 className="w-5 h-5" />
+                              </div>
+                              <span className="text-[11px] font-black text-slate-700 uppercase tracking-widest">Modify</span>
+                           </button>
+                           <button
+                              onClick={() => {
+                                 setIsActionModalOpen(false);
+                                 handleStart(activeBatch._id);
+                              }}
+                              className="flex flex-col items-center justify-center p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group"
+                           >
+                              <div className="p-2 bg-blue-50 text-blue-600 rounded-full mb-3 group-hover:scale-110 transition-transform">
+                                 <Activity className="w-5 h-5" />
+                              </div>
+                              <span className="text-[11px] font-black text-slate-700 uppercase tracking-widest">Initialize</span>
+                           </button>
+                        </>
+                     )}
+
+                     {activeBatch.status === 'in_progress' && (
+                        <button
+                           onClick={() => {
+                              setIsActionModalOpen(false);
+                              setCompleteBatch(activeBatch);
+                              setProducedQty(activeBatch.quantity);
+                              setScrapQuantity(0);
+                              setScrapPieces(0);
+                              setIsCompleteModalOpen(true);
+                           }}
+                           className="flex flex-col items-center justify-center p-4 bg-white border border-emerald-200 rounded-xl hover:border-emerald-500 hover:shadow-md transition-all group col-span-2"
+                        >
+                           <div className="p-2 bg-emerald-50 text-emerald-600 rounded-full mb-3 group-hover:scale-110 transition-transform">
+                              <CheckCircle2 className="w-5 h-5" />
+                           </div>
+                           <span className="text-[11px] font-black text-emerald-700 uppercase tracking-widest">Finalize Batch</span>
+                        </button>
+                     )}
+
+                     {activeBatch.status === 'completed' && (
+                        <button
+                           onClick={() => {
+                              setIsActionModalOpen(false);
+                              setAdjustmentData({
+                                 scrapQuantity: activeBatch.scrapQuantity,
+                                 scrapWeight: activeBatch.scrapWeight,
+                                 outputQuantity: activeBatch.outputQuantity
+                              });
+                              setIsAdjustModalOpen(true);
+                           }}
+                           className="flex flex-col items-center justify-center p-4 bg-white border border-amber-200 rounded-xl hover:border-amber-500 hover:shadow-md transition-all group col-span-2"
+                        >
+                           <div className="p-2 bg-amber-50 text-amber-600 rounded-full mb-3 group-hover:scale-110 transition-transform">
+                              <Scale className="w-5 h-5" />
+                           </div>
+                           <span className="text-[11px] font-black text-amber-700 uppercase tracking-widest">Adjust Yield / Scrap</span>
+                        </button>
+                     )}
+
+                     <button
+                        onClick={() => {
+                           setIsActionModalOpen(false);
+                           handleDelete(activeBatch._id);
+                        }}
+                        className={`flex flex-col items-center justify-center p-4 bg-white border border-slate-200 rounded-xl hover:border-red-500 hover:shadow-md transition-all group ${activeBatch.status !== 'pending' ? 'col-span-2' : ''}`}
+                     >
+                        <div className="p-2 bg-red-50 text-red-600 rounded-full mb-3 group-hover:scale-110 transition-transform">
+                           <Trash2 className="w-5 h-5" />
+                        </div>
+                        <span className="text-[11px] font-black text-red-600 uppercase tracking-widest">Reverse / Delete</span>
+                     </button>
+                  </div>
+               </div>
+            )}
+         </Modal>
+
+         {/* Adjustment Modal */}
+         <Modal isOpen={isAdjustModalOpen} onClose={() => setIsAdjustModalOpen(false)} title="Adjust Batch Yield" size="md">
+            <form onSubmit={handleAdjustScrap} className="p-4 space-y-4">
+               <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Scrapped Pieces (pcs)</label>
+                     <input
+                        type="number"
+                        className="erp-input tabular-nums"
+                        value={adjustmentData.scrapQuantity}
+                        onChange={(e) => setAdjustmentData({ ...adjustmentData, scrapQuantity: Number(e.target.value) })}
+                        required
+                     />
+                  </div>
+                  <div className="space-y-1">
+                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Scrap Weight (KG)</label>
+                     <input
+                        type="number"
+                        step="0.001"
+                        className="erp-input tabular-nums"
+                        value={adjustmentData.scrapWeight}
+                        onChange={(e) => setAdjustmentData({ ...adjustmentData, scrapWeight: Number(e.target.value) })}
+                        required
+                     />
+                  </div>
+                  <div className="space-y-1 col-span-2">
+                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Actual Finished Good Yield (pcs)</label>
+                     <input
+                        type="number"
+                        className="erp-input tabular-nums bg-slate-50 border-slate-200"
+                        value={adjustmentData.outputQuantity}
+                        onChange={(e) => setAdjustmentData({ ...adjustmentData, outputQuantity: Number(e.target.value) })}
+                        required
+                     />
+                     <p className="text-[9px] text-slate-400 italic">Adjusting this will update your physical stock levels.</p>
+                  </div>
+               </div>
+               <div className="flex gap-2 pt-2">
+                  <button type="button" onClick={() => setIsAdjustModalOpen(false)} className="flex-1 px-4 py-2 border border-slate-200 text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-slate-50">Cancel</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-amber-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-amber-700 shadow-lg shadow-amber-200">Save Adjustments</button>
                </div>
             </form>
          </Modal>

@@ -121,27 +121,12 @@ class PdfService {
 
     // --- Header Section ---
     let headerH = 70;
-    const hasLogo = user.companyLogo && user.invoiceSettings?.showLogo !== false;
-    // if (hasLogo) headerH = 110;
-
-    drawBox(margin, 20, contentWidth, headerH);
-
     let currentHeaderY = 32;
 
-    // if (hasLogo) {
-    //   const headerLogoBuffer = await this.fetchImageBuffer(user.companyLogo);
-    //   if (headerLogoBuffer) {
-    //     try {
-    //       // Center the logo above the name
-    //       doc.image(headerLogoBuffer, (pageWidth - 60) / 2, 25, { height: 45 });
-    //       currentHeaderY = 75; // Push text down to make room for logo
-    //     } catch (err) {
-    //       console.warn("Header logo rendering failed:", err.message);
-    //     }
-    //   }
-    // }
+    doc.fontSize(16).font("Helvetica-Bold");
+    drawBox(margin, 20, contentWidth, headerH);
 
-    doc.fontSize(16).font("Helvetica-Bold").text(user.companyName || user.name, margin, currentHeaderY, { align: "center", width: contentWidth });
+    doc.text(user.companyName || user.name, margin, currentHeaderY, { align: "center", width: contentWidth });
     doc.fontSize(8).font("Helvetica").text(user.address || "", margin, currentHeaderY + 18, { align: "center", width: contentWidth });
     doc.text(`PH: ${user.mobile || ""} EMAIL: ${user.email || ""}`, margin, currentHeaderY + 30, { align: "center", width: contentWidth });
 
@@ -203,7 +188,7 @@ class PdfService {
 
     // Ship To
     const shipTo = invoice.shipToAddress || billTo; // Fallback to billTo if shipTo is null
-    
+
     doc.fontSize(8).font("Helvetica-Bold").text("Ship To:", margin + 5, currentY + 70);
     doc.fontSize(10).text(shipTo.companyName || shipTo.name || billTo.companyName || "", margin + 45, currentY + 70, { width: (splitX - margin) - 50 });
     doc.fontSize(8).font("Helvetica").text(shipTo.address || billTo.address || "", margin + 45, currentY + 85, { width: (splitX - margin) - 50 });
@@ -304,18 +289,19 @@ class PdfService {
     doc.fontSize(8).font("Helvetica-Bold").text("Taxable Amount", splitX + 5, currentY + 18);
     doc.font("Helvetica").text(invoice.taxableAmount.toFixed(2), margin + contentWidth - 85, currentY + 18, { width: 80, align: "right" });
 
-    if (invoice.cgst > 0) {
-      doc.text("CGST", splitX + 5, currentY + 28);
-      doc.text("9%", splitX + 60, currentY + 28);
-      doc.text(invoice.cgst.toFixed(2), margin + contentWidth - 85, currentY + 28, { width: 80, align: "right" });
-      doc.text("SGST", splitX + 5, currentY + 38);
-      doc.text("9%", splitX + 60, currentY + 38);
-      doc.text(invoice.sgst.toFixed(2), margin + contentWidth - 85, currentY + 38, { width: 80, align: "right" });
-    } else {
-      doc.text("IGST", splitX + 5, currentY + 28);
-      doc.text("18%", splitX + 60, currentY + 28);
-      doc.text(invoice.igst.toFixed(2), margin + contentWidth - 85, currentY + 28, { width: 80, align: "right" });
-    }
+    const totalGst = invoice.gstAmount || 0;
+    const cgstAmount = invoice.cgst > 0 ? invoice.cgst : totalGst / 2;
+    const sgstAmount = invoice.sgst > 0 ? invoice.sgst : totalGst / 2;
+    // Calculate average GST rate from items or fallback to 18%
+    const avgGstRate = invoice.items.length > 0 ? (invoice.items[0].gstRate || 18) : 18;
+
+    doc.text("CGST", splitX + 5, currentY + 28);
+    doc.text(`${(avgGstRate / 2).toFixed(1)}%`, splitX + 60, currentY + 28);
+    doc.text(cgstAmount.toFixed(2), margin + contentWidth - 85, currentY + 28, { width: 80, align: "right" });
+    
+    doc.text("SGST", splitX + 5, currentY + 38);
+    doc.text(`${(avgGstRate / 2).toFixed(1)}%`, splitX + 60, currentY + 38);
+    doc.text(sgstAmount.toFixed(2), margin + contentWidth - 85, currentY + 38, { width: 80, align: "right" });
 
     doc.fontSize(7).font("Helvetica-Bold").text("Total GST :", margin + 5, currentY + 48);
     doc.font("Helvetica-Oblique").text(this.numberToWords(invoice.gstAmount), margin + 55, currentY + 48);

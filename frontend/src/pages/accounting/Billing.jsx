@@ -313,6 +313,7 @@ const Billing = () => {
                   <tr className="border-b border-slate-100 text-[10px] font-black uppercase text-slate-400 tracking-widest">
                     <th className="px-4 py-4 text-left">Invoice Detail</th>
                     <th className="px-4 py-4 text-left">Client Information</th>
+                    <th className="px-4 py-4 text-center">Quantity</th>
                     <th className="px-4 py-4 text-center">Status</th>
                     <th className="px-4 py-4 text-right">Total Value</th>
                     <th className="px-4 py-4 text-center">Compliance</th>
@@ -344,6 +345,16 @@ const Billing = () => {
                           <div className="flex flex-col">
                             <span className="text-sm font-bold text-slate-900">{inv.customer?.name || "Private Client"}</span>
                             <span className="text-[10px] text-slate-400 font-medium uppercase tracking-tight">{inv.customer?.company || "Retail Branch"}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-col items-center">
+                            <span className="text-sm font-black text-slate-900 tabular-nums">
+                              {inv.items?.reduce((acc, item) => acc + (item.quantity || 0), 0) || 0}
+                            </span>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                              {inv.items?.[0]?.unit || "Units"}
+                            </span>
                           </div>
                         </td>
                         <td className="px-4 py-3">

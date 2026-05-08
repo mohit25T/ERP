@@ -30,8 +30,8 @@ export const getProductLogs = async (req, res) => {
 export const getScrapLogs = async (req, res) => {
   try {
     const logs = await ScrapInventory.find()
-      .populate("material", "name unit")
-      .populate("batchReference", "batchNumber status")
+      .populate("material", "name unit unitWeightGrams")
+      .populate("batchReference", "batchNumber status scrapQuantity scrapWeight quantity")
       .sort({ createdAt: -1 });
     res.json(logs);
   } catch (err) {

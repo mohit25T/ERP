@@ -21,6 +21,7 @@ const getMergedUser = (user, masterAdmin) => {
     pincode: masterAdmin?.pincode || user.pincode,
     companyLogo: masterAdmin?.companyLogo || user.companyLogo,
     invoiceSettings: masterAdmin?.invoiceSettings || user.invoiceSettings,
+    bankDetails: masterAdmin?.bankDetails || user.bankDetails,
     notificationSettings: user.notificationSettings,
     activeModules: masterAdmin?.activeModules || user.activeModules || { erp: true, accounting: true }
   };
@@ -208,7 +209,7 @@ export const changePassword = async (req, res) => {
 // Update Profile (With Global Company Sync)
 export const updateProfile = async (req, res) => {
   try {
-    const { name, gstin, companyName, address, state, pincode, companyLogo, invoiceSettings, notificationSettings, activeModules } = req.body;
+    const { name, gstin, companyName, address, state, pincode, companyLogo, invoiceSettings, bankDetails, notificationSettings, activeModules } = req.body;
 
     // 1. Personal Profile Update (Current User)
     const currentUser = await User.findById(req.user.id);
@@ -235,6 +236,7 @@ export const updateProfile = async (req, res) => {
         if (pincode !== undefined) masterAdmin.pincode = pincode;
         if (companyLogo !== undefined) masterAdmin.companyLogo = companyLogo;
         if (invoiceSettings !== undefined) masterAdmin.invoiceSettings = invoiceSettings;
+        if (bankDetails !== undefined) masterAdmin.bankDetails = bankDetails;
 
         await masterAdmin.save();
         console.log(`[GLOBAL SYNC]: Company Identity updated by ${currentUser.name}`);

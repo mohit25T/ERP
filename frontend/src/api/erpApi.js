@@ -173,6 +173,7 @@ export const productionApi = {
   update: (id, data) => api.patch(`/productions/${id}`, data),
   start: (id) => api.patch(`/productions/${id}/start`),
   complete: (id, data) => api.patch(`/productions/${id}/complete`, data),
+  adjustScrap: (id, data) => api.patch(`/productions/${id}/adjust-scrap`, data),
   delete: (id) => api.delete(`/productions/${id}`),
   getInsights: () => api.get("/productions/insights")
 };

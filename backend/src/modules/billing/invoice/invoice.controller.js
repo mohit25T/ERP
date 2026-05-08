@@ -329,12 +329,26 @@ export const downloadInvoicePdf = async (req, res) => {
     const invoice = await Invoice.findById(id).populate("customer").populate("items.product").populate("ewayBill");
     if (!invoice) return res.status(404).json({ msg: "Invoice not found" });
 
-    const user = await User.findById(req.user.id);
+    const currentUser = await User.findById(req.user.id);
+    const masterAdmin = await User.findOne({ role: "super_admin" });
+
+    // Merge logic to ensure global branding settings are used
+    const companyProfile = {
+      ...currentUser.toObject(),
+      companyLogo: masterAdmin?.companyLogo || currentUser.companyLogo,
+      companyName: masterAdmin?.companyName || currentUser.companyName,
+      address: masterAdmin?.address || currentUser.address,
+      state: masterAdmin?.state || currentUser.state,
+      pincode: masterAdmin?.pincode || currentUser.pincode,
+      gstin: masterAdmin?.gstin || currentUser.gstin,
+      invoiceSettings: masterAdmin?.invoiceSettings || currentUser.invoiceSettings,
+      bankDetails: masterAdmin?.bankDetails || currentUser.bankDetails
+    };
     
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename=Invoice_${invoice.invoiceNumber}.pdf`);
 
-    await PdfService.generateInvoicePdf(invoice, user, invoice.customer, res);
+    await PdfService.generateInvoicePdf(invoice, companyProfile, invoice.customer, res);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

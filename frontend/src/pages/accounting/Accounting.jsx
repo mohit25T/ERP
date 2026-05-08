@@ -14,11 +14,12 @@ import {
 const TransactionModal = ({ isOpen, onClose, onRefresh, parties }) => {
    const [formData, setFormData] = useState({
       type: "income",
-      category: "Direct Sales",
+      category: "Credit Note",
       amount: "",
       description: "",
       partyId: "",
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      stockLogic: "Without Stock"
    });
    const [loading, setLoading] = useState(false);
 
@@ -52,7 +53,7 @@ const TransactionModal = ({ isOpen, onClose, onRefresh, parties }) => {
                   initial={{ scale: 0.98, opacity: 0, y: 20 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   exit={{ scale: 0.98, opacity: 0, y: 20 }}
-                  className="bg-white w-full max-w-2xl rounded-2xl shadow-3xl shadow-slate-900/10 overflow-hidden border border-slate-100 flex flex-col"
+                  className="bg-white w-full max-w-2xl shadow-3xl shadow-slate-900/10 overflow-hidden border border-slate-100 flex flex-col"
                >
                   <div className="p-4 border-b border-slate-50 flex items-center justify-between bg-white relative">
                      <div className="flex items-center gap-4 relative z-10">
@@ -85,34 +86,49 @@ const TransactionModal = ({ isOpen, onClose, onRefresh, parties }) => {
                            <select
                               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-xs font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all cursor-pointer"
                               value={formData.category}
-                              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                              onChange={(e) => {
+                                 const cat = e.target.value;
+                                 setFormData({
+                                    ...formData,
+                                    category: cat,
+                                    type: cat === "Credit Note" ? "income" : "expense"
+                                 });
+                              }}
                            >
-                              <option value="Direct Sales">Direct Sales</option>
-                              <option value="Stock Purchase">Stock Purchase</option>
                               <option value="Credit Note">Credit Note (Sales Return)</option>
-                              <option value="Debit Note">Debit Note (Pur Return)</option>
-                              <option value="Salary">Salary Disbursement</option>
-                              <option value="Adjustment">Manual Adjustment</option>
-                              <option value="Other">Miscellaneous</option>
+                              <option value="Debit Note">Debit Note (Purchase Return)</option>
                            </select>
                         </div>
                      </div>
 
-                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Entity Selection (Required)</label>
-                        <select
-                           required
-                           className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-xs font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all cursor-pointer"
-                           value={formData.partyId}
-                           onChange={(e) => setFormData({ ...formData, partyId: e.target.value })}
-                        >
-                           <option value="">Select Target Entity...</option>
-                           {formData.type === "income" ? (
-                              parties.customers.map(c => <option key={c._id} value={c._id}>{c.name} — {c.company || 'N/A'}</option>)
-                           ) : (
-                              parties.suppliers.map(s => <option key={s._id} value={s._id}>{s.company || s.name}</option>)
-                           )}
-                        </select>
+                     <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Entity Selection (Required)</label>
+                           <select
+                              required
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-xs font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all cursor-pointer"
+                              value={formData.partyId}
+                              onChange={(e) => setFormData({ ...formData, partyId: e.target.value })}
+                           >
+                              <option value="">Select Target Entity...</option>
+                              {formData.category === "Credit Note" ? (
+                                 parties.customers.map(c => <option key={c._id} value={c._id}>{c.name} — {c.company || 'N/A'}</option>)
+                              ) : (
+                                 parties.suppliers.map(s => <option key={s._id} value={s._id}>{s.company || s.name}</option>)
+                              )}
+                           </select>
+                        </div>
+                        <div className="space-y-1.5">
+                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Stock Integration</label>
+                           <select
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-xs font-black uppercase tracking-widest outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/20 transition-all cursor-pointer"
+                              value={formData.stockLogic}
+                              onChange={(e) => setFormData({ ...formData, stockLogic: e.target.value })}
+                           >
+                              <option value="With Stock">With Stock Adjustment</option>
+                              <option value="Without Stock">Financial Only (No Stock)</option>
+                           </select>
+                        </div>
                      </div>
 
                      <div className="grid grid-cols-2 gap-3">
@@ -211,11 +227,11 @@ const Accounting = () => {
    const fetchData = async () => {
       try {
          setLoading(true);
-         
+
          // 1. Determine tab-specific fetch
          const tabFetch = activeTab === "receivables" ? api.get("/orders") :
-                        activeTab === "payables" ? api.get("/purchases") :
-                        Promise.resolve({ data: [] });
+            activeTab === "payables" ? api.get("/purchases") :
+               Promise.resolve({ data: [] });
 
          // 2. Execute all protocols in parallel for maximum performance
          const [summaryRes, ledgerRes, tabRes] = await Promise.all([
@@ -226,7 +242,7 @@ const Accounting = () => {
 
          const summaryData = summaryRes.data || {};
          const ledgerData = Array.isArray(ledgerRes.data) ? ledgerRes.data : [];
-         
+
          // 3. Calculate Global Statistics
          const stats = {
             creditNotes: ledgerData.filter(l => l.category === 'Credit Note' || l.description?.toLowerCase().includes('credit note')).reduce((acc, curr) => acc + (curr.amount || 0), 0),

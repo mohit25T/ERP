@@ -421,6 +421,97 @@ export const deleteProduction = async (req, res) => {
   }
 };
 
+// Adjust Scrap for Completed Batch (Typo Correction / Final Audit)
+export const adjustScrap = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { scrapQuantity, scrapWeight, outputQuantity } = req.body;
+
+    const result = await TransactionManager.execute(async (session) => {
+      const production = await Production.findById(id).populate("product").session(session);
+      if (!production) throw new Error("Production record not found");
+      if (production.status !== "completed") throw new Error("Only completed batches can have their yield adjusted.");
+
+      const oldScrapPcs = production.scrapQuantity || 0;
+      const oldScrapW = production.scrapWeight || 0;
+      const oldOutputQ = production.outputQuantity || 0;
+
+      // 1. Adjust Finished Good Stock
+      if (outputQuantity !== undefined) {
+        const diff = outputQuantity - oldOutputQ;
+        if (diff !== 0) {
+          await InventoryService.updateStock({
+            productId: production.product._id,
+            quantity: Math.abs(diff),
+            type: diff > 0 ? "IN" : "OUT",
+            reason: `Yield Adjustment: Batch ${production.batchNumber}`,
+            referenceType: "production_adjustment",
+            referenceId: production._id,
+            session
+          });
+          production.outputQuantity = outputQuantity;
+        }
+      }
+
+      // 2. Adjust Scrap Piece Stock (on the product record)
+      if (scrapQuantity !== undefined) {
+        const diff = scrapQuantity - oldScrapPcs;
+        if (diff !== 0) {
+          await InventoryService.updateStock({
+            productId: production.product._id,
+            quantity: Math.abs(diff),
+            type: diff > 0 ? "IN" : "OUT",
+            isScrap: true,
+            reason: `Yield Adjustment (Items): Batch ${production.batchNumber}`,
+            referenceType: "production_adjustment",
+            referenceId: production._id,
+            session
+          });
+          production.scrapQuantity = scrapQuantity;
+        }
+      }
+
+      // 3. Adjust Scrap Weight (Mass Balance)
+      if (scrapWeight !== undefined) {
+        const diff = scrapWeight - oldScrapW;
+        if (diff !== 0) {
+          // Update Legacy ScrapInventory
+          await ScrapInventory.findOneAndUpdate(
+            { batchReference: production._id },
+            { 
+              quantity: scrapWeight,
+              notes: (production.notes || "") + ` [Adjusted from ${oldScrapW}kg]`
+            },
+            { session }
+          );
+
+          // Update Dedicated Scrap Product if it exists
+          if (production.scrapProduct) {
+            await InventoryService.updateStock({
+              productId: production.scrapProduct,
+              quantity: Math.abs(diff),
+              type: diff > 0 ? "IN" : "OUT",
+              reason: `Yield Adjustment (Mass): Batch ${production.batchNumber}`,
+              referenceType: "production_adjustment",
+              referenceId: production._id,
+              session
+            });
+          }
+          
+          production.scrapWeight = scrapWeight;
+        }
+      }
+
+      await production.save({ session });
+      return production;
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // Manufacturing Insights (In Use vs Pending)
 export const getManufacturingInsights = async (req, res) => {
   try {
@@ -461,12 +552,29 @@ export const getManufacturingInsights = async (req, res) => {
     const activeBatches = await Production.find({ status: { $in: ['pending', 'in_progress'] } });
     const totalWIP = activeBatches.reduce((acc, curr) => acc + curr.quantity, 0);
 
+    // 4. SCRAP EFFICIENCY (The "Loss Matrix" Data)
+    const completedBatches = await Production.find({ 
+      status: "completed",
+      inputWeight: { $gt: 0 } 
+    });
+
+    let globalInputWeight = 0;
+    let globalScrapWeight = 0;
+
+    completedBatches.forEach(b => {
+      globalInputWeight += (b.inputWeight || 0);
+      globalScrapWeight += (b.scrapWeight || 0);
+    });
+
+    const scrapEfficiency = globalInputWeight > 0 ? (globalScrapWeight / globalInputWeight) * 100 : 0;
+
     res.json({
       summary: {
         readyAssets: totalStock,
         wip: totalWIP,
         inUse: totalAllocated,
-        pendingBacklog: totalShortage
+        pendingBacklog: totalShortage,
+        scrapEfficiency: scrapEfficiency
       },
       breakdown: productBreakdown
     });
