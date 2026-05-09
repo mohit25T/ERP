@@ -95,26 +95,26 @@ const ExpenseManagement = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-            Burn <span className="text-rose-600 ">Matrix</span>
+            Daily <span className="text-rose-600 ">Expenses</span>
           </h1>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1">
-            General Expense Monitoring Protocol
+            Track daily small expenses
           </p>
         </div>
         <button 
           onClick={() => { resetForm(); setShowModal(true); }}
-          className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95"
+          className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-md font-bold text-sm shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95"
         >
-          <Plus className="w-4 h-4" /> Log Expense
+          <Plus className="w-4 h-4" /> Add Expense
         </button>
       </div>
 
       {/* Filter Matrix */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="bg-white p-4 rounded-md border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-1">
-          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Sector Filter</label>
+          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Category</label>
           <select 
-            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-500"
+            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm text-slate-900 focus:ring-2 focus:ring-rose-500"
             value={filters.category}
             onChange={(e) => setFilters({ ...filters, category: e.target.value })}
           >
@@ -126,7 +126,7 @@ const ExpenseManagement = () => {
           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Start Date</label>
           <input 
             type="date" 
-            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-500"
+            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-rose-500"
             value={filters.startDate}
             onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
           />
@@ -135,7 +135,7 @@ const ExpenseManagement = () => {
           <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">End Date</label>
           <input 
             type="date" 
-            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-500"
+            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-rose-500"
             value={filters.endDate}
             onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
           />
@@ -143,7 +143,7 @@ const ExpenseManagement = () => {
       </div>
 
       {/* Data Grid */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-md border border-slate-200 shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-20"><HammerLoader /></div>
         ) : (
@@ -151,18 +151,18 @@ const ExpenseManagement = () => {
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Timeline</th>
-                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Classification</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Date</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Category</th>
                   <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Method</th>
-                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Burn (₹)</th>
-                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Control</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Amount (₹)</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {expenses.map((e) => (
                   <tr key={e._id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="px-4 py-4">
-                      <p className="text-xs font-black text-slate-900">{new Date(e.date).toLocaleDateString()}</p>
+                      <p className="text-xs font-black text-slate-900">{formatDate(e.date)}</p>
                     </td>
                     <td className="px-4 py-4">
                       <div>
@@ -182,10 +182,10 @@ const ExpenseManagement = () => {
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => handleEdit(e)} className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors">
+                        <button onClick={() => handleEdit(e)} className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors">
                           <Edit3 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(e._id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
+                        <button onClick={() => handleDelete(e._id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-md transition-colors">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -209,25 +209,25 @@ const ExpenseManagement = () => {
       <Modal 
         isOpen={showModal} 
         onClose={() => setShowModal(false)} 
-        title={editingId ? "Update Burn Entry" : "New Burn Registration"}
+        title={editingId ? "Update Expense" : "Add New Expense"}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Calendar className="w-3 h-3"/> Timeline</label>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Calendar className="w-3 h-3"/> Date</label>
                   <input 
                     type="date" 
                     required 
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-rose-500"
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Tag className="w-3 h-3"/> Classification</label>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Tag className="w-3 h-3"/> Category</label>
                   <select 
                     required 
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-md text-sm text-slate-900 focus:ring-2 focus:ring-rose-500"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   >
@@ -238,23 +238,23 @@ const ExpenseManagement = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">Magnitude (Amount)</label>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">Amount</label>
                   <input 
                     type="number" 
                     required 
                     placeholder="₹ 0.00"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-black focus:ring-2 focus:ring-rose-500"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-md text-sm font-black focus:ring-2 focus:ring-rose-500"
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><CreditCard className="w-3 h-3"/> Liquid Logic</label>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><CreditCard className="w-3 h-3"/> Payment Type</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button 
                       type="button"
                       onClick={() => setFormData({ ...formData, paymentMethod: 'cash' })}
-                      className={`py-2 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${
+                      className={`py-2 px-4 rounded-md text-[10px] font-black uppercase tracking-widest border transition-all ${
                         formData.paymentMethod === 'cash' ? 'bg-slate-900 text-white border-black' : 'bg-white text-slate-400 border-slate-200'
                       }`}
                     >
@@ -263,7 +263,7 @@ const ExpenseManagement = () => {
                     <button 
                       type="button"
                       onClick={() => setFormData({ ...formData, paymentMethod: 'bank' })}
-                      className={`py-2 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${
+                      className={`py-2 px-4 rounded-md text-[10px] font-black uppercase tracking-widest border transition-all ${
                         formData.paymentMethod === 'bank' ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-white text-slate-400 border-slate-200'
                       }`}
                     >
@@ -274,10 +274,10 @@ const ExpenseManagement = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><FileText className="w-3 h-3"/> Burn Context (Description)</label>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><FileText className="w-3 h-3"/> Description</label>
                 <textarea 
                   rows="3"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-rose-500"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-rose-500"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
@@ -285,9 +285,9 @@ const ExpenseManagement = () => {
 
               <button 
                 type="submit" 
-                className="w-full py-4 bg-rose-600 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-rose-700 transition-all shadow-xl active:scale-95"
+                className="w-full py-4 bg-rose-600 text-white rounded-md font-black text-[10px] uppercase tracking-[0.3em] hover:bg-rose-700 transition-all shadow-xl active:scale-95"
               >
-                Sync Burn Protocol
+                Save Expense
               </button>
             </form>
           </Modal>

@@ -58,6 +58,22 @@ const productSchema = new mongoose.Schema(
       type: Number, // Example: 18 (for 18%)
       default: 18,
     },
+    materialGrade: {
+      type: String,
+      default: "",
+    },
+    thickness: {
+      type: Number,
+      default: 0,
+    },
+    width: {
+      type: Number,
+      default: 0,
+    },
+    length: {
+      type: Number,
+      default: 0,
+    },
     unitWeightGrams: {
       type: Number,
       default: 0,

@@ -13,25 +13,40 @@ import ErpOrchestrator from "../../../shared/utils/ErpOrchestrator.js";
 // Create Purchase (Inward Stock)
 export const createPurchase = async (req, res) => {
   try {
-    const { supplier, material, quantity, taxableAmount, unit = "kg", category = "Uncategorized" } = req.body;
+    const { 
+      supplier, 
+      material, 
+      quantity, 
+      taxableAmount, 
+      unit = "kg", 
+      category = "Uncategorized",
+      materialGrade = "",
+      thickness = 0,
+      width = 0,
+      length = 0
+    } = req.body;
 
     let productId = material;
     let existingProduct;
 
-    // Smart Material Resolution: Handle both ID and Manual Name
+    // Smart Material Resolution: Handle both ID and Manual Name + Dimensions
     if (mongoose.Types.ObjectId.isValid(material)) {
       existingProduct = await Product.findById(material);
     }
 
     if (!existingProduct) {
-      // Try to find by name (case-insensitive) - Ignore deleted products
+      // Try to find by name, grade, and dimensions (case-insensitive name)
       existingProduct = await Product.findOne({ 
         name: { $regex: new RegExp(`^${material}$`, 'i') },
+        materialGrade: materialGrade,
+        thickness: thickness,
+        width: width,
+        length: length,
         isDeleted: { $ne: true }
       });
 
       if (!existingProduct) {
-        // On-the-fly creation of Raw Material
+        // On-the-fly creation of Raw Material with specifications
         existingProduct = await Product.create({
           name: material,
           sku: `MAT-${Math.random().toString(36).substring(7).toUpperCase()}-${Date.now().toString().slice(-4)}`,
@@ -39,9 +54,13 @@ export const createPurchase = async (req, res) => {
           type: "raw_material",
           category: category, 
           unit: unit || "kg",
-          gstRate: 18 
+          gstRate: 18,
+          materialGrade,
+          thickness,
+          width,
+          length
         });
-        console.log(`[ERP SMART PROCURE] New Material Registered: ${material} in Category: ${category}`);
+        console.log(`[ERP SMART PROCURE] New Specified Material Registered: ${material} (${materialGrade} ${thickness}x${width})`);
       }
       productId = existingProduct._id;
     }
@@ -80,7 +99,11 @@ export const createPurchase = async (req, res) => {
       cgst,
       sgst,
       igst,
-      status: "pending"
+      status: "pending",
+      materialGrade,
+      thickness,
+      width,
+      length
     });
 
     if (adminUser?.notificationSettings?.newOrder) {

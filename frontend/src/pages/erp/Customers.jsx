@@ -67,12 +67,12 @@ const Customers = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("CRITICAL: Permanent deletion of client account? Historical transaction links will be preserved in audit logs only.")) {
+    if (window.confirm("Delete this customer? This will remove their record from the list.")) {
       try {
         await customerApi.delete(id);
         fetchCustomers();
       } catch (err) {
-        alert("Deletion failed: Account has active receivables.");
+        alert("Could not delete: This customer has pending payments.");
       }
     }
   };
@@ -98,8 +98,8 @@ const Customers = () => {
                  <UsersIcon className="w-6 h-6 text-primary" />
               </div>
               <div>
-                 <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Relationship Hub</h2>
-                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Master Client Registry & Operational Accounts</p>
+                 <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Customers</h2>
+                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">List of customers and companies</p>
               </div>
            </div>
 
@@ -113,7 +113,7 @@ const Customers = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
            <div className="p-3 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
-                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Active Pipeline</p>
+                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Customers</p>
                  <div className="p-2 bg-primary/10 rounded text-primary">
                     <TrendingUp className="w-4 h-4" />
                  </div>
@@ -128,7 +128,7 @@ const Customers = () => {
            
            <div className="p-3 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
-                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Service Level</p>
+                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Rating</p>
                  <div className="p-2 bg-amber-500/10 rounded text-amber-600 dark:text-amber-400">
                     <Star className="w-4 h-4" />
                  </div>
@@ -143,7 +143,7 @@ const Customers = () => {
 
            <div className="p-3 bg-primary/5 rounded-md border border-primary/20 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
-                 <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Revenue Focus</p>
+                 <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Total Revenue</p>
                  <div className="p-2 bg-primary/20 rounded text-primary">
                     <Briefcase className="w-4 h-4" />
                  </div>
@@ -201,11 +201,11 @@ const Customers = () => {
               </div>
            ) : filteredCustomers.length === 0 ? (
               <div className="col-span-full p-20 flex flex-col items-center justify-center text-muted-foreground">
-                 <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mb-4 border border-border">
+                 <div className="w-16 h-16 bg-muted/20 rounded-md flex items-center justify-center mb-4 border border-border">
                     <UsersIcon className="w-8 h-8 text-muted-foreground/30" />
                  </div>
-                 <h3 className="text-sm font-bold text-foreground uppercase tracking-widest mb-1">No matches detected</h3>
-                 <p className="text-[10px] font-medium uppercase tracking-tighter">Adjust filters or search parameters</p>
+                 <h3 className="text-sm font-bold text-foreground uppercase tracking-widest mb-1">No customers found</h3>
+                 <p className="text-[10px] font-medium uppercase tracking-tighter">Try searching something else</p>
               </div>
            ) : (
               <AnimatePresence mode="popLayout">
@@ -237,8 +237,8 @@ const Customers = () => {
                                  {customer.type === 'scrap_buyer' ? <Recycle className="w-3.5 h-3.5" /> : <ShieldCheck className="w-3.5 h-3.5" />}
                               </div>
                               <div className="flex flex-col">
-                                 <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Classification</span>
-                                 <span className="text-[11px] font-bold text-foreground">{customer.type === 'scrap_buyer' ? "Scrap Buyer" : "Commercial Client"}</span>
+                                 <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Type</span>
+                                 <span className="text-[11px] font-bold text-foreground">{customer.type === 'scrap_buyer' ? "Scrap Buyer" : "Regular Customer"}</span>
                               </div>
                            </div>
                            <div className="flex items-center gap-3">
@@ -246,7 +246,7 @@ const Customers = () => {
                                  <Globe className="w-3.5 h-3.5" />
                               </div>
                               <div className="flex flex-col">
-                                 <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Network ID</span>
+                                 <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Email</span>
                                  <span className="text-[11px] font-bold text-foreground truncate max-w-[150px]">{customer.email || "N/A"}</span>
                               </div>
                            </div>
@@ -261,7 +261,7 @@ const Customers = () => {
                               to={`/statements/${customer._id}?type=customer`}
                               className="text-[9px] font-bold text-primary hover:text-primary/80 transition-colors uppercase tracking-[0.15em] flex items-center gap-1"
                            >
-                              Audit Ledger <ArrowRight className="w-3 h-3" />
+                              View Ledger <ArrowRight className="w-3 h-3" />
                            </Link>
                         </div>
                      </div>
@@ -275,7 +275,7 @@ const Customers = () => {
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
-        title={editingCustomer ? "Edit Client Protocol" : "Authorize New Account"}
+        title={editingCustomer ? "Edit Customer" : "Add New Customer"}
       >
         <div className="p-4">
           <CustomerForm 

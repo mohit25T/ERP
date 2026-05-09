@@ -81,10 +81,11 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -97,24 +98,23 @@
     @apply tracking-tight font-black;
   }
 
-  /* Global dark mode overrides for legacy hardcoded colors */
+  /* Raw CSS to avoid Tailwind @apply circular dependency issues with print variables */
   .dark .bg-white {
-    @apply bg-card !important;
+    background-color: hsl(var(--card)) !important;
   }
   .dark .text-slate-900, .dark .text-slate-800, .dark .text-gray-900 {
-    @apply text-foreground !important;
+    color: hsl(var(--foreground)) !important;
   }
   .dark .text-slate-600, .dark .text-slate-500, .dark .text-gray-500 {
-    @apply text-muted-foreground !important;
+    color: hsl(var(--muted-foreground)) !important;
   }
   .dark .border-slate-100, .dark .border-slate-200, .dark .border-gray-200 {
-    @apply border-border !important;
+    border-color: hsl(var(--border)) !important;
   }
   .dark .bg-slate-50, .dark .bg-slate-100, .dark .bg-gray-100 {
-    @apply bg-muted/30 !important; /* Slightly more visible recessed areas */
+    background-color: hsla(var(--muted), 0.3) !important;
   }
 
-  /* Fix for icons - ensure they inherit theme colors when using lucide */
   svg {
     @apply transition-colors duration-200;
   }
@@ -127,21 +127,44 @@
   input[type=number] {
     -moz-appearance: textfield;
   }
+
+  /* Fix for native dropdown visibility in different themes */
+  select option {
+    background-color: white;
+    color: #0f172a;
+  }
+
+  .dark select option {
+    background-color: #0f172a;
+    color: white;
+  }
 }
 
 @layer components {
   .glass-card {
-    @apply bg-card text-card-foreground border border-border rounded-sm transition-all duration-300;
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border: 1px solid hsl(var(--border));
+    @apply rounded-sm transition-all duration-300;
     box-shadow: var(--shadow-elevated-md);
   }
   
   .dark .glass-card {
-    @apply bg-card/95 backdrop-blur-md border-white/5;
+    background-color: hsla(var(--card), 0.95);
+    backdrop-filter: blur(12px);
+    border-color: rgba(255, 255, 255, 0.05);
     box-shadow: var(--shadow-elevated-xl);
   }
   
   .erp-input {
-    @apply w-full px-3 py-1.5 bg-background border border-input rounded-sm text-sm font-medium outline-none focus:ring-1 focus:ring-ring focus:border-primary transition-all duration-200 placeholder:text-muted-foreground/50 appearance-none text-foreground;
+    background-color: hsl(var(--background));
+    border: 1px solid hsl(var(--input));
+    color: hsl(var(--foreground));
+    @apply w-full px-3 py-1.5 rounded-sm text-sm font-medium outline-none focus:ring-1 focus:ring-ring focus:border-primary transition-all duration-200 appearance-none;
+  }
+
+  .erp-input::placeholder {
+    color: hsla(var(--muted-foreground), 0.5);
   }
   
   select.erp-input {
@@ -177,29 +200,41 @@
   }
 
   .erp-table {
-    @apply w-full text-left border-collapse whitespace-nowrap text-sm bg-card text-foreground;
+    background-color: hsl(var(--card));
+    color: hsl(var(--foreground));
+    @apply w-full text-left border-collapse whitespace-nowrap text-sm;
   }
 
   .erp-table th {
-    /* Header fix: less grey in dark mode, more integrated */
-    @apply px-3 py-2 bg-muted/10 text-[9px] font-black text-muted-foreground uppercase tracking-[0.15em] border-b border-border shadow-sm;
+    background-color: hsla(var(--muted), 0.1);
+    color: hsl(var(--muted-foreground));
+    @apply px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.15em] border-b border-border shadow-sm;
   }
 
   .dark .erp-table th {
-    @apply bg-secondary text-foreground border-b-2 border-border/80;
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--foreground));
+    border-bottom-width: 2px;
+    border-color: hsla(var(--border), 0.8);
     box-shadow: var(--shadow-elevated-md);
   }
 
   .erp-table td {
-    @apply px-3 py-2 text-xs font-semibold border-b border-border/40 text-foreground tabular-nums;
+    border-bottom: 1px solid hsla(var(--border), 0.4);
+    color: hsl(var(--foreground));
+    @apply px-3 py-1.5 text-xs font-semibold tabular-nums;
   }
 
   .erp-row-hover {
-    @apply transition-colors duration-150 hover:bg-primary/[0.03] cursor-pointer;
+    @apply transition-colors duration-150 cursor-pointer;
+  }
+
+  .erp-row-hover:hover {
+    background-color: hsla(var(--primary), 0.03);
   }
   
-  .dark .erp-row-hover {
-    @apply hover:bg-primary/[0.05];
+  .dark .erp-row-hover:hover {
+    background-color: hsla(var(--primary), 0.05);
   }
 }
 
@@ -230,7 +265,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Typography refinement for data labels */
 .data-label {
   @apply text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em];
 }
@@ -239,7 +273,6 @@
   @apply text-sm font-black text-foreground tracking-tighter;
 }
 
-/* Industrial Hammer Loader Animations */
 @keyframes hammer-strike {
   0% { transform: rotate(0deg); }
   20% { transform: rotate(-35deg); }
@@ -268,3 +301,43 @@
   animation: anvil-shake 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
+/* Print Theme Overrides */
+@media print {
+  :root, .dark {
+    --background: 0 0% 100% !important;
+    --foreground: 222.2 47.4% 11.2% !important;
+    --card: 0 0% 100% !important;
+    --card-foreground: 222.2 47.4% 11.2% !important;
+    --muted: 210 40% 96.1% !important;
+    --muted-foreground: 215.4 16.3% 44.1% !important;
+    --border: 214.3 31.8% 91.4% !important;
+    --secondary: 210 40% 96.1% !important;
+    --secondary-foreground: 222.2 47.4% 11.2% !important;
+  }
+
+  html, body, .dark {
+    background-color: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .border, .border-border {
+    border-color: #e2e8f0 !important;
+  }
+
+  .dark .text-foreground {
+    color: #1a202c !important;
+  }
+
+  .dark .bg-card {
+    background-color: white !important;
+  }
+
+  .print-hidden,
+  button:not(.print-visible),
+  aside,
+  header {
+    display: none !important;
+  }
+}

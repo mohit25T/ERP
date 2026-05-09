@@ -147,8 +147,8 @@ const Products = () => {
                      <Package className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                     <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Asset Registry</h2>
-                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Inventory Ledger & Material Master Records</p>
+                     <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Inventory</h2>
+                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">List of raw materials and finished products</p>
                   </div>
                </div>
 
@@ -156,7 +156,7 @@ const Products = () => {
                   <div className="flex bg-muted/30 p-1 rounded border border-border/50 shadow-inner">
                      {[
                         { id: 'all', label: 'All Items', icon: Archive },
-                        { id: 'finished', label: 'Yield', icon: Layers },
+                        { id: 'finished', label: 'Ready Items', icon: Layers },
                         { id: 'raw', label: 'Raw', icon: Box },
                         { id: 'scrap', label: 'Scrap', icon: Hammer }
                      ].map((tab) => (
@@ -183,7 +183,7 @@ const Products = () => {
             {showFilters && (
                <div className="p-4 bg-muted/10 rounded-md border border-border shadow-inner flex flex-wrap gap-4 items-end animate-in fade-in slide-in-from-top-2">
                   <div className="space-y-2">
-                     <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Stock Level Threshold</p>
+                     <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Stock Status</p>
                      <div className="flex flex-wrap gap-2">
                         {[
                            { id: 'all', label: 'All Levels' },
@@ -207,7 +207,7 @@ const Products = () => {
                         onClick={() => { setFilterStock("all"); setSearchTerm(""); setActiveTab("all"); }}
                         className="text-[9px] font-bold text-muted-foreground hover:text-destructive transition-colors flex items-center gap-2 uppercase tracking-widest"
                      >
-                        <Trash2 className="w-3.5 h-3.5" /> Reset Protocol
+                        <Trash2 className="w-3.5 h-3.5" /> Reset Filters
                      </button>
                   </div>
                </div>
@@ -217,7 +217,7 @@ const Products = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                <div className="p-3 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-4">
-                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Asset Valuation</p>
+                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Stock Value</p>
                      <div className="p-2 bg-primary/10 rounded text-primary">
                         <Database className="w-4 h-4" />
                      </div>
@@ -225,20 +225,20 @@ const Products = () => {
                   <div>
                      <h3 className="text-2xl font-black text-foreground tracking-tighter">₹{(products.reduce((acc, p) => acc + (p.stock * p.price), 0) / 100000).toFixed(1)}L</h3>
                      <p className="text-[9px] font-bold text-emerald-600 mt-1 uppercase tracking-widest flex items-center gap-1">
-                        <TrendingUp className="w-3 h-3" /> Market-Linked Value
+                        <TrendingUp className="w-3 h-3" /> Current stock value
                      </p>
                   </div>
                </div>
 
                <div className="p-3 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-4">
-                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Critical Shortfall</p>
+                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Low Stock Items</p>
                      <div className="p-2 bg-amber-500/10 rounded text-amber-600">
                         <AlertCircle className="w-4 h-4" />
                      </div>
                   </div>
                   <div>
-                     <h3 className="text-2xl font-black text-foreground tracking-tighter">{products.filter(p => p.stock < (p.minStock || 10)).length} Nodes</h3>
+                     <h3 className="text-2xl font-black text-foreground tracking-tighter">{products.filter(p => p.stock < (p.minStock || 10)).length} Items</h3>
                      <p className="text-[9px] font-bold text-amber-600 mt-1 uppercase tracking-widest flex items-center gap-1">
                         Below minimum reserve
                      </p>
@@ -247,7 +247,7 @@ const Products = () => {
 
                <div className="p-3 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-4">
-                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Scrap Aggregate</p>
+                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Scrap</p>
                      <div className="p-2 bg-rose-500/10 rounded text-rose-600">
                         <Trash2 className="w-4 h-4" />
                      </div>
@@ -267,14 +267,14 @@ const Products = () => {
                         }, 0) / 1000).toFixed(2)}T
                      </h3>
                      <p className="text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-widest flex items-center gap-1">
-                        Pending salvage protocol
+                        Waste material to be sold
                      </p>
                   </div>
                </div>
 
                <div className="p-3 bg-primary/5 rounded-md border border-primary/20 shadow-sm flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-4">
-                     <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Catalog Nodes</p>
+                     <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Total Items</p>
                      <div className="p-2 bg-primary/20 rounded text-primary">
                         <PackageOpen className="w-4 h-4" />
                      </div>
@@ -282,7 +282,7 @@ const Products = () => {
                   <div>
                      <h3 className="text-2xl font-black text-foreground tracking-tighter">{products.length}</h3>
                      <p className="text-[9px] font-bold text-primary mt-1 uppercase tracking-widest">
-                        Validated identifiers
+                        Types of products
                      </p>
                   </div>
                </div>
@@ -295,7 +295,7 @@ const Products = () => {
                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                      <input
                         type="text"
-                        placeholder="Search registry..."
+                        placeholder="Search items..."
                         className="erp-input w-full pl-10"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -308,13 +308,13 @@ const Products = () => {
                               onClick={() => setScrapView("total")}
                               className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest transition-all ${scrapView === 'total' ? 'bg-card text-primary shadow-sm border border-border/50' : 'text-muted-foreground hover:text-foreground'}`}
                            >
-                              Aggregate
+                              Total View
                            </button>
                            <button
                               onClick={() => setScrapView("batch")}
                               className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest transition-all ${scrapView === 'batch' ? 'bg-card text-primary shadow-sm border border-border/50' : 'text-muted-foreground hover:text-foreground'}`}
                            >
-                              Timeline
+                              History
                            </button>
                         </div>
                      )}
@@ -331,7 +331,7 @@ const Products = () => {
                      <div className="h-6 w-px bg-border mx-2"></div>
                      <button onClick={() => { setEditingProduct(null); setIsModalOpen(true); }} className="erp-button-primary w-full sm:w-auto whitespace-nowrap">
                         <Plus className="w-4 h-4 mr-2" />
-                        Authorize Entry
+                        Add New Item
                      </button>
                   </div>
                </div>
@@ -343,11 +343,11 @@ const Products = () => {
                      <table className="erp-table">
                         <thead>
                            <tr>
-                              <th>Date / Sequence</th>
-                              <th>Material Node</th>
-                              <th>Audit Reason</th>
-                              <th className="text-center">Scrap Flux</th>
-                              <th>Protocol Ref</th>
+                              <th>Date / Time</th>
+                              <th>Product Name</th>
+                              <th>Reason</th>
+                              <th className="text-center">Scrap Added</th>
+                              <th>Reference</th>
                            </tr>
                         </thead>
                         <tbody>
@@ -361,16 +361,16 @@ const Products = () => {
                                  >
                                     <td>
                                        <div className="flex flex-col">
-                                          <span className="text-xs font-bold text-foreground">{new Date(log.createdAt).toLocaleDateString()}</span>
+                                          <span className="text-xs font-bold text-foreground">{formatDate(log.createdAt)}</span>
                                           <span className="text-[9px] font-black text-primary uppercase tracking-widest mt-0.5">
-                                             {log.batchReference?.batchNumber || "AD-HOC ADJUSTMENT"}
+                                             {log.batchReference?.batchNumber || "Manual Update"}
                                           </span>
                                        </div>
                                     </td>
                                     <td>
                                        <div className="flex flex-col">
                                           <span className="text-xs font-bold text-foreground">{log.material?.name}</span>
-                                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter">System ID: {log.material?.sku || "—"}</span>
+                                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter">SKU/ID: {log.material?.sku || "—"}</span>
                                        </div>
                                     </td>
                                     <td>
@@ -385,7 +385,7 @@ const Products = () => {
                                        <div className="flex items-center gap-2">
                                           <div className={`w-1.5 h-1.5 rounded-full ${log.batchReference ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}></div>
                                           <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
-                                             {log.batchReference?.status || "LEGACY"}
+                                             {log.batchReference?.status || "Old Record"}
                                           </span>
                                        </div>
                                     </td>
@@ -396,26 +396,26 @@ const Products = () => {
                      </table>
                   ) : filteredProducts.length === 0 ? (
                      <div className="p-20 flex flex-col items-center justify-center text-muted-foreground">
-                        <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mb-4 border border-border">
+                        <div className="w-16 h-16 bg-muted/20 rounded-md flex items-center justify-center mb-4 border border-border">
                            <Archive className="w-8 h-8 text-muted-foreground/30" />
                         </div>
-                        <h3 className="text-sm font-bold text-foreground uppercase tracking-widest mb-1">No identifiers detected</h3>
-                        <p className="text-[10px] font-medium uppercase tracking-tighter">Adjust filters or protocol search</p>
+                        <h3 className="text-sm font-bold text-foreground uppercase tracking-widest mb-1">No items found</h3>
+                        <p className="text-[10px] font-medium uppercase tracking-tighter">Adjust search filters</p>
                      </div>
                   ) : (
                      <table className="erp-table">
                         <thead>
                            <tr>
-                              <th>Product SKU</th>
+                              <th>SKU / Code</th>
                               {activeTab !== 'scrap' && (
                                  <>
-                                    <th>Asset Profile</th>
-                                    <th className="text-right">Unit Value</th>
-                                    <th className="text-center">Reserve</th>
+                                    <th>Product Details</th>
+                                    <th className="text-right">Price</th>
+                                    <th className="text-center">Current Stock</th>
                                  </>
                               )}
-                              <th className="text-center">Salvage</th>
-                              {activeTab !== 'scrap' && <th className="text-center">Control</th>}
+                              <th className="text-center">Scrap</th>
+                              {activeTab !== 'scrap' && <th className="text-center">Action</th>}
                            </tr>
                         </thead>
                         <tbody>
@@ -470,8 +470,22 @@ const Products = () => {
                                           <>
                                              <td>
                                                 <div className="flex flex-col">
-                                                   <span className="text-xs font-bold text-foreground">{p.name}</span>
-                                                   <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-1 opacity-70">{p.category || "General"}</span>
+                                                   <div className="flex items-center gap-2">
+                                                      <span className="text-xs font-bold text-foreground">{p.name}</span>
+                                                      {p.materialGrade && <span className="text-[10px] px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded font-bold border border-indigo-100 dark:border-indigo-800/30 tracking-tight">{p.materialGrade}</span>}
+                                                   </div>
+                                                   <div className="flex items-center gap-2 mt-1">
+                                                      {(p.thickness || p.width) ? (
+                                                         <div className="flex items-center gap-1">
+                                                            <Layers className="w-3 h-3 text-muted-foreground/60" />
+                                                            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                                                               {p.thickness || 0}mm x {p.width || 0}mm {p.length > 0 ? `x ${p.length}mm` : ''}
+                                                            </span>
+                                                         </div>
+                                                      ) : (
+                                                         <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest opacity-70">{p.category || "General"}</span>
+                                                      )}
+                                                   </div>
                                                 </div>
                                              </td>
                                              <td className="text-right">
@@ -486,7 +500,7 @@ const Products = () => {
                                                       {isStockWarning ? <ArrowDown className="w-3 h-3" /> : <Box className="w-3 h-3 opacity-30" />}
                                                       {displayStock.toLocaleString()} <span className="opacity-60 text-[9px] font-bold uppercase">{p.unit?.toUpperCase() || 'PCS'}</span>
                                                    </div>
-                                                   {isStockWarning && <span className="text-[8px] font-black text-destructive uppercase tracking-[0.2em]">Depletion Risk</span>}
+                                                   {isStockWarning && <span className="text-[8px] font-black text-destructive uppercase tracking-[0.2em]">Low Stock</span>}
                                                 </div>
                                              </td>
                                           </>
@@ -521,18 +535,18 @@ const Products = () => {
                                        {activeTab !== 'scrap' && (
                                           <td className="text-center">
                                              <div className="flex items-center justify-center gap-1">
-                                                <button onClick={() => { setSelectedProduct(p); setHistoryModalOpen(true); }} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded transition-colors" title="Audit History">
+                                                <button onClick={() => { setSelectedProduct(p); setHistoryModalOpen(true); }} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded transition-colors" title="View History">
                                                    <History className="w-3.5 h-3.5" />
                                                 </button>
                                                 {boms.some(b => b.product?._id === p._id || b.product === p._id) && (
-                                                   <button onClick={() => handleOpenBOM(p)} className="p-1.5 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-50 rounded transition-colors" title="BOM / Recipe">
+                                                   <button onClick={() => handleOpenBOM(p)} className="p-1.5 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-50 rounded transition-colors" title="Materials Needed">
                                                       <Layers className="w-3.5 h-3.5" />
                                                    </button>
                                                 )}
-                                                <button onClick={() => handleOpenEdit(p)} className="p-1.5 text-muted-foreground hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors" title="Modify Record">
+                                                <button onClick={() => handleOpenEdit(p)} className="p-1.5 text-muted-foreground hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors" title="Edit">
                                                    <Edit2 className="w-3.5 h-3.5" />
                                                 </button>
-                                                <button onClick={() => handleDelete(p._id)} className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors" title="Decommission">
+                                                <button onClick={() => handleDelete(p._id)} className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors" title="Delete">
                                                    <Trash2 className="w-3.5 h-3.5" />
                                                 </button>
                                              </div>
@@ -550,22 +564,22 @@ const Products = () => {
          </div>
 
          {/* Modals */}
-         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingProduct ? "Modify Registry Entry" : "New Registry Node"}>
+         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingProduct ? "Edit Product" : "Add New Product"}>
             <div className="p-4">
                <ProductForm initialData={editingProduct} onSubmit={handleSubmit} onCancel={() => setIsModalOpen(false)} loading={formLoading} />
             </div>
          </Modal>
 
-         <Modal isOpen={isBOMModalOpen} onClose={() => setIsBOMModalOpen(false)} title="Operational Requirement Assessment">
+         <Modal isOpen={isBOMModalOpen} onClose={() => setIsBOMModalOpen(false)} title="Check Material Requirements">
             <div className="p-4 space-y-4">
                <div className="bg-muted/30 p-4 rounded border border-border shadow-inner">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                      <div>
-                        <p className="text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-widest">Protocol Target</p>
+                        <p className="text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-widest">Product Name</p>
                         <p className="text-lg font-black text-foreground tracking-tight">{viewingBOMProduct?.name}</p>
                      </div>
                      <div className="flex flex-col gap-1">
-                        <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Target Flux (Units)</label>
+                        <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Quantity to Make</label>
                         <input
                            type="number"
                            min="1"
@@ -578,11 +592,11 @@ const Products = () => {
                </div>
 
                <div className="space-y-3">
-                  <h4 className="text-[10px] font-black text-foreground pb-2 border-b border-border uppercase tracking-widest">Resource Matrix</h4>
+                  <h4 className="text-[10px] font-black text-foreground pb-2 border-b border-border uppercase tracking-widest">Required Materials</h4>
                   {!selectedProductBom ? (
                      <div className="p-6 bg-muted/10 rounded text-center border border-dashed border-border">
                         <PackageOpen className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">No BOM Protocol Defined</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">No material list found</p>
                      </div>
                   ) : (
                      <div className="grid gap-3">
@@ -604,7 +618,7 @@ const Products = () => {
                                        {isShortfall ? <ArrowDown className="w-5 h-5" /> : <Box className="w-5 h-5" />}
                                     </div>
                                     <div className="flex flex-col">
-                                       <span className="text-xs font-bold text-foreground">{item.material?.name || 'Unknown Node'}</span>
+                                       <span className="text-xs font-bold text-foreground">{item.material?.name || 'Unknown Material'}</span>
                                        <span className="text-[9px] font-bold text-muted-foreground mt-0.5 uppercase tracking-widest">
                                           Ratio: {item.quantity} {itemUnit}
                                        </span>
@@ -624,7 +638,7 @@ const Products = () => {
                </div>
 
                <div className="flex justify-end pt-4 border-t border-border">
-                  <button onClick={() => setIsBOMModalOpen(false)} className="erp-button-secondary">Close Matrix</button>
+                  <button onClick={() => setIsBOMModalOpen(false)} className="erp-button-secondary">Close</button>
                </div>
             </div>
          </Modal>

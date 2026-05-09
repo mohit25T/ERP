@@ -132,8 +132,8 @@ const Suppliers = () => {
                  <Building2 className="w-6 h-6 text-primary" />
               </div>
               <div>
-                 <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Supply Chain Hub</h2>
-                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Vendor Portfolios & Strategic Inward Logistics</p>
+                 <h2 className="text-2xl font-black text-foreground tracking-tight uppercase">Suppliers</h2>
+                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">List of vendors and material suppliers</p>
               </div>
            </div>
 
@@ -147,22 +147,22 @@ const Suppliers = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
            <div className="p-3 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
-                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Active Network</p>
+                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Suppliers</p>
                  <div className="p-2 bg-indigo-500/10 rounded text-indigo-600 dark:text-indigo-400">
                     <Globe className="w-4 h-4" />
                  </div>
               </div>
                <div>
-                  <h3 className="text-2xl font-black text-foreground tracking-tighter">{suppliers.length} Nodes</h3>
+                  <h3 className="text-2xl font-black text-foreground tracking-tighter">{suppliers.length} Suppliers</h3>
                   <p className="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 mt-1 uppercase tracking-widest">
-                     Registered Sourcing Partners
+                     Connected vendors
                   </p>
                </div>
            </div>
            
            <div className="p-3 bg-card rounded-md border border-border shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
-                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Fiscal Inflow</p>
+                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Purchases</p>
                  <div className="p-2 bg-emerald-500/10 rounded text-emerald-600 dark:text-emerald-400">
                     <ShoppingCart className="w-4 h-4" />
                  </div>
@@ -170,14 +170,14 @@ const Suppliers = () => {
                <div>
                   <h3 className="text-2xl font-black text-foreground tracking-tighter">₹0</h3>
                   <p className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 mt-1 uppercase tracking-widest">
-                     Total Procurement Index
+                     Total amount purchased
                   </p>
                </div>
            </div>
 
            <div className="p-3 bg-primary/5 rounded-md border border-primary/20 shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
-                 <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Risk Assessment</p>
+                 <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Credit Score</p>
                  <div className="p-2 bg-primary/20 rounded text-primary">
                     <Database className="w-4 h-4" />
                  </div>
@@ -185,7 +185,7 @@ const Suppliers = () => {
                <div>
                   <h3 className="text-2xl font-black text-foreground tracking-tighter">0.0 Alpha</h3>
                   <p className="text-[9px] font-bold text-primary mt-1 uppercase tracking-widest">
-                     Active Exposure Monitoring
+                     Payment risk status
                   </p>
                </div>
            </div>
@@ -222,7 +222,7 @@ const Suppliers = () => {
            {showFilters && (
               <div className="p-4 bg-muted/10 border-b border-border flex flex-wrap gap-4 items-end animate-in fade-in slide-in-from-top-2">
                  <div className="space-y-2">
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Regional Matrix</p>
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">State/Region</p>
                     <div className="flex flex-wrap gap-2">
                        {['all', ...new Set(suppliers.map(s => s.state).filter(Boolean))].map(state => (
                           <button 
@@ -241,7 +241,7 @@ const Suppliers = () => {
                        onClick={() => { setFilterState("all"); setSearchTerm(""); }}
                        className="text-[9px] font-bold text-muted-foreground hover:text-destructive transition-colors flex items-center gap-2 uppercase tracking-widest"
                     >
-                       <Trash2 className="w-3.5 h-3.5" /> Clear Matrix
+                       <Trash2 className="w-3.5 h-3.5" /> Reset Filters
                     </button>
                  </div>
               </div>
@@ -252,20 +252,20 @@ const Suppliers = () => {
                 <HammerLoader />
               ) : filteredSuppliers.length === 0 ? (
                 <div className="p-20 flex flex-col items-center justify-center text-muted-foreground">
-                   <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mb-4 border border-border">
+                   <div className="w-16 h-16 bg-muted/20 rounded-md flex items-center justify-center mb-4 border border-border">
                       <Anchor className="w-8 h-8 text-muted-foreground/30" />
                    </div>
-                   <h3 className="text-sm font-bold text-foreground uppercase tracking-widest mb-1">No identifiers detected</h3>
-                   <p className="text-[10px] font-medium uppercase tracking-tighter">Adjust search or regional matrix</p>
+                   <h3 className="text-sm font-bold text-foreground uppercase tracking-widest mb-1">No suppliers found</h3>
+                   <p className="text-[10px] font-medium uppercase tracking-tighter">Try searching something else</p>
                 </div>
               ) : (
                 <table className="erp-table">
                    <thead>
                       <tr>
-                         <th>Vendor Protocol</th>
-                         <th>Corporate Entity</th>
-                         <th className="text-center">Communication Nodes</th>
-                         <th className="text-center">Control</th>
+                         <th>Supplier Info</th>
+                         <th>Company Name</th>
+                         <th className="text-center">Contact Details</th>
+                         <th className="text-center">Action</th>
                       </tr>
                    </thead>
                    <tbody>
@@ -307,9 +307,9 @@ const Suppliers = () => {
                            </td>
                            <td className="text-center">
                               <div className="flex items-center justify-center gap-1.5 transition-all">
-                                 <Link to={`/statements/${s._id}?type=supplier`} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded transition-colors" title="Audit Statement"><FileText className="w-3.5 h-3.5" /></Link>
-                                 <button onClick={() => handleOpenModal(s)} className="p-1.5 text-muted-foreground hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors" title="Modify Record"><Edit2 className="w-3.5 h-3.5" /></button>
-                                 <button onClick={() => handleDelete(s._id)} className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors" title="Decommission"><Trash2 className="w-3.5 h-3.5" /></button>
+                                 <Link to={`/statements/${s._id}?type=supplier`} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded transition-colors" title="View Ledger"><FileText className="w-3.5 h-3.5" /></Link>
+                                 <button onClick={() => handleOpenModal(s)} className="p-1.5 text-muted-foreground hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors" title="Edit"><Edit2 className="w-3.5 h-3.5" /></button>
+                                 <button onClick={() => handleDelete(s._id)} className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
                               </div>
                            </td>
                         </motion.tr>
@@ -327,20 +327,20 @@ const Suppliers = () => {
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        title={editingSupplier ? "Modify Vendor Protocol" : "Authorize New Strategic Partner"}
+        title={editingSupplier ? "Edit Supplier" : "Add New Supplier"}
       >
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
            <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
-                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Principal Name</label>
+                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Supplier Name</label>
                  <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Full legal name..." className="erp-input" />
               </div>
               <div className="col-span-2">
-                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Corporate Label</label>
+                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Company Name</label>
                  <input value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} placeholder="Registered entity name..." className="erp-input" />
               </div>
               <div className="col-span-2 md:col-span-1">
-                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">GSTIN Registry</label>
+                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">GST Number</label>
                  <div className="relative">
                     <input value={formData.gstin} onChange={e => setFormData({...formData, gstin: e.target.value.toUpperCase()})} placeholder="GSTIN..." className="erp-input uppercase pr-10" />
                     <button type="button" onClick={handleFetchDetails} disabled={fetchLoading} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded transition-colors">
@@ -349,19 +349,19 @@ const Suppliers = () => {
                  </div>
               </div>
               <div className="col-span-2 md:col-span-1">
-                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">State Jurisdiction</label>
-                 <input required value={formData.state} onChange={e => setFormData({...formData, state: e.target.value.toUpperCase()})} placeholder="e.g. MAHARASHTRA" className="erp-input uppercase" />
+                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">State</label>
+                 <input required value={formData.state} onChange={e => setFormData({...formData, state: e.target.value.toUpperCase()})} placeholder="e.g. GUJARAT" className="erp-input uppercase" />
               </div>
               <div className="col-span-2 md:col-span-1">
-                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Communication Node (Phone)</label>
+                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Contact Phone</label>
                  <input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="+91..." className="erp-input" />
               </div>
               <div className="col-span-2 md:col-span-1">
-                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Communication Node (Email)</label>
+                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Contact Email</label>
                  <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="node@corp.com" className="erp-input" />
               </div>
               <div className="col-span-2">
-                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Registered Logistics Point</label>
+                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Office Address</label>
                  <textarea rows="3" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="erp-input resize-none py-2.5 h-24" placeholder="Full address..." />
               </div>
            </div>
@@ -369,7 +369,7 @@ const Suppliers = () => {
            <div className="flex justify-end gap-3 pt-4 border-t border-border">
               <button type="button" onClick={() => setIsModalOpen(false)} className="erp-button-secondary">Cancel</button>
               <button type="submit" className="erp-button-primary">
-                 {editingSupplier ? "Commit Changes" : "Authorize Node"}
+                 {editingSupplier ? "Save Changes" : "Add Supplier"}
               </button>
            </div>
         </form>

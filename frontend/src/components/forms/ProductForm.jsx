@@ -20,6 +20,10 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
     price: initialData?.unit === 'dagina' ? (initialData.price * 50) : (initialData?.price || 0),
     stock: initialData?.unit === 'dagina' ? (initialData.stock / 50) : (initialData?.stock || 0),
     unit: initialData?.unit || "kg",
+    materialGrade: initialData?.materialGrade || "",
+    thickness: initialData?.thickness || 0,
+    width: initialData?.width || 0,
+    length: initialData?.length || 0,
     bom: initialData?.bom || []
   });
 
@@ -62,7 +66,7 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
 
     setFormData(prev => ({
       ...prev,
-      [name]: (name === 'price' || name === 'stock' || name === 'gstRate') ? parseFloat(value) : value
+      [name]: (name === 'price' || name === 'stock' || name === 'gstRate' || name === 'thickness' || name === 'width' || name === 'length') ? parseFloat(value) : value
     }));
   };
 
@@ -238,6 +242,53 @@ const ProductForm = ({ initialData, onSubmit, onCancel, loading }) => {
                 required
                 className="erp-input !pl-10 font-bold"
                 value={formData.price}
+                onChange={handleChange}
+              />
+           </div>
+        </div>
+
+        {/* Physical Specs Section */}
+        <div className="md:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/20 rounded-md border border-border mt-2">
+           <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Material Grade</label>
+              <input
+                name="materialGrade"
+                className="erp-input uppercase"
+                placeholder="GRADE"
+                value={formData.materialGrade}
+                onChange={handleChange}
+              />
+           </div>
+           <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Thickness (mm)</label>
+              <input
+                name="thickness"
+                type="number"
+                step="0.01"
+                className="erp-input font-bold"
+                value={formData.thickness}
+                onChange={handleChange}
+              />
+           </div>
+           <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Width (mm)</label>
+              <input
+                name="width"
+                type="number"
+                step="1"
+                className="erp-input font-bold"
+                value={formData.width}
+                onChange={handleChange}
+              />
+           </div>
+           <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Length (mm)</label>
+              <input
+                name="length"
+                type="number"
+                step="1"
+                className="erp-input font-bold"
+                value={formData.length}
                 onChange={handleChange}
               />
            </div>

@@ -30,11 +30,11 @@ const AppLayout = ({ children, fullWidth = false }) => {
 
   const getPageTitle = () => {
     const path = location.pathname;
-    if (path === "/") return "Central Dashboard";
-    if (path === "/statements") return "Relationship Audit";
-    if (path === "/financial-statement") return "Capital Flow Terminal";
-    if (path === "/billing") return "Operational Billing Hub";
-    if (path === "/production") return "Execution Terminal";
+    if (path === "/") return "Home";
+    if (path === "/statements") return "Party List";
+    if (path === "/financial-statement") return "Accounts History";
+    if (path === "/billing") return "Billing";
+    if (path === "/production") return "Factory Work";
 
     const parts = path.split("/").filter(Boolean);
     if (parts.length === 0) return "Global Hub";
@@ -53,7 +53,7 @@ const AppLayout = ({ children, fullWidth = false }) => {
       <div className="relative flex flex-col flex-1 min-w-0 md:overflow-y-auto overflow-x-hidden print:block print:overflow-visible border-l border-border">
 
         {/* Top Header */}
-        <header className="sticky top-0 z-[100] flex items-center justify-between px-4 py-2 bg-card/80 backdrop-blur-md border-b border-border transition-all duration-300">
+        <header className="sticky top-0 z-[100] flex items-center justify-between px-4 py-2 bg-card/80 backdrop-blur-md border-b border-border transition-all duration-300 print:hidden">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -81,7 +81,7 @@ const AppLayout = ({ children, fullWidth = false }) => {
             <div className="hidden lg:flex items-center bg-muted/50 border border-border rounded px-3 py-1.5 w-64 focus-within:bg-background focus-within:ring-1 focus-within:ring-ring focus-within:border-primary transition-all duration-200">
               <Search className="w-3.5 h-3.5 text-muted-foreground" />
               <input
-                placeholder="Command search..."
+                placeholder="Find anything..."
                 className="bg-transparent border-none outline-none text-xs ml-2 w-full placeholder:text-muted-foreground text-foreground font-medium"
                 value={globalSearch}
                 onChange={(e) => setGlobalSearch(e.target.value)}
@@ -123,7 +123,7 @@ const AppLayout = ({ children, fullWidth = false }) => {
                   {user?.name || "Root Admin"}
                 </span>
                 <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter">
-                  {user?.role || "System Authority"}
+                  {user?.role || "Full Access"}
                 </span>
               </div>
             </Link>
@@ -134,7 +134,7 @@ const AppLayout = ({ children, fullWidth = false }) => {
         <main className="flex-1 min-w-0 bg-background transition-colors duration-300 relative">
 
           {/* Subtle Background Watermark */}
-          <div className="fixed inset-0 pointer-events-none z-[50] flex items-center justify-center opacity-[0.1] dark:opacity-[0.1] select-none">
+          <div className="fixed inset-0 pointer-events-none z-[50] flex items-center justify-center opacity-[0.1] dark:opacity-[0.1] select-none print:hidden">
             {user?.companyLogo ? (
               <img src={user.companyLogo} alt="Background Watermark" className="w-[50vw] max-w-[600px] object-contain" />
             ) : (

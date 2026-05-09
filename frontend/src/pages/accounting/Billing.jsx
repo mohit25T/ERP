@@ -8,6 +8,7 @@ import BillingForm from "../../components/forms/BillingForm";
 import EInvoiceDataModal from "../../components/modals/EInvoiceDataModal";
 import EWayBillDataModal from "../../components/modals/EWayBillDataModal";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatDate } from "../../utils/dateUtils";
 import {
   FileText, Search, Trash2, TrendingUp,
   Activity, Calendar, Eye, Truck,
@@ -223,20 +224,20 @@ const Billing = () => {
         {/* Professional Dashboard Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase mb-1">
-              Billing <span className="text-indigo-600">Dashboard</span>
+            <h2 className="text-2xl font-black text-foreground tracking-tight uppercase mb-1">
+              Sales <span className="text-indigo-600">Bills</span>
             </h2>
-            <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
               <Activity className="w-3.5 h-3.5" />
-              Real-time Financial Reconciliation & Invoicing
+              Manage your sales and government tax bills here
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="relative group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-indigo-600 transition-colors" />
               <input
-                className="pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/30 w-64 transition-all shadow-sm"
+                className="pl-9 pr-4 py-2.5 bg-card border border-border rounded-md text-xs font-semibold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/30 w-64 transition-all shadow-sm"
                 placeholder="Search invoices or clients..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -244,29 +245,29 @@ const Billing = () => {
             </div>
             <button
               onClick={handleOpenOrderBillModal}
-              className="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all flex items-center gap-2 shadow-sm"
+              className="px-4 py-2.5 bg-card border border-border text-slate-700 rounded-md text-xs font-black uppercase tracking-widest hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all flex items-center gap-2 shadow-sm"
             >
               <Package className="w-4 h-4 text-indigo-600" /> Bill from Order
             </button>
             <button
               onClick={() => setIsBillingModalOpen(true)}
-              className="px-4 py-2.5 bg-indigo-600 text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-indigo-700 active:scale-95 transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20"
+              className="px-4 py-2.5 bg-indigo-600 text-white rounded-md text-xs font-black uppercase tracking-widest hover:bg-indigo-700 active:scale-95 transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20"
             >
-              <Plus className="w-4 h-4" /> Custom Invoice
+              <Plus className="w-4 h-4" /> Create New Bill
             </button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[
-            { label: "Total Gross Revenue", value: `₹${stats.totalRevenue.toLocaleString('en-IN')}`, icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-            { label: "Statutory Tax Volume", value: `₹${stats.totalTax.toLocaleString('en-IN')}`, icon: FileText, color: "text-indigo-500", bg: "bg-indigo-500/10" },
-            { label: "Draft Invoices", value: stats.pendingCount, icon: Clock, color: "text-amber-500", bg: "bg-amber-500/10" },
-            { label: "Issued Invoices", value: stats.finalizedCount, icon: CheckCircle2, color: "text-blue-500", bg: "bg-blue-500/10" },
+            { label: "Total Sales", value: `₹${stats.totalRevenue.toLocaleString('en-IN')}`, icon: TrendingUp, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+            { label: "Total Tax Collected", value: `₹${stats.totalTax.toLocaleString('en-IN')}`, icon: FileText, color: "text-indigo-500", bg: "bg-indigo-500/10" },
+            { label: "Pending Bills", value: stats.pendingCount, icon: Clock, color: "text-amber-500", bg: "bg-amber-500/10" },
+            { label: "Final Bills Issued", value: stats.finalizedCount, icon: CheckCircle2, color: "text-blue-500", bg: "bg-blue-500/10" },
           ].map((card, i) => (
-            <div key={i} className="bg-card p-4 rounded-xl border border-border shadow-sm hover:shadow-md transition-all">
+            <div key={i} className="bg-card p-4 rounded-md border border-border shadow-sm hover:shadow-md transition-all group">
               <div className="flex items-center justify-between mb-4">
-                <div className={`p-2 rounded-lg ${card.bg}`}>
+                <div className={`p-2 rounded-md ${card.bg}`}>
                   <card.icon className={`w-5 h-5 ${card.color}`} />
                 </div>
                 <MoreVertical className="w-4 h-4 text-muted-foreground/50" />
@@ -278,20 +279,20 @@ const Billing = () => {
         </div>
 
         {/* Invoice Management Table */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-4 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+        <div className="bg-card rounded-md border border-border shadow-sm overflow-hidden">
+          <div className="px-4 py-4 border-b border-border bg-muted/30 flex items-center justify-between">
             <div className="flex items-center gap-4">
               {['all', 'draft', 'finalized', 'paid'].map(status => (
                 <button
                   key={status}
                   onClick={() => setFilterStatus(status)}
-                  className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${filterStatus === status ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}
+                  className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${filterStatus === status ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}
                 >
                   {status}
                 </button>
               ))}
             </div>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
               Total Records: {filteredInvoices.length}
             </div>
           </div>
@@ -300,7 +301,7 @@ const Billing = () => {
             {loading ? (
               <div className="py-20 flex flex-col items-center justify-center">
                 <HammerLoader />
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-4">Synchronizing Ledgers...</p>
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em] mt-4">Updating Bills...</p>
               </div>
             ) : filteredInvoices.length === 0 ? (
               <div className="py-24 flex flex-col items-center justify-center text-slate-300 gap-4">
@@ -310,7 +311,7 @@ const Billing = () => {
             ) : (
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-100 text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                  <tr className="border-b border-border text-[10px] font-black uppercase text-muted-foreground tracking-widest">
                     <th className="px-4 py-4 text-left">Invoice Detail</th>
                     <th className="px-4 py-4 text-left">Client Information</th>
                     <th className="px-4 py-4 text-center">Quantity</th>
@@ -328,38 +329,38 @@ const Billing = () => {
                         initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.03 }}
-                        className="group hover:bg-slate-50/80 transition-colors"
+                        className="group hover:bg-muted/80 transition-colors"
                       >
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-900 font-black text-[10px] border border-slate-200">
+                            <div className="w-10 h-10 bg-slate-100 rounded-md flex items-center justify-center text-foreground font-black text-[10px] border border-border">
                               INV
                             </div>
                             <div className="flex flex-col">
-                              <span className="text-sm font-black text-slate-900 tracking-tight">{inv.invoiceNumber}</span>
-                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{new Date(inv.createdAt).toLocaleDateString('en-GB')}</span>
+                              <span className="text-sm font-black text-foreground tracking-tight">{inv.invoiceNumber}</span>
+                              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{formatDate(inv.createdAt)}</span>
                             </div>
                           </div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex flex-col">
-                            <span className="text-sm font-bold text-slate-900">{inv.customer?.name || "Private Client"}</span>
-                            <span className="text-[10px] text-slate-400 font-medium uppercase tracking-tight">{inv.customer?.company || "Retail Branch"}</span>
+                            <span className="text-sm font-bold text-foreground">{inv.customer?.name || "Private Client"}</span>
+                            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">{inv.customer?.company || "Retail Branch"}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex flex-col items-center">
-                            <span className="text-sm font-black text-slate-900 tabular-nums">
+                            <span className="text-sm font-black text-foreground tabular-nums">
                               {inv.items?.reduce((acc, item) => acc + (item.quantity || 0), 0) || 0}
                             </span>
-                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                               {inv.items?.[0]?.unit || "Units"}
                             </span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex justify-center">
-                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${inv.status === 'paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                            <span className={`px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border ${inv.status === 'paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
                                 inv.status === 'finalized' ? 'bg-blue-50 text-blue-600 border-blue-100' :
                                   'bg-amber-50 text-amber-600 border-amber-100'
                               }`}>
@@ -369,7 +370,7 @@ const Billing = () => {
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex flex-col items-end">
-                            <span className="text-base font-black text-slate-900 tabular-nums">₹{(inv.totalAmount || 0).toLocaleString('en-IN')}</span>
+                            <span className="text-base font-black text-foreground tabular-nums">₹{(inv.totalAmount || 0).toLocaleString('en-IN')}</span>
                             <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">Tax Paid</span>
                           </div>
                         </td>
@@ -377,14 +378,14 @@ const Billing = () => {
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => { setActiveInvoice(inv); setIsEInvoiceModalOpen(true); }}
-                              className={`p-2 rounded-lg border transition-all ${inv.einvoice?.irn ? 'bg-indigo-600 border-indigo-700 text-white shadow-md' : 'bg-white border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-100'}`}
+                              className={`p-2 rounded-md border transition-all ${inv.einvoice?.irn ? 'bg-indigo-600 border-indigo-700 text-white shadow-md' : 'bg-card border-border text-muted-foreground hover:text-indigo-600 hover:border-indigo-100'}`}
                               title="E-Invoice"
                             >
                               <FileJson className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => { setActiveInvoice(inv); setIsEWayBillModalOpen(true); }}
-                              className={`p-2 rounded-lg border transition-all ${inv.ewayBill?.number ? 'bg-emerald-600 border-emerald-700 text-white shadow-md' : 'bg-white border-slate-200 text-slate-400 hover:text-emerald-600 hover:border-emerald-100'}`}
+                              className={`p-2 rounded-md border transition-all ${inv.ewayBill?.number ? 'bg-emerald-600 border-emerald-700 text-white shadow-md' : 'bg-card border-border text-muted-foreground hover:text-emerald-600 hover:border-emerald-100'}`}
                               title="E-Way Bill"
                             >
                               <Truck className="w-4 h-4" />
@@ -395,14 +396,14 @@ const Billing = () => {
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => handleOpenPreview(inv)}
-                              className="p-2.5 bg-white border border-slate-200 rounded-lg text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm"
+                              className="p-2.5 bg-card border border-border rounded-md text-slate-500 hover:text-foreground hover:border-slate-300 transition-all shadow-sm"
                               title="Preview Document"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDownloadPdf(inv)}
-                              className="p-2.5 bg-slate-900 text-white rounded-lg hover:bg-black transition-all shadow-md active:scale-95"
+                              className="p-2.5 bg-slate-900 text-white rounded-md hover:bg-black transition-all shadow-md active:scale-95"
                               title="Download PDF"
                             >
                               <Download className="w-4 h-4" />
@@ -411,14 +412,14 @@ const Billing = () => {
                               <>
                                 <button
                                   onClick={() => handleFinalizeInvoice(inv._id)}
-                                  className="p-2.5 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-all shadow-md active:scale-95"
+                                  className="p-2.5 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 transition-all shadow-md active:scale-95"
                                   title="Finalize Invoice"
                                 >
                                   <CheckCircle2 className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteInvoice(inv._id)}
-                                  className="p-2.5 bg-rose-50 border border-rose-200 text-rose-500 rounded-lg hover:bg-rose-100 transition-all shadow-sm active:scale-95"
+                                  className="p-2.5 bg-rose-50 border border-rose-200 text-rose-500 rounded-md hover:bg-rose-100 transition-all shadow-sm active:scale-95"
                                   title="Delete Draft"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -530,7 +531,7 @@ const Billing = () => {
 
               <div className="pt-2 border-t border-border/50">
                 <label className="flex items-center gap-2 cursor-pointer group w-fit">
-                  <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${isOrderIgst ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-slate-300 group-hover:border-indigo-400'}`}>
+                  <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${isOrderIgst ? 'bg-indigo-600 border-indigo-600' : 'bg-card border-slate-300 group-hover:border-indigo-400'}`}>
                     {isOrderIgst && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                   </div>
                   <input
@@ -562,23 +563,23 @@ const Billing = () => {
       <Modal
         isOpen={isPreviewOpen}
         onClose={handleClosePreview}
-        title={<div className="flex items-center gap-4"><FileText className="w-6 h-6 text-slate-900" /><span className="text-xl font-black uppercase tracking-tightest leading-none ">Document <span className="text-indigo-600">Preview</span></span></div>}
+        title={<div className="flex items-center gap-4"><FileText className="w-6 h-6 text-foreground" /><span className="text-xl font-black uppercase tracking-tightest leading-none ">Document <span className="text-indigo-600">Preview</span></span></div>}
         size="7xl"
       >
         <div className="flex flex-col h-[85vh]">
-          <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div className="p-4 bg-slate-50 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-slate-900 rounded-lg flex items-center justify-center text-white shadow-xl">
+              <div className="w-12 h-12 bg-slate-900 rounded-md flex items-center justify-center text-white shadow-xl">
                 <FileText className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="text-xl font-black text-slate-900 tracking-tight  uppercase">{activeInvoice?.invoiceNumber}</h4>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Internal Audit Master Record</p>
+                <h4 className="text-xl font-black text-foreground tracking-tight  uppercase">{activeInvoice?.invoiceNumber}</h4>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Internal Audit Master Record</p>
               </div>
             </div>
             <button
               onClick={handleDownloadPdf}
-              className="px-4 py-3 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-indigo-700 transition-all flex items-center gap-3 shadow-lg shadow-indigo-100"
+              className="px-4 py-3 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-md hover:bg-indigo-700 transition-all flex items-center gap-3 shadow-lg shadow-indigo-100"
             >
               <Download className="w-4 h-4" /> Download PDF
             </button>
@@ -589,7 +590,7 @@ const Billing = () => {
             {previewUrl ? (
               <iframe
                 src={previewUrl}
-                className="w-full h-full rounded-xl border border-slate-300 shadow-2xl bg-white relative z-10"
+                className="w-full h-full rounded-md border border-slate-300 shadow-2xl bg-card relative z-10"
                 title="Invoice Preview"
               />
             ) : (

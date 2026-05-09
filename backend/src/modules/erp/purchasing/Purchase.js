@@ -20,6 +20,22 @@ const purchaseSchema = new mongoose.Schema(
       type: String,
       default: "kg",
     },
+    materialGrade: {
+      type: String,
+      default: "",
+    },
+    thickness: {
+      type: Number,
+      default: 0,
+    },
+    width: {
+      type: Number,
+      default: 0,
+    },
+    length: {
+      type: Number,
+      default: 0,
+    },
     taxableAmount: {
       type: Number,
       default: 0,

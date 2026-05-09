@@ -13,58 +13,58 @@ import { useAuth } from "../../context/AuthContext";
  */
 const navSections = [
   {
-    title: "Intelligence Hub",
+    title: "Reports",
     items: [
-      { name: "Global Overview", path: "/", icon: LayoutDashboard, end: true },
-      { name: "Compliance Radar", path: "/compliance", icon: ShieldCheck, module: "accounting", roles: ["admin"] },
-      { name: "Intelligence Reports", path: "/reports", icon: BarChart3, module: "erp", roles: ["admin", "accountant"] },
+      { name: "Dashboard", path: "/", icon: LayoutDashboard, end: true },
+      { name: "Tax & Stock Check", path: "/compliance", icon: ShieldCheck, module: "accounting", roles: ["admin"] },
+      { name: "All Reports", path: "/reports", icon: BarChart3, module: "erp", roles: ["admin", "accountant"] },
     ]
   },
   {
-    title: "Commercial Flux",
+    title: "Sales",
     items: [
-      { name: "Relationship Hub", path: "/customers", icon: Users, module: "erp" },
-      { name: "Order Registry", path: "/orders", icon: ShoppingCart, module: "erp" },
-      { name: "Billing Terminal", path: "/billing", icon: FileText, module: "accounting", roles: ["admin", "accountant"] },
+      { name: "Customers", path: "/customers", icon: Users, module: "erp" },
+      { name: "Orders", path: "/orders", icon: ShoppingCart, module: "erp" },
+      { name: "Bills / Invoices", path: "/billing", icon: FileText, module: "accounting", roles: ["admin", "accountant"] },
     ]
   },
   {
-    title: "Operational Core",
+    title: "Inventory & Stock",
     module: "erp",
     items: [
-      { name: "Asset Inventory", path: "/products", icon: Boxes },
-      { name: "Vendor Matrix", path: "/suppliers", icon: Building2, roles: ["admin", "accountant"] },
-      { name: "Stock Ingress", path: "/purchases", icon: Download },
-      { name: "Execution Hub", path: "/production", icon: ClipboardCheck },
+      { name: "Products", path: "/products", icon: Boxes },
+      { name: "Suppliers", path: "/suppliers", icon: Building2, roles: ["admin", "accountant"] },
+      { name: "Purchases", path: "/purchases", icon: Download },
+      { name: "Production", path: "/production", icon: ClipboardCheck },
     ]
   },
   {
-    title: "Fiscal Governance",
+    title: "Accounts",
     module: "accounting",
     roles: ["admin", "accountant"],
     items: [
-      { name: "Treasury Data", path: "/accounting", icon: Wallet },
-      { name: "Audit Ledgers", path: "/statements", icon: FileText },
-      { name: "Human Capital", path: "/payroll", icon: Banknote, roles: ["admin"] },
-      { name: "Global Statement", path: "/financial-statement", icon: FileBarChart, roles: ["admin"] },
+      { name: "Accounting", path: "/accounting", icon: Wallet },
+      { name: "Party Ledgers", path: "/statements", icon: FileText },
+      { name: "Salary & Staff", path: "/payroll", icon: Banknote, roles: ["admin"] },
+      { name: "Balance Sheet", path: "/financial-statement", icon: FileBarChart, roles: ["admin"] },
     ]
   },
   {
-    title: "Treasury Intel",
+    title: "Bank & Cash",
     module: "accounting",
     roles: ["admin", "accountant"],
     items: [
-      { name: "Financial Overview", path: "/treasury", icon: LayoutDashboard, end: true },
-      { name: "Bank Reserves", path: "/treasury/bank", icon: Landmark },
-      { name: "Burn Matrix", path: "/treasury/expenses", icon: TrendingDown },
-      { name: "Cash Flux", path: "/treasury/cash", icon: Wallet },
+      { name: "Bank/Cash Dashboard", path: "/treasury", icon: LayoutDashboard, end: true },
+      { name: "Bank Accounts", path: "/treasury/bank", icon: Landmark },
+      { name: "Expenses", path: "/treasury/expenses", icon: TrendingDown },
+      { name: "Cash in Hand", path: "/treasury/cash", icon: Wallet },
     ]
   },
   {
-    title: "System Orchestration",
+    title: "Settings",
     roles: ["admin"],
     items: [
-      { name: "Master Settings", path: "/settings", icon: Settings }
+      { name: "General Settings", path: "/settings", icon: Settings }
     ]
   }
 ];
@@ -192,10 +192,10 @@ const Sidebar = ({ open, setOpen }) => {
               </div>
               <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-[11px] font-bold text-foreground truncate tracking-tight">
-                  {user?.name || "Root Admin"}
+                  {user?.name || "Admin"}
                 </span>
                 <span className="text-[9px] text-muted-foreground truncate uppercase font-bold tracking-tighter">
-                  {user?.role || "System Authority"}
+                  {user?.role || "Administrator"}
                 </span>
               </div>
               <button onClick={logout} className="p-1.5 text-muted-foreground hover:text-destructive rounded transition-colors">

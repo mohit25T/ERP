@@ -43,15 +43,15 @@ const TreasuryDashboard = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-            Treasury <span className="text-indigo-600 ">Intelligence</span>
+            Bank & Cash <span className="text-indigo-600 ">Overview</span>
           </h1>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1">
-            Financial Liquidity & Expense Protocol
+            Money in/out history
           </p>
         </div>
         <button 
           onClick={fetchSummary}
-          className="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm self-start md:self-center"
+          className="p-2 bg-white border border-slate-200 rounded-md hover:bg-slate-50 transition-colors shadow-sm self-start md:self-center"
         >
           <RefreshCcw className="w-4 h-4 text-slate-500" />
         </button>
@@ -60,11 +60,11 @@ const TreasuryDashboard = () => {
       {/* Primary Balance Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <MetricCard 
-          title="Bank Reserves" 
+          title="Bank Balance" 
           value={data.balances.bank} 
           icon={Landmark} 
           color="indigo" 
-          subtitle="Consolidated Bank Balance"
+          subtitle="Total in all banks"
         />
         <MetricCard 
           title="Cash In Hand" 
@@ -74,11 +74,11 @@ const TreasuryDashboard = () => {
           subtitle="Daily Operational Liquidity"
         />
         <MetricCard 
-          title="Monthly Burn" 
+          title="Monthly Expenses" 
           value={data.expenses.monthlyTotal} 
           icon={TrendingDown} 
           color="rose" 
-          subtitle="Total Expenses this Month"
+          subtitle="Total spent this month"
         />
       </div>
 
@@ -88,7 +88,7 @@ const TreasuryDashboard = () => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"
+          className="bg-white p-4 rounded-md border border-slate-200 shadow-sm"
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
@@ -135,17 +135,17 @@ const TreasuryDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"
+          className="bg-white p-4 rounded-md border border-slate-200 shadow-sm"
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
-              <RefreshCcw className="w-4 h-4 text-emerald-500" /> Recent Flux
+              <RefreshCcw className="w-4 h-4 text-emerald-500" /> Recent Activity
             </h3>
           </div>
           <div className="space-y-4">
             {data.recent.map((tx, idx) => (
-              <div key={idx} className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-                <div className={`p-2 rounded-lg ${
+              <div key={idx} className="flex items-center gap-4 p-3 rounded-md hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
+                <div className={`p-2 rounded-md ${
                   tx.displayType === 'IN' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
                 }`}>
                   {tx.displayType === 'IN' ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownLeft className="w-4 h-4" />}
@@ -166,7 +166,7 @@ const TreasuryDashboard = () => {
                       {tx.source}
                     </span>
                     <span className="text-[9px] text-slate-400">
-                      {new Date(tx.date).toLocaleDateString()}
+                      {formatDate(tx.date)}
                     </span>
                   </div>
                 </div>
@@ -195,9 +195,9 @@ const MetricCard = ({ title, value, icon: Icon, color, subtitle }) => {
   return (
     <motion.div 
       whileHover={{ y: -5 }}
-      className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group"
+      className="bg-white p-4 rounded-md border border-slate-200 shadow-sm relative overflow-hidden group"
     >
-      <div className={`inline-flex p-3 rounded-xl mb-4 border ${colorMap[color]}`}>
+      <div className={`inline-flex p-3 rounded-md mb-4 border ${colorMap[color]}`}>
         <Icon className="w-5 h-5" />
       </div>
       <div className="space-y-1">

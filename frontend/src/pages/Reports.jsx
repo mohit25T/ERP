@@ -17,7 +17,7 @@ const exportCSV = (data, filename) => {
    const encodedUri = encodeURI(csvContent);
    const link = document.createElement("a");
    link.setAttribute("href", encodedUri);
-   link.setAttribute("download", `${filename}_${new Date().toLocaleDateString()}.csv`);
+   link.setAttribute("download", `${filename}_${formatDate(new Date())}.csv`);
    document.body.appendChild(link);
    link.click();
    document.body.removeChild(link);
@@ -60,7 +60,7 @@ const Reports = () => {
          setExportLoading(true);
          const res = await ledgerApi.getAll();
          const flatData = res.data.map(item => ({
-            Date: new Date(item.date).toLocaleDateString(),
+            Date: formatDate(item.date),
             Type: item.type,
             Category: item.category,
             Amount: item.amount,
@@ -87,7 +87,7 @@ const Reports = () => {
             return (d.getMonth() + 1) === selectedMonth && d.getFullYear() === selectedYear;
          });
          const flatData = filtered.map(item => ({
-            Date: new Date(item.date).toLocaleDateString(),
+            Date: formatDate(item.date),
             Type: item.type,
             Category: item.category,
             Amount: item.amount,
@@ -105,7 +105,7 @@ const Reports = () => {
       <AppLayout>
          <div className="flex flex-col items-center justify-center h-[60vh]">
             <HammerLoader />
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em] mt-4 animate-pulse">Synchronizing Regulatory Datasets...</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em] mt-4 animate-pulse">Loading reports...</p>
          </div>
       </AppLayout>
    );
@@ -121,15 +121,15 @@ const Reports = () => {
                      <PieChart className="w-6 h-6 text-primary-foreground" />
                   </div>
                   <div>
-                     <h2 className="text-2xl font-black text-foreground tracking-tight uppercase leading-none mb-1">Intelligence Terminal</h2>
-                     <div className="flex items-center gap-2">
+                     <h2 className="text-2xl font-black text-foreground tracking-tight uppercase leading-none mb-1">Business Reports</h2>
+                     <div className="flex items-center gap-2 print:hidden">
                         <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none opacity-70">Statutory Compliance & Financial Analytics</span>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none opacity-70">GST and Tax Details</span>
                      </div>
                   </div>
                </div>
 
-               <div className="flex items-center gap-2">
+               <div className="flex items-center gap-2 print:hidden">
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-card rounded border border-border">
                      <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
                      <select value={selectedMonth} onChange={(e) => setSelectedMonth(Number(e.target.value))} className="bg-transparent text-[10px] font-bold text-foreground uppercase tracking-widest outline-none cursor-pointer">
@@ -154,8 +154,8 @@ const Reports = () => {
                         <div className="flex items-center gap-3">
                            <div className="w-10 h-10 bg-primary/10 rounded flex items-center justify-center text-primary"><TrendingUp className="w-5 h-5" /></div>
                            <div>
-                              <h4 className="text-sm font-bold text-foreground uppercase tracking-wider">GSTR-1 Outward Supplies</h4>
-                              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Output Tax Analysis</p>
+                              <h4 className="text-sm font-bold text-foreground uppercase tracking-wider">Sales Tax Report (GSTR-1)</h4>
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Tax on Sales</p>
                            </div>
                         </div>
                         <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded text-[9px] font-bold uppercase tracking-widest">Validated</span>
@@ -163,14 +163,14 @@ const Reports = () => {
 
                      <div className="grid grid-cols-2 gap-4 mb-4">
                         <div className="space-y-1">
-                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">B2B Taxable</p>
+                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Registered Business Sales</p>
                            <h3 className="text-2xl font-black text-foreground tracking-tighter">₹{gstr1?.b2b?.taxableValue.toLocaleString() || '0'}</h3>
                            <div className="text-[9px] font-bold text-primary uppercase tracking-widest bg-primary/5 w-fit px-2 py-0.5 rounded mt-2">
                               {gstr1?.b2b?.count || 0} Invoices
                            </div>
                         </div>
                         <div className="space-y-1">
-                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">B2C Taxable</p>
+                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Direct Customer Sales</p>
                            <h3 className="text-2xl font-black text-foreground tracking-tighter">₹{gstr1?.b2c?.taxableValue.toLocaleString() || '0'}</h3>
                            <div className="text-[9px] font-bold text-primary uppercase tracking-widest bg-primary/5 w-fit px-2 py-0.5 rounded mt-2">
                               {gstr1?.b2c?.count || 0} Records
@@ -180,7 +180,7 @@ const Reports = () => {
 
                      <div className="p-3 bg-muted/30 rounded border border-border flex items-center justify-between relative overflow-hidden">
                         <div>
-                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Total Output Tax Liability</p>
+                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Total Tax on Sales</p>
                            <h3 className="text-2xl font-black text-foreground tracking-tighter">₹{((gstr1?.b2b?.taxAmount || 0) + (gstr1?.b2c?.taxAmount || 0)).toLocaleString() || '0'}</h3>
                         </div>
                         <div className="w-10 h-10 bg-primary/20 rounded flex items-center justify-center text-primary"><Activity className="w-5 h-5" /></div>
@@ -192,30 +192,30 @@ const Reports = () => {
                      <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border/50">
                         <div className="w-10 h-10 bg-primary/10 rounded flex items-center justify-center text-primary"><Scale className="w-5 h-5" /></div>
                         <div>
-                           <h4 className="text-sm font-bold text-foreground uppercase tracking-wider">GSTR-3B Fiscal Offset</h4>
-                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">ITC vs Liability Calibration</p>
+                           <h4 className="text-sm font-bold text-foreground uppercase tracking-wider">Monthly Tax Payment (GSTR-3B)</h4>
+                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">GST Credit vs GST Payable</p>
                         </div>
                      </div>
 
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div className="p-4 bg-emerald-500/5 rounded border border-emerald-500/10">
-                           <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Available ITC</p>
+                           <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">GST Credit (ITC)</p>
                            <h3 className="text-xl font-black text-emerald-700 dark:text-emerald-400 tracking-tighter">₹{gstr3b?.inward?.taxAmount.toLocaleString() || '0'}</h3>
                         </div>
                         <div className="p-4 bg-rose-500/5 rounded border border-rose-500/10">
-                           <p className="text-[10px] font-bold text-rose-600 uppercase tracking-widest mb-1">Output Liability</p>
+                           <p className="text-[10px] font-bold text-rose-600 uppercase tracking-widest mb-1">GST to be Paid</p>
                            <h3 className="text-xl font-black text-rose-700 dark:text-rose-400 tracking-tighter">₹{gstr3b?.outward?.taxAmount.toLocaleString() || '0'}</h3>
                         </div>
                      </div>
 
                      <div className="p-4 flex flex-col md:flex-row items-center justify-between gap-4 bg-muted/20 border border-border rounded">
                         <div>
-                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Net Fiscal Payable</p>
+                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Final GST to Pay</p>
                            <h3 className="text-3xl font-black text-foreground tracking-tighter">₹{Math.max(0, gstr3b?.netPayable || 0).toLocaleString()}</h3>
                         </div>
-                        <div className={`px-4 py-2 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-sm ${gstr3b?.netPayable < 0 ? 'bg-emerald-600 text-white' : 'bg-foreground text-background'}`}>
+                        <div className={`px-4 py-2 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-sm print:hidden ${gstr3b?.netPayable < 0 ? 'bg-emerald-600 text-white' : 'bg-foreground text-background'}`}>
                            {gstr3b?.netPayable < 0 ? <ShieldCheck className="w-3.5 h-3.5" /> : <Activity className="w-3.5 h-3.5" />}
-                           {gstr3b?.netPayable < 0 ? "ITC Reserve Active" : "Payment Action Required"}
+                           {gstr3b?.netPayable < 0 ? "Credit Available" : "Pay GST Now"}
                         </div>
                      </div>
                   </div>
@@ -227,8 +227,8 @@ const Reports = () => {
                      <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border/50">
                         <div className="w-10 h-10 bg-primary/10 rounded flex items-center justify-center text-primary"><Building2 className="w-5 h-5" /></div>
                         <div>
-                           <h4 className="text-sm font-bold text-foreground uppercase tracking-wider">Balance Sheet</h4>
-                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Financial Position Snapshot</p>
+                           <h4 className="text-sm font-bold text-foreground uppercase tracking-wider">Money Status</h4>
+                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Your Business Money Status</p>
                         </div>
                      </div>
 
@@ -237,7 +237,7 @@ const Reports = () => {
                            <div className="flex items-center justify-between">
                               <span className="text-[10px] font-bold text-foreground uppercase tracking-widest flex items-center gap-2">
                                  <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
-                                 Asset Matrix
+                                 Everything You Have (Assets)
                               </span>
                               <span className="text-xl font-black text-foreground tracking-tighter">₹{balanceSheet?.assets?.total?.toLocaleString() || '0'}</span>
                            </div>
@@ -259,47 +259,46 @@ const Reports = () => {
                            <div className="flex items-center justify-between">
                               <span className="text-[10px] font-bold text-foreground uppercase tracking-widest flex items-center gap-2">
                                  <TrendingDown className="w-3.5 h-3.5 text-rose-500" />
-                                 Liability Matrix
+                                 Everything You Owe (Liabilities)
                               </span>
                               <span className="text-xl font-black text-foreground tracking-tighter">₹{balanceSheet?.liabilities?.total?.toLocaleString() || '0'}</span>
                            </div>
                            <div className="px-4 py-3 bg-muted/30 rounded border border-border/50">
                               <div className="flex justify-between items-center">
-                                 <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Accounts Payable</span>
+                                 <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Money you owe to sellers</span>
                                  <span className="text-xs font-bold text-foreground tracking-tight">₹{balanceSheet?.liabilities?.payables?.toLocaleString() || '0'}</span>
                               </div>
                            </div>
                         </div>
 
                         <div className="pt-4 border-t border-border flex items-center justify-between">
-                           <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Net Equity</span>
+                           <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Your Total Money</span>
                            <span className="text-2xl font-black text-primary tracking-tighter">₹{balanceSheet?.equity?.toLocaleString() || '0'}</span>
                         </div>
                      </div>
                   </div>
 
                   {/* ACTION MATRIX */}
-                  <div className="grid grid-cols-2 gap-4">
-                     <button onClick={handleExportLedger} disabled={exportLoading} className="p-4 bg-card rounded border border-border shadow-sm text-center hover:bg-muted/50 transition-all flex flex-col items-center justify-center gap-3 group">
-                        <div className="w-10 h-10 bg-primary/10 rounded flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                  <div className="grid grid-cols-2 gap-4 print:hidden">
+                     <button onClick={handleExportLedger} disabled={exportLoading} className="p-4 bg-indigo-600 rounded-md border border-indigo-700 shadow-xl shadow-indigo-500/20 text-center hover:bg-indigo-700 transition-all flex flex-col items-center justify-center gap-3 group">
+                        <div className="w-10 h-10 bg-white/20 rounded flex items-center justify-center text-white group-hover:scale-110 transition-all">
                            <Download className="w-5 h-5" />
                         </div>
                         <div>
-                           <p className="text-[9px] font-bold text-foreground uppercase tracking-widest">Export Ledger</p>
-                           <p className="text-[8px] font-medium text-muted-foreground uppercase tracking-tighter mt-0.5">CSV Dataset</p>
+                           <p className="text-[9px] font-bold text-white uppercase tracking-widest">Export Dataset</p>
+                           <p className="text-[8px] font-medium text-white/60 uppercase tracking-tighter mt-0.5">All Transactions</p>
                         </div>
                      </button>
-                     <button onClick={handleDaybookExport} disabled={exportLoading} className="p-4 bg-card rounded border border-border shadow-sm text-center hover:bg-muted/50 transition-all flex flex-col items-center justify-center gap-3 group">
-                        <div className="w-10 h-10 bg-primary/10 rounded flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                     <button onClick={handleDaybookExport} disabled={exportLoading} className="p-4 bg-white rounded-md border border-slate-200 shadow-sm text-center hover:bg-slate-50 transition-all flex flex-col items-center justify-center gap-3 group">
+                        <div className="w-10 h-10 bg-indigo-50 rounded flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-all">
                            <PieChart className="w-5 h-5" />
                         </div>
                         <div>
-                           <p className="text-[9px] font-bold text-foreground uppercase tracking-widest">Export Daybook</p>
-                           <p className="text-[8px] font-medium text-muted-foreground uppercase tracking-tighter mt-0.5">Monthly Summary</p>
+                           <p className="text-[9px] font-bold text-slate-900 uppercase tracking-widest">Export Monthly Dataset</p>
+                           <p className="text-[8px] font-medium text-slate-400 uppercase tracking-tighter mt-0.5">Daily Records</p>
                         </div>
                      </button>
                   </div>
-
                </div>
             </div>
          </div>

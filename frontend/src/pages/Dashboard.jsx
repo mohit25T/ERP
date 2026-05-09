@@ -55,15 +55,15 @@ const Dashboard = () => {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border pb-4">
           <div>
-            <h1 className="text-xl font-black text-foreground uppercase tracking-tight">System Dashboard</h1>
-            <p className="text-xs text-muted-foreground mt-0.5 font-medium uppercase tracking-widest opacity-70">Real-time business intelligence and operational metrics.</p>
+            <h1 className="text-xl font-black text-foreground uppercase tracking-tight">Business Overview</h1>
+            <p className="text-xs text-muted-foreground mt-0.5 font-medium uppercase tracking-widest opacity-70">Current status of your business.</p>
           </div>
           <div className="flex gap-2">
             <button className="erp-button-secondary">
-              <Database className="w-3.5 h-3.5" /> Download Data
+              <Database className="w-3.5 h-3.5" /> Save Data
             </button>
             <Link to="/production" className="erp-button-primary">
-              Execute Production
+              Start Making Product
             </Link>
           </div>
         </div>
@@ -71,30 +71,30 @@ const Dashboard = () => {
         {/* A. KPI CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <KPICard
-            title="Production Today"
+            title="Made Today"
             value={`${(stats?.summary?.totalProductionToday || 0).toLocaleString()} kg`}
-            trend="Synchronized"
+            trend="Updated"
             isPositive={true}
             icon={Package}
           />
           <KPICard
-            title="Operational Efficiency"
+            title="Work Efficiency"
             value={`${(stats?.summary?.efficiency || 0).toFixed(1)}%`}
-            trend="Active"
+            trend="Live"
             isPositive={true}
             icon={Activity}
           />
           <KPICard
-            title="Pending Requests"
+            title="Pending Orders"
             value={`${pendingOrders} Orders`}
-            trend="Queued"
+            trend="Waiting"
             isPositive={false}
             icon={ShoppingCart}
           />
           <KPICard
-            title="Inventory Ledger"
+            title="Total Stock"
             value={`${availableStock.toLocaleString()} kg`}
-            trend="Validated"
+            trend="Checked"
             isPositive={true}
             icon={Database}
           />
@@ -107,7 +107,7 @@ const Dashboard = () => {
           <div className="lg:col-span-2 space-y-4">
             {/* Production Output Chart */}
             <div className="bg-card p-3 rounded border border-border relative overflow-hidden">
-              <h3 className="text-xs font-bold text-foreground mb-4 uppercase tracking-widest opacity-80">Output Analysis</h3>
+              <h3 className="text-xs font-bold text-foreground mb-4 uppercase tracking-widest opacity-80">Production Chart</h3>
               <div className="h-[280px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats?.productionTrend || []} margin={{ top: 5, right: 0, left: -20, bottom: 5 }}>
@@ -134,14 +134,14 @@ const Dashboard = () => {
               </div>
               {(!stats?.productionTrend || stats.productionTrend.length === 0) && (
                 <div className="absolute inset-0 bg-card/80 backdrop-blur-[1px] flex items-center justify-center">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em]">No historical data available</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em]">No data available</p>
                 </div>
               )}
             </div>
 
             {/* Efficiency vs Scrap Trend */}
             <div className="bg-card p-3 rounded border border-border relative overflow-hidden">
-              <h3 className="text-xs font-bold text-foreground mb-4 uppercase tracking-widest opacity-80">Efficiency vs Resource Loss</h3>
+              <h3 className="text-xs font-bold text-foreground mb-4 uppercase tracking-widest opacity-80">Efficiency vs Scrap</h3>
               <div className="h-[280px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={stats?.productionTrend || []} margin={{ top: 5, right: 0, left: -20, bottom: 5 }}>
@@ -183,7 +183,7 @@ const Dashboard = () => {
             <div className="bg-card rounded border border-border flex flex-col h-full lg:max-h-[660px]">
               <div className="p-4 border-b border-border flex items-center justify-between bg-muted/20">
                 <h3 className="text-xs font-bold text-foreground flex items-center gap-2 uppercase tracking-widest">
-                  <ShieldAlert className="w-4 h-4 text-amber-500 dark:text-amber-400" /> Critical Alerts
+                  <ShieldAlert className="w-4 h-4 text-amber-500 dark:text-amber-400" /> Low Stock Warnings
                 </h3>
                 <span className="bg-destructive/10 text-destructive text-[10px] font-black px-2 py-0.5 rounded border border-destructive/20">{lowStockAlerts.length}</span>
               </div>
@@ -191,7 +191,7 @@ const Dashboard = () => {
               <div className="p-3 flex-1 overflow-y-auto space-y-2 custom-scrollbar">
                 {lowStockAlerts.length === 0 ? (
                   <div className="text-center py-10 opacity-40">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">System nominal. No alerts.</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Everything is okay. No alerts.</p>
                   </div>
                 ) : (
                   lowStockAlerts.map(alert => (
@@ -202,7 +202,7 @@ const Dashboard = () => {
                           <p className="text-xs font-bold text-foreground tracking-tight">{alert.name}</p>
                           <StatusBadge status="Critical" />
                         </div>
-                        <p className="text-[10px] text-muted-foreground mt-1 font-medium">Resource level: <span className="font-bold text-destructive">{alert.stock} {alert.unit || 'units'}</span> remaining.</p>
+                        <p className="text-[10px] text-muted-foreground mt-1 font-medium">Stock level: <span className="font-bold text-destructive">{alert.stock} {alert.unit || 'units'}</span> remaining.</p>
                       </div>
                     </div>
                   ))
@@ -211,7 +211,7 @@ const Dashboard = () => {
 
               <div className="p-3 border-t border-border">
                 <Link to="/products" className="text-[10px] font-black text-primary hover:text-primary/80 flex items-center justify-center gap-1 w-full py-2 bg-primary/5 rounded border border-primary/10 hover:bg-primary/10 transition-all uppercase tracking-widest">
-                  Inventory Protocol <ArrowRight className="w-3 h-3" />
+                  Go to Stock <ArrowRight className="w-3 h-3" />
                 </Link>
               </div>
             </div>
