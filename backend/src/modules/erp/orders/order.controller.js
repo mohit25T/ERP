@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { getIO } from "../../../shared/utils/socket.js";
 import Order from "./Order.js";
 import Product from "../products/Product.js";
 import User from "../../core/users/User.js";
@@ -87,6 +88,7 @@ export const createOrder = async (req, res) => {
     });
 
     // 5. Post-Transaction side-effects (Notifications)
+    getIO().emit("ORDER_UPDATED", { type: 'create', orderId: result._id });
     res.status(201).json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -163,6 +165,7 @@ export const updateOrder = async (req, res) => {
       return updatedOrder;
     });
 
+    getIO().emit("ORDER_UPDATED", { type: 'update', orderId: id });
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -217,6 +220,7 @@ export const dispatchOrder = async (req, res) => {
       return order;
     });
 
+    getIO().emit("ORDER_UPDATED", { type: 'dispatch', orderId: id });
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -291,6 +295,7 @@ export const updateOrderStatus = async (req, res) => {
       return order;
     });
 
+    getIO().emit("ORDER_UPDATED", { type: 'status_update', orderId: orderId });
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -320,6 +325,7 @@ export const deleteOrder = async (req, res) => {
       await Order.findByIdAndDelete(orderId).session(session);
     });
 
+    getIO().emit("ORDER_UPDATED", { type: 'delete', orderId: orderId });
     res.json({ msg: "Order and associated logs deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });

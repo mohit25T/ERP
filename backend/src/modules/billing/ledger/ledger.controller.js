@@ -2,6 +2,7 @@ import Ledger from "./Ledger.js";
 import Order from "../../erp/orders/Order.js";
 import Purchase from "../../erp/purchasing/Purchase.js";
 import mongoose from "mongoose";
+import { getIO } from "../../../shared/utils/socket.js";
 
 // Record new Ledger Entry (Manual Income/Expense)
 export const createLedgerEntry = async (req, res) => {
@@ -54,6 +55,7 @@ export const createLedgerEntry = async (req, res) => {
     });
     
     await entry.save();
+    getIO().emit("LEDGER_UPDATED", { entryId: entry._id, customer: entry.customer, supplier: entry.supplier });
     res.status(201).json(entry);
   } catch (err) {
     res.status(500).json({ error: err.message });

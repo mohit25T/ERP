@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { orderApi, paymentApi, invoiceApi } from "../../api/erpApi";
 import { useAuth } from "../../context/AuthContext";
+import { useSocket } from "../../context/SocketContext";
 import AppLayout from "../../components/layout/AppLayout";
 import Modal from "../../components/common/Modal";
 import HammerLoader from "../../components/common/HammerLoader";
@@ -65,9 +66,24 @@ const Orders = () => {
     }
   };
 
+  const socket = useSocket();
+
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("ORDER_UPDATED", (data) => {
+      console.log("[REALTIME] Order update detected:", data);
+      fetchOrders();
+    });
+
+    return () => {
+      socket.off("ORDER_UPDATED");
+    };
+  }, [socket]);
 
   const filteredOrders = Array.isArray(orders) ? orders.filter(o => {
     const searchLow = searchTerm.toLowerCase();

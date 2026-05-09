@@ -6,6 +6,8 @@ import axios from "axios";
 import cors from "cors";
 import mongoose from "mongoose";
 import connectDB from "./config/db.js";
+import http from "http";
+import { initSocket } from "./shared/utils/socket.js";
 
 // Import Middlewares
 import checkPlan from "./shared/middleware/plan.middleware.js";
@@ -178,7 +180,10 @@ const startServer = async () => {
     await connectDB();
     await UnitService.seedDefaultUnits();
 
-    app.listen(PORT, "0.0.0.0", () => {
+    const server = http.createServer(app);
+    initSocket(server);
+
+    server.listen(PORT, "0.0.0.0", () => {
       console.log(`[MIRACLE ERP] Core Intel Server active on port ${PORT}`);
       console.log(`[NETWORK] Local: http://localhost:${PORT}`);
       console.log(`[NETWORK] Loopback: http://127.0.0.1:${PORT}`);

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { paymentApi, api, ledgerApi, customerApi, supplierApi } from "../../api/erpApi";
+import { useSocket } from "../../context/SocketContext";
 import AppLayout from "../../components/layout/AppLayout";
 import HammerLoader from "../../components/common/HammerLoader";
 import { formatDate } from "../../utils/dateUtils";
@@ -278,9 +279,30 @@ const Accounting = () => {
       }
    };
 
+   const socket = useSocket();
+
    useEffect(() => {
       fetchData();
    }, [activeTab]);
+
+   useEffect(() => {
+      if (!socket) return;
+
+      socket.on("ORDER_UPDATED", () => {
+         console.log("[REALTIME] Financial change detected (Order)");
+         fetchData();
+      });
+
+      socket.on("LEDGER_UPDATED", () => {
+         console.log("[REALTIME] Financial change detected (Ledger)");
+         fetchData();
+      });
+
+      return () => {
+         socket.off("ORDER_UPDATED");
+         socket.off("LEDGER_UPDATED");
+      };
+   }, [socket, activeTab]);
 
    const getPartyName = (item) => {
       if (item.customer?.name) return item.customer.name;

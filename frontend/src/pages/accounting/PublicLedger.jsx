@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { publicApi } from "../../api/erpApi";
+import { useSocket } from "../../context/SocketContext";
 import { 
   Globe, Lock, ShieldCheck, Share2, Printer, 
   Building, TrendingUp, CreditCard, Download, 
@@ -18,20 +19,42 @@ const PublicLedger = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const fetchPortal = async () => {
+    try {
+      setLoading(true);
+      const res = await publicApi.getPublicLedger(token);
+      setData(res.data);
+    } catch (err) {
+      setError(err.response?.data?.error || "Portal access denied or link expired.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchPortal = async () => {
-      try {
-        setLoading(true);
-        const res = await publicApi.getPublicLedger(token);
-        setData(res.data);
-      } catch (err) {
-        setError(err.response?.data?.error || "Portal access denied or link expired.");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchPortal();
   }, [token]);
+
+  const socket = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("ORDER_UPDATED", () => {
+      console.log("[REALTIME] External Portal Refresh (Order)");
+      fetchPortal();
+    });
+
+    socket.on("LEDGER_UPDATED", () => {
+      console.log("[REALTIME] External Portal Refresh (Ledger)");
+      fetchPortal();
+    });
+
+    return () => {
+      socket.off("ORDER_UPDATED");
+      socket.off("LEDGER_UPDATED");
+    };
+  }, [socket, token]);
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background animate-pulse">
